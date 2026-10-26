@@ -80,7 +80,7 @@ const UNITS = [
   { id: 'PECS_LemonadeBeta', n: '레모네이드 베타', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '전개: 내 라이프 2 회복.' },
   { id: 'PECS_LemonadeGamma', n: '레모네이드 감마', f: 'PECS', t: 'L', r: 'DEF', g: 'A', c: 3, a: 2, h: 5, kw: ['방어막:2'] },
   { id: 'PECS_Fortune', n: '포츈', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 3, a: 1, h: 4, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
-  { id: 'PECS_ElvenForestmaker', n: '엘븐 포레스트 메이커', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 3, a: 2, h: 4, kw: [], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
+  { id: 'PECS_ElvenForestmaker', n: '엘븐 포레스트메이커', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 3, a: 2, h: 4, kw: [], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
   { id: 'PECS_MightyR', n: '마이티 R', f: 'PECS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'] },
   { id: 'PECS_Muse', n: '뮤즈', f: 'PECS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'healAll', v: 1 }], text: '전개: 모든 아군 유닛 1 회복.' },
   { id: 'PECS_Sonia', n: '소니아', f: 'PECS', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 3, kw: [], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
@@ -91,7 +91,7 @@ const UNITS = [
   { id: 'PECS_LRL', n: 'LRL', f: 'PECS', t: 'L', r: 'SUP', g: 'B', c: 2, a: 1, h: 3, kw: [], deploy: [{ op: 'buff', tgt: 'adjAllies', a: 1, h: 0 }], text: '전개: 양옆 아군 공격력 +1.' },
 
   // ---------- 블랙리버 ----------
-  { id: 'BR_Khan', n: '칸', f: 'BR', t: 'H', r: 'DEF', g: 'SS', c: 7, a: 5, h: 10, kw: ['반격', '방어막:2'] },
+  { id: 'BR_Khan', n: '신속의 칸', f: 'BR', t: 'H', r: 'DEF', g: 'SS', c: 7, a: 5, h: 10, kw: ['반격', '방어막:2'] },
   { id: 'BR_Phoenix', n: '피닉스', f: 'BR', t: 'H', r: 'ATK', g: 'SS', c: 6, a: 6, h: 6, kw: ['재생:3'], death: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 3 }], text: '격파: 모든 적 유닛에게 3 피해.' },
   { id: 'BR_RoyalArsenal', n: '로열 아스널', f: 'BR', t: 'H', r: 'ATK', g: 'SS', c: 7, a: 7, h: 7, kw: ['광역'] },
   { id: 'BR_Alvis', n: '알비스', f: 'BR', t: 'L', r: 'SUP', g: 'S', c: 4, a: 2, h: 5, kw: [], deploy: [{ op: 'buffAll', a: 1, h: 0 }], text: '전개: 모든 아군 유닛 공격력 +1.' },
