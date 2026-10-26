@@ -1,0 +1,93 @@
+// ===== 저장 데이터 (localStorage) =====
+const STORE_KEY = 'lao_tcg_save_v1';
+
+const Store = {
+  data: null,
+  defaults() {
+    return {
+      v: 1,
+      decks: [],                 // { id, name, cards }
+      activeDeck: 'preset:0',    // 'preset:N' | 사용자 덱 id
+      settings: { bgm: 0.45, sfx: 0.7, speed: 1, forecast: true, autoLevel: false, tips: true },
+      campaign: { stars: {}, difficulty: 'normal', cleared: {} },
+      record: { w: 0, l: 0, streak: 0 },
+      secretary: 'PECS_Orangeade',  // 로비 캐릭터 (기본: 주인공 오렌지에이드)
+      storyV: 3,
+      tutorialDone: false,
+      seenIntro: false,
+      unlocked: [],              // 해금한 카드 id
+      secretaries: [],           // 해금한 특별 부관 id
+    };
+  },
+  load() {
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) { d = null; }
+    const def = this.defaults();
+    if (!d || typeof d !== 'object') d = def;
+    // 스토리 개편(v2): 주인공 오렌지에이드를 기본 로비 캐릭터로 (필드 보정 전에 판단)
+    if (d !== def && d.storyV !== 3) { d.storyV = 3; if (!d.secretary || d.secretary === '3P_ConstantiaS2') d.secretary = 'PECS_Orangeade'; }
+    // 누락 필드 보정
+    for (const k of Object.keys(def)) if (d[k] === undefined) d[k] = def[k];
+    d.settings = { ...def.settings, ...(d.settings || {}) };
+    d.campaign = { ...def.campaign, ...(d.campaign || {}) };
+    d.record = { ...def.record, ...(d.record || {}) };
+    // 손상된 덱 제거
+    if (!Array.isArray(d.unlocked)) d.unlocked = [];
+    if (!Array.isArray(d.secretaries)) d.secretaries = [];
+    d.decks = (d.decks || []).filter(x => x && Array.isArray(x.cards)).map(x => ({ ...x, cards: x.cards.filter(id => CARDS[id] && !CARDS[id].enemy) }));
+    if (!CARDS[d.secretary] || (LOCKED_SECRETARIES.has(d.secretary) && !d.secretaries.includes(d.secretary))) d.secretary = def.secretary;
+    this.data = d;
+    return d;
+  },
+  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); } catch (e) { /* 저장 불가 환경 */ } },
+  get settings() { return this.data.settings; },
+
+  // ---- 덱 ----
+  allDecks() {
+    const presets = PRESET_DECKS.map((d, i) => ({ id: `preset:${i}`, name: d.name, cards: d.cards.slice(), preset: true, desc: d.desc }));
+    return [...presets, ...this.data.decks];
+  },
+  getDeck(id) { return this.allDecks().find(d => d.id === id) || this.allDecks()[0]; },
+  saveDeck(deck) {
+    const i = this.data.decks.findIndex(d => d.id === deck.id);
+    if (i >= 0) this.data.decks[i] = deck; else this.data.decks.push(deck);
+    this.save();
+  },
+  deleteDeck(id) {
+    this.data.decks = this.data.decks.filter(d => d.id !== id);
+    if (this.data.activeDeck === id) this.data.activeDeck = 'preset:0';
+    this.save();
+  },
+  newDeckId() { return 'deck_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
+
+  // ---- 해금 ----
+  isUnlocked(id) { return !LOCKED.has(id) || this.data.unlocked.includes(id); },
+  lockedIn(cards) { return cards.filter(id => !this.isUnlocked(id)); },
+  deckProblem(cards) { const e = validateDeck(cards); if (e) return e; const l = this.lockedIn(cards); return l.length ? `잠긴 카드 포함: ${l.map(id => CARDS[id].n).join(', ')}` : null; },
+  secretaryUnlocked(id) { return !LOCKED_SECRETARIES.has(id) || this.data.secretaries.includes(id); },
+  // 스테이지 결과 반영 후 새로 해금된 보상 목록을 돌려준다
+  grantRewards(stageId, won) {
+    const got = { cards: [], secretaries: [] };
+    if (won) (STAGE_REWARDS[stageId] || []).forEach(id => { if (!this.data.unlocked.includes(id)) { this.data.unlocked.push(id); got.cards.push(id); } });
+    const total = this.totalStars();
+    STAR_REWARDS.forEach(r => { if (total >= r.stars && !this.data.secretaries.includes(r.secretary)) { this.data.secretaries.push(r.secretary); got.secretaries.push(r.secretary); } });
+    this.save();
+    return got;
+  },
+
+  // ---- 진행 중 전투 (이어하기) ----
+  saveBattle(snap) { try { localStorage.setItem(STORE_KEY + '_battle', JSON.stringify(snap)); } catch (e) {} },
+  loadBattle() { try { const s = JSON.parse(localStorage.getItem(STORE_KEY + '_battle') || 'null'); return s && s.game && s.game.v === 2 ? s : null; } catch (e) { return null; } },
+  clearBattle() { try { localStorage.removeItem(STORE_KEY + '_battle'); } catch (e) {} },
+
+  // ---- 캠페인 ----
+  stageStars(id) { return this.data.campaign.stars[id] || [false, false, false]; },
+  setStageResult(id, stars) {
+    const prev = this.stageStars(id);
+    this.data.campaign.stars[id] = prev.map((v, i) => v || stars[i]);
+    if (stars[0]) this.data.campaign.cleared[id] = true;
+    this.save();
+  },
+  stageUnlocked(idx) { return idx === 0 || !!this.data.campaign.cleared[CAMPAIGN[idx - 1].id]; },
+  totalStars() { return Object.values(this.data.campaign.stars).reduce((s, a) => s + a.filter(Boolean).length, 0); },
+};

@@ -1,0 +1,169 @@
+// ===== AI =====
+// easy   : 휴리스틱 + 실수(행동 생략, 무작위 레인)
+// normal : 휴리스틱 평가로 가장 가치 높은 카드부터 사용
+// hard   : 복제 상태에서 행동 2수까지 실행 → 전투 결과와 상대 반격까지 평가하는 빔 탐색
+
+const AI = {
+  // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
+  nextAction(game, p, level = 'normal') {
+    if (level === 'hard') return this.searchAction(game, p);
+    const act = this.heuristicAction(game, p);
+    if (!act) return null;
+    if (level === 'easy') {
+      if (Math.random() < 0.3) return null;
+      if (act.card.kind === 'unit') { const e = p.emptyLanes(); act.lane = e[Math.floor(Math.random() * e.length)]; }
+    }
+    return act;
+  },
+
+  heuristicAction(game, p) {
+    const o = game.other(p);
+    const playable = p.hand.filter(c => p.canAfford(c));
+    if (!playable.length) return null;
+    const skills = playable.filter(c => c.kind === 'skill').map(c => ({ card: c, ...this.evalSkill(game, p, o, c) })).filter(x => x.value > 0);
+    const empty = p.emptyLanes();
+    const units = [];
+    if (empty.length) {
+      playable.filter(c => c.kind === 'unit').forEach(c => {
+        let best = null;
+        empty.forEach(l => {
+          let v = c.c * 2 + c.a + c.h * 0.5 + (c.kw || []).length;
+          const opp = o.lanes[l];
+          if (opp) {
+            if (TYPE_BEATS[c.t] === opp.type) v += 2;
+            if (TYPE_BEATS[opp.type] === c.t) v -= 1.5;
+            if (c.h > opp.atk) v += 1;
+          } else if (o.hp <= c.a + 2) v += 5;
+          if (c.r === 'SUP') { [l - 1, l + 1].forEach(k => { if (k >= 0 && k < 3 && p.lanes[k]) v += 1; }); }
+          if (c.r === 'DEF' && l === 1) v += 0.5;
+          if (!best || v > best.value) best = { lane: l, value: v };
+        });
+        if (best) units.push({ card: c, ...best });
+      });
+    }
+    const all = [...skills, ...units].sort((a, b) => b.value - a.value);
+    return all[0] || null;
+  },
+
+  evalSkill(game, p, o, c) {
+    const kind = skillTargetKind(c);
+    const eu = o.units(), au = p.units();
+    const e = c.fx[0];
+    let value = 0, target = null;
+    switch (e.op) {
+      case 'dmg':
+        if (e.tgt === 'allEnemyUnits') { value = eu.reduce((s, u) => s + Math.min(u.hp, e.v) + (u.hp <= e.v ? 2 : 0), 0) - c.c; }
+        else if (kind === 'enemyUnit' || kind === 'any') {
+          if (kind === 'any' && o.hp <= e.v) { value = 100; target = { cmd: o }; break; }
+          eu.forEach(u => { const v = Math.min(u.hp, e.v) + (u.hp <= e.v ? u.card.c : 0) - c.c + 1; if (v > value) { value = v; target = { unit: u }; } });
+          if (kind === 'any' && !target && p.hand.length > 5) { value = 1; target = { cmd: o }; }
+        }
+        break;
+      case 'heal': value = (p.maxHp - p.hp) >= e.v ? e.v - c.c + 1 : -1; break;
+      case 'healAll': value = au.reduce((s, u) => s + Math.min(u.maxHp - u.hp, e.v), 0) - c.c; break;
+      case 'buffAll': value = au.length * 2 - c.c; break;
+      case 'draw': value = p.hand.length <= 3 ? 2 : -1; break;
+      case 'res': value = p.hand.some(h => h.kind === 'unit' && !p.canAfford(h)) ? 2 : -1; break;
+      case 'evade': value = au.length * 1.5 - c.c; break;
+      case 'summon': value = p.emptyLanes().length * 1.5 - c.c + 1; break;
+      case 'destroyLowest': { const cand = eu.filter(u => !e.v || u.hp <= e.v); if (!cand.length) break; const low = cand.reduce((a, b) => (b.hp < a.hp ? b : a)); value = low.card.c + low.atk - c.c; break; }
+      case 'shield': if (kind === 'allyUnit') { au.forEach(u => { const v = (u.maxHp - u.hp) + 2 - c.c; if (v > value) { value = v; target = { unit: u }; } }); } else value = au.length * 1.5 - c.c; break;
+      case 'healFull': au.forEach(u => { const v = (u.maxHp - u.hp) + 2 - c.c; if (v > value) { value = v; target = { unit: u }; } }); break;
+      case 'sacrificeBlast': au.forEach(u => { const v = u.atk * eu.length - u.card.c - c.c + 2; if (v > value) { value = v; target = { unit: u }; } }); break;
+    }
+    if (kind !== 'none' && !target) value = 0;
+    return { value, target };
+  },
+
+  // ---- hard: 탐색 ----
+  legalActions(game, p) {
+    const o = game.other(p);
+    const acts = [];
+    const seen = new Set();
+    for (const c of p.hand) {
+      if (!p.canAfford(c) || seen.has(c.id)) continue;
+      seen.add(c.id);
+      if (c.kind === 'unit') p.emptyLanes().forEach(l => acts.push({ card: c, lane: l }));
+      else {
+        const k = skillTargetKind(c);
+        if (k === 'none') acts.push({ card: c });
+        else if (k === 'enemyUnit') o.units().forEach(u => acts.push({ card: c, target: { unit: u } }));
+        else if (k === 'allyUnit') p.units().forEach(u => acts.push({ card: c, target: { unit: u } }));
+        else if (k === 'any') { o.units().forEach(u => acts.push({ card: c, target: { unit: u } })); acts.push({ card: c, target: { cmd: o } }); }
+      }
+    }
+    return acts;
+  },
+
+  unitValue(u, g) {
+    let v = u.atk * 1.6 + u.hp * 1.0 + u.shield * 0.7 + (u.evade ? 2 : 0) + (u.slowed ? -1.5 : 0);
+    if (u.kw['광역']) v += 3; if (u.kw['돌격']) v += 0.5; if (u.kw['관통']) v += 1.5;
+    if (u.kw['반격']) v += 1.5; if (u.kw['재생']) v += u.kw['재생'];
+    if (u.role === 'SUP') v += 1.5; if (u.role === 'DEF') v += 1;
+    return v;
+  },
+
+  evaluate(g, p) {
+    const o = g.other(p);
+    if (g.winner === p) return 1e6;
+    if (g.winner && g.winner !== p) return -1e6;
+    let s = 0;
+    // 사령관 체력: 낮아질수록 가치 상승 (마무리 우선)
+    s += (o.maxHp - o.hp) * 2.2 + (o.hp <= 8 ? (8 - o.hp) * 2 : 0);
+    s -= (p.maxHp - p.hp) * 2.0 + (p.hp <= 8 ? (8 - p.hp) * 2.5 : 0);
+    p.units().forEach(u => { s += this.unitValue(u, g); });
+    o.units().forEach(u => { s -= this.unitValue(u, g) * 1.1; });
+    s += p.hand.length * 1.2;
+    // 상대의 다음 공격 위협
+    const fc = g.forecast(o);
+    if (fc.lethal) s -= 5e5;
+    s -= fc.cmdDmg * 1.5;
+    fc.deadUids.forEach(id => { const u = p.units().find(x => x.uid === id); if (u) s -= this.unitValue(u, g) * 0.6; });
+    return s;
+  },
+
+  // 복제 게임 g에 행동을 적용한다 (대상 유닛을 uid로 다시 찾는다)
+  applyAct(g, gp, act) {
+    let target = act.target;
+    if (target && target.unit) {
+      const uid = target.unit.uid;
+      target = null;
+      for (const q of g.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u };
+      if (!target) return false;
+    } else if (target && target.cmd) target = { cmd: g.other(gp) };
+    const card = gp.hand.find(c => c.id === act.card.id);
+    return !!card && g.play(card, act.lane, target);
+  },
+  // 행동(들) 적용 후 내 전투까지 진행했을 때의 평가값
+  scoreSeq(game, p, acts) {
+    const g = game.clone();
+    const gp = g.players[game.players.indexOf(p)];
+    for (const a of acts) { if (!this.applyAct(g, gp, a)) return -Infinity; if (g.phase === 'over') return this.evaluate(g, gp); }
+    g.phase = 'combat'; g.resolveCombat();
+    return this.evaluate(g, gp);
+  },
+  scoreAfter(game, p, act) { return this.scoreSeq(game, p, act ? [act] : []); },
+
+  // 2수 빔 탐색: 1수 후보 상위 4개에 대해 2번째 행동까지 평가한다
+  searchAction(game, p) {
+    const base = this.scoreSeq(game, p, []);
+    const firsts = this.legalActions(game, p).map(a => ({ a, s: this.scoreSeq(game, p, [a]) })).filter(x => x.s > -Infinity).sort((x, y) => y.s - x.s);
+    let best = null, bestScore = base + 0.5; // 아무것도 안 하는 것보다 확실히 나을 때만 행동
+    for (const f of firsts) if (f.s > bestScore) { bestScore = f.s; best = f.a; }
+    for (const f of firsts.slice(0, 4)) {
+      const g = game.clone(); const gp = g.players[game.players.indexOf(p)];
+      if (!this.applyAct(g, gp, f.a) || g.phase === 'over') continue;
+      for (const a2 of this.legalActions(g, gp)) {
+        const s2 = this.scoreSeq(g, gp, [a2]);
+        if (s2 > bestScore + 0.3) { bestScore = s2; best = f.a; }
+      }
+    }
+    return best;
+  },
+
+  // 멀리건: 비싼 카드(5 이상)를 교체
+  pickMulligan(p, level = 'normal') {
+    if (level === 'easy') return [];
+    return p.hand.filter(c => c.c >= 5);
+  },
+};
