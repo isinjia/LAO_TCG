@@ -1,7 +1,7 @@
 # 원작 Unity 프로젝트에서 지정한 2D 모델 프리팹과 그 의존 파일만 임시 Unity 프로젝트로 복사한다.
 # 사용법: python tools/unity_render/prepare.py <임시프로젝트경로> <카드id ...>
 import os, re, sys, json, shutil
-SRC = 'E:/LAO/Google_QA'
+SRC = 'E:/LAO_Google_QA'
 A = SRC + '/Assets'
 HERE = os.path.dirname(os.path.abspath(__file__))
 INDEX = os.path.join(HERE, 'guid_index.json')

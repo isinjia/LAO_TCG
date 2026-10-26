@@ -4,12 +4,12 @@ const Audio2 = {
   muted: false, // 창이 포커스를 잃으면 true (모든 소리 끔)
   sfxCache: {},
   SFX: {
-    click: 'pick.wav', pick: 'pick.wav', pickSS: 'pick_ss.wav', place: 'place.wav', card: 'card.wav',
-    buff: 'buff.wav', res: 'res.wav', shot: 'shot.wav', rifle: 'rifle.wav', cannon: 'cannon.wav', beam: 'beam.wav',
-    energy: 'energy.wav', explosion: 'explosion.wav', boom: 'boom_big.wav', boomSci: 'boom_scifi.wav',
-    heal: 'heal.wav', shield: 'shield.wav', smoke: 'smoke.wav', swing: 'swing.wav', swingHeavy: 'swing_heavy.wav',
-    zap: 'zap.wav', trans: 'trans.wav', warning: 'warning.wav', round: 'round.wav', start: 'battle_start.wav',
-    win: 'win.wav', rankup: 'rankup.mp3',
+    click: 'pick.mp3', pick: 'pick.mp3', pickSS: 'pick_ss.mp3', place: 'place.mp3', card: 'card.mp3',
+    buff: 'buff.mp3', res: 'res.mp3', shot: 'shot.mp3', rifle: 'rifle.mp3', cannon: 'cannon.mp3', beam: 'beam.mp3',
+    energy: 'energy.mp3', explosion: 'explosion.mp3', boom: 'boom_big.mp3', boomSci: 'boom_scifi.mp3',
+    heal: 'heal.mp3', shield: 'shield.mp3', smoke: 'smoke.mp3', swing: 'swing.mp3', swingHeavy: 'swing_heavy.mp3',
+    zap: 'zap.mp3', trans: 'trans.mp3', warning: 'warning.mp3', round: 'round.mp3', start: 'battle_start.mp3',
+    win: 'win.mp3', rankup: 'rankup.mp3',
   },
   init() {
     this.bgmA = new Audio(); this.bgmB = new Audio();

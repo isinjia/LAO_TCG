@@ -3,7 +3,7 @@
 const http = require('http'), fs = require('fs'), path = require('path'), { spawn } = require('child_process'), os = require('os');
 const ROOT = path.resolve(__dirname, '..');
 const CHROME = process.env.CHROME || ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', '/usr/bin/google-chrome', '/usr/bin/chromium'].find(p => fs.existsSync(p));
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.woff2': 'font/woff2' };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function serve() {
@@ -63,8 +63,22 @@ async function main() {
   await load();
 
   await t('모든 화면 열기', async () => {
-    const r = await ev(`const out = {}; for (const s of ['campaign', 'deck', 'collection', 'setup', 'lobby']) { await showScreen(s); out[s] = document.querySelector('#scr-' + s).childElementCount; } openHowTo(); closeModal(topModal()); openSettings(false); closeModal(topModal()); openCardDetail(CARDS['3P_Labiata'], POOL); closeModal(topModal()); return out;`);
+    const r = await ev(`const out = {}; for (const s of ['campaign', 'deck', 'collection', 'setup', 'challenge', 'lobby']) { await showScreen(s); out[s] = document.querySelector('#scr-' + s).childElementCount; } openHowTo(); closeModal(topModal()); openSettings(false); closeModal(topModal()); openCardDetail(CARDS['3P_Labiata'], POOL); closeModal(topModal()); return out;`);
     for (const [k, v] of Object.entries(r)) if (!v) throw new Error(k + ' 화면이 비어 있음');
+  });
+
+  await t('리그 순회전: 승리하면 다음 대국, 패배하면 종료', async () => {
+    const r = await ev(`Store.data.gauntlet = { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 };
+      Gauntlet.start('preset:0'); for (let i = 0; i < 80 && !(B && B.game && B.game.phase !== 'mulligan'); i++) { const ok = [...document.querySelectorAll('.modal button')].find(b => /확인/.test(b.textContent)); if (ok) ok.click(); await new Promise(r => setTimeout(r, 100)); }
+      B.game.damageCmd(B.ai, 99); await finishBattle(false);
+      const afterWin = { idx: Store.data.gauntlet.run && Store.data.gauntlet.run.idx, next: !!document.querySelector('[data-a=gnext]') };
+      document.querySelector('[data-a=gnext]').click(); for (let i = 0; i < 80 && !(B && B.game && B.cfg.gauntlet.idx === 1); i++) await new Promise(r => setTimeout(r, 100));
+      const hp = B.me.hp; B.over = true; B.game.phase = 'over'; B.game.winner = B.ai; await finishBattle(true);
+      const out = { ...afterWin, hp, ended: Store.data.gauntlet.run === null, best: Store.data.gauntlet.best, modals: document.querySelectorAll('#modal-root .modal').length };
+      while (topModal()) closeModal(topModal()); B = null; await showScreen('lobby', { instant: true }); return out;`);
+    if (r.modals !== 1) throw new Error('결과 화면 밑에 다른 창이 남음 ' + JSON.stringify(r));
+    if (r.idx !== 1 || !r.next) throw new Error('승리 후 다음 대국으로 넘어가지 않음 ' + JSON.stringify(r));
+    if (!r.ended || r.best !== 1) throw new Error('패배 후 순회전이 끝나지 않음 ' + JSON.stringify(r));
   });
 
   await t('튜토리얼 완주 → 승리·보상 해금', async () => {

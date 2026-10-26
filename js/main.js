@@ -25,6 +25,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     if (e.key === 'Escape' && currentScreen && !['lobby', 'loading', 'battle'].includes(currentScreen)) showScreen('lobby');
   });
+  // 웹 배포본에서만 오프라인 캐시를 켠다 (개발 중에는 수정한 파일이 캐시에 가려지지 않도록 끔)
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
   await runLoading();
   await showScreen('lobby');
 });

@@ -4,8 +4,12 @@
 사용법: python tools/serve.py [포트]   (기본 8765)
 """
 import http.server
+import mimetypes
 import os
 import sys
+
+
+mimetypes.add_type('font/woff2', '.woff2')
 
 
 class NoCache(http.server.SimpleHTTPRequestHandler):

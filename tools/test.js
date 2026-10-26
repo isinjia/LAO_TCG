@@ -121,6 +121,14 @@ t('forecast는 실제 전투와 일치', () => {
   }
 });
 
+t('작전 시간 초과: 정해진 라운드부터 턴 시작 피해가 1씩 커짐', () => {
+  const { a, g } = fresh(D0, D1); g.start();
+  const R = RULES.OVERTIME_ROUND; ok(R > 0, 'rule on');
+  eq(g.overtimeDamage(R - 1), 0); eq(g.overtimeDamage(R), 1); eq(g.overtimeDamage(R + 2), 3);
+  // 양쪽이 아무것도 하지 않아도 결국 끝난다
+  let guard = 0; while (g.phase !== 'over' && guard++ < 200) g.endTurn();
+  ok(g.phase === 'over', 'game ends'); ok(g.round() < R + 10, 'ends soon after overtime');
+});
 t('직렬화 → 복원 후 동일하게 진행', () => {
   const { a, g } = fresh(D0, D1); g.start();
   for (let i = 0; i < 6 && g.phase !== 'over'; i++) { const act = AI.nextAction(g, g.cur); if (act) act.card.kind === 'unit' ? g.play(act.card, act.lane) : g.play(act.card, null, act.target); g.endTurn(); }

@@ -72,12 +72,14 @@ screenHooks.lobby = el => {
     <div class="lobby-logo"><div class="logo-kicker">LAST ORIGIN</div><div class="logo-main">TACTICAL CARD GAME</div></div>
     <div class="lobby-top">
       <button class="icon-btn" data-a="sec" title="로비 캐릭터 변경">👤</button>
+      ${document.fullscreenEnabled ? '<button class="icon-btn" data-a="full" title="전체 화면">⛶</button>' : ''}
       <button class="icon-btn" data-a="help" title="게임 방법">?</button>
       <button class="icon-btn" data-a="settings" title="설정">⚙</button>
     </div>
     <div class="lobby-menu">
       ${Store.loadBattle() ? `<div class="menu-item main resume" data-go="resume"><div class="mi-icon">▶</div><div><div class="mi-title">전투 이어하기</div><div class="mi-sub">${esc(Store.loadBattle().cfg.enemy.name)} 전 · 라운드 ${Store.loadBattle().round}</div></div></div>` : ''}
       <div class="menu-item ${Store.loadBattle() ? '' : 'main'}" data-go="campaign"><div class="mi-icon">⚔</div><div><div class="mi-title">스토리</div><div class="mi-sub">${nextIdx >= 0 ? `다음 대국: ${esc(CAMPAIGN[nextIdx].no)}. ${esc(CAMPAIGN[nextIdx].title)}` : '오르카 카드 마스터 달성!'}</div></div><div class="mi-badge">★ ${stars}/${maxStars}</div></div>
+      <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="challenge"><div class="mi-icon">🏆</div><div><div class="mi-title">도전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `리그 순회전 · 오늘의 대국 · 업적 ${Ach.count()}/${ACHIEVEMENTS.length}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div>${Store.data.tutorialDone && !Daily.doneToday() ? '<div class="mi-badge">NEW</div>' : ''}</div>
       <div class="menu-item" data-go="setup"><div class="mi-icon">⚡</div><div><div class="mi-title">자유 대국</div><div class="mi-sub">원하는 덱으로 AI와 1:1 대국</div></div></div>
       <div class="menu-item" data-go="deck"><div class="mi-icon">🗂</div><div><div class="mi-title">덱 편성</div><div class="mi-sub">12장 덱 만들기 · 저장 ${Store.data.decks.length}개</div></div></div>
       <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">전투원 ${POOL.filter(c => c.kind === 'unit').length}종 · 지원 카드 ${POOL.filter(c => c.kind === 'skill').length}종</div></div></div>
@@ -99,6 +101,7 @@ screenHooks.lobby = el => {
     m.onclick = () => {
       Audio2.play('click');
       const go = m.dataset.go;
+      if (m.classList.contains('locked')) { toast('스토리 "첫 카드 수업"을 마치면 열립니다.', true); return; }
       if (go === 'howto') openHowTo();
       else if (go === 'resume') resumeBattle(Store.loadBattle());
       else showScreen(go);
@@ -106,6 +109,8 @@ screenHooks.lobby = el => {
   });
   $('[data-a=settings]', el).onclick = () => openSettings(false);
   $('[data-a=help]', el).onclick = () => openHowTo();
+  const full = $('[data-a=full]', el);
+  if (full) full.onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => {})).catch(() => {}); };
   $('[data-a=sec]', el).onclick = () => chooseSecretary();
 };
 

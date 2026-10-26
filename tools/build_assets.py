@@ -1,4 +1,4 @@
-# 원작 Unity 프로젝트(E:/LAO/Google_QA)에서 게임에 필요한 에셋을 복사·가공한다.
+# 원작 Unity 프로젝트(E:/LAO_Google_QA)에서 게임에 필요한 에셋을 복사·가공한다.
 # 사용법: python tools/build_assets.py        (카드 아트는 tools/build_art.py가 담당)
 import shutil
 from pathlib import Path
@@ -6,8 +6,8 @@ from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
 ROOT = Path(__file__).resolve().parent.parent
-A = Path(r'E:/LAO/Google_QA/Assets/AssetBundleResource')
-SUB = Path(r'E:/LAO/Google_QA/Assets/AssetBundleResourceSub')
+A = Path(r'E:/LAO_Google_QA/Assets/AssetBundleResource')
+SUB = Path(r'E:/LAO_Google_QA/Assets/AssetBundleResourceSub')
 OUT = ROOT / 'assets'
 
 BG = {  # 배경: 1920x1080 jpg (와이드 원본은 16:9 중앙 크롭)

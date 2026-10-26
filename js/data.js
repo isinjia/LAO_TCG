@@ -38,7 +38,7 @@ const KEYWORD_HELP = {
 const UNITS = [
   // ---------- 삼안산업 ----------
   { id: '3P_Labiata', n: '라비아타 프로토타입', f: '3P', t: 'H', r: 'ATK', g: 'SS', c: 6, a: 6, h: 8, kw: ['광역'], deploy: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }], text: '전개: 모든 적 유닛에게 2 피해.' },
-  { id: '3P_ConstantiaS2', n: '콘스탄챠 S2', f: '3P', t: 'M', r: 'ATK', g: 'SS', c: 6, a: 6, h: 5, kw: ['돌격', '회피'], text: '' },
+  { id: '3P_ConstantiaS2', n: '콘스탄챠 S2', f: '3P', t: 'M', r: 'ATK', g: 'SS', c: 5, a: 6, h: 5, kw: ['돌격', '회피'], text: '' },
   { id: '3P_Titania', n: '티타니아', f: '3P', t: 'H', r: 'DEF', g: 'SS', c: 6, a: 3, h: 10, kw: ['방어막:3', '재생:2'], text: '' },
   { id: '3P_Hirume', n: '월하의 히루메', f: '3P', t: 'H', r: 'ATK', g: 'SS', c: 7, a: 8, h: 6, kw: ['관통'], deploy: [{ op: 'slow', tgt: 'allEnemyUnits' }], text: '전개: 모든 적 유닛 둔화.' },
   { id: '3P_BlackLilith', n: '블랙 리리스', f: '3P', t: 'L', r: 'ATK', g: 'S', c: 4, a: 5, h: 3, kw: ['돌격'] },
@@ -49,14 +49,14 @@ const UNITS = [
   { id: '3P_Sowan', n: '소완', f: '3P', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: [] , deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
   { id: '3P_Ran', n: '란', f: '3P', t: 'M', r: 'SUP', g: 'S', c: 4, a: 2, h: 5, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
   { id: '3P_Alexandra', n: '알렉산드라', f: '3P', t: 'L', r: 'SUP', g: 'A', c: 3, a: 2, h: 4, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
-  { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['회피'] },
+  { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 3, h: 6, kw: ['회피'] },
   { id: '3P_Ajax', n: '에이젝스', f: '3P', t: 'L', r: 'DEF', g: 'A', c: 3, a: 3, h: 5, kw: ['반격'] },
   { id: '3P_Vanilla', n: '바닐라 A-1', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'res', v: 1 }], text: '전개: 이번 턴 AP +1.' },
   { id: '3P_SnowFeather', n: '스노우 페더', f: '3P', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: [], deploy: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '전개: 무작위 적 유닛에게 1 피해.' },
   { id: '3P_Rhea', n: '레아', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 7, kw: ['방어막:2'] },
   { id: '3P_Merope', n: '메로페', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['방어막:1'] },
   { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
-  { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 2, kw: ['돌격'] },
+  { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'] },
   { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
   { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: [] },
   { id: '3P_Maria', n: '마리아', f: '3P', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 2, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '전개: 내 라이프 2 회복.' },
@@ -264,4 +264,5 @@ const RULES = {
   ATK_ROLE_PIERCE: 0,    // 공격기 역할이 기본으로 관통을 가짐
   DEF_ROLE_ARMOR: 1,     // 보호기 역할: 유닛 공격으로 받는 피해 감소량 (최소 1)
   ATK_ROLE_TYPE_BONUS: 0, // 공격기 역할: 상성 유리 시 추가 피해
+  OVERTIME_ROUND: 12,    // 작전 시간 초과: 이 라운드부터 턴을 시작하는 쪽이 1, 2, 3… 피해 (0이면 끔)
 };

@@ -1,5 +1,6 @@
 # 원작 Unity 프로젝트의 NGUI 아틀라스에서 화면 구성 조각(테두리·버튼·아이콘)과 글꼴을 뽑아 assets/ui, assets/font에 저장한다.
 # 사용법: python tools/build_ui.py        (Pillow, numpy 필요)
+# 글꼴은 원본 그대로 복사하므로, 배포 전에 python tools/optimize_assets.py로 WOFF2로 줄인다.
 import re
 import shutil
 from pathlib import Path
@@ -55,6 +56,22 @@ def hollow(im):
     return Image.fromarray(a)
 
 
+def make_icons():
+    """앱 아이콘: 오렌지에이드 초상화 얼굴 부분을 원작 노랑 테두리 육각형에 넣는다 (assets/art가 먼저 있어야 한다)"""
+    from PIL import ImageDraw
+    art = Image.open(ROOT / 'assets/art/PECS_Orangeade.webp').convert('RGBA')
+    face = art.crop((60, 20, 420, 380)).resize((512, 512), Image.LANCZOS)
+    hexagon = [(256, 8), (472, 132), (472, 380), (256, 504), (40, 380), (40, 132)]
+    icon = Image.new('RGBA', (512, 512), (23, 24, 27, 255))
+    mask = Image.new('L', (512, 512), 0)
+    ImageDraw.Draw(mask).polygon(hexagon, fill=255)
+    icon.paste(face, (0, 0), mask)
+    ImageDraw.Draw(icon).line(hexagon + [hexagon[0]], fill=(255, 198, 0, 255), width=18, joint='curve')
+    for size in (512, 192):
+        icon.resize((size, size), Image.LANCZOS).save(OUT / f'icon-{size}.png', optimize=True)
+    icon.resize((64, 64), Image.LANCZOS).save(ROOT / 'favicon.ico', sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     FONT_OUT.mkdir(parents=True, exist_ok=True)
@@ -70,7 +87,8 @@ def main():
         sp.save(OUT / f'{out}.png', optimize=True)
     for f in FONTS:
         shutil.copy(SRC / 'font' / f, FONT_OUT / f)
-    print(f'ui built: {len(SPRITES)} sprites, {len(FONTS)} fonts')
+    make_icons()
+    print(f'ui built: {len(SPRITES)} sprites, {len(FONTS)} fonts, icons')
 
 
 if __name__ == '__main__':

@@ -11,6 +11,7 @@ const FX_COLOR = { dmg: '#ff7a5a', heal: '#6bff88', shield: '#8fd4ff', buff: '#f
 function startBattle(cfg) {
   Store.clearBattle(); // 새 전투를 시작하면 이전 진행 기록은 버린다
   const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
+  if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp); // 순회전·오늘의 대국: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait });
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
@@ -73,7 +74,7 @@ screenHooks.battle = async el => {
     <svg class="fc-svg"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
     ${cmdHtml('me', me)}
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
-    <div class="end-turn"><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
+    <div class="end-turn"><div class="round-info"></div><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
     <div class="ap-bar" id="ap-me" title="AP: 매 턴 최대치가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 남은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다."><div class="ap-num"></div><div class="ap-gems"></div></div>
     <div class="hand"></div>
     <div class="log-panel"><h4>전투 기록</h4><div class="log-list scroll"></div></div>`;
@@ -81,7 +82,9 @@ screenHooks.battle = async el => {
   updateSpeedBtn();
   renderAll();
   // 화면 전환(페이드)이 끝난 뒤 전투 연출 시작
-  setTimeout(() => { if (!B) return; if (B.game.phase === 'mulligan') battleIntro(); else if (B.resumed) resumeIntro(); }, 700);
+  // 그사이 다른 전투로 넘어갔다면(빠른 재시작·화면 이동) 이전 전투의 연출을 새 전투에 붙이지 않는다
+  const introB = B;
+  setTimeout(() => { if (!B || B !== introB) return; if (B.game.phase === 'mulligan') battleIntro(); else if (B.resumed) resumeIntro(); }, 700);
 };
 
 function cmdHtml(side, p) {
@@ -350,6 +353,8 @@ function attachHandDrag(ce, card) {
     if (e.button !== 0 || !B || B.drag) return;
     e.preventDefault();
     B.drag = { card, start: stagePoint(e.clientX, e.clientY), moved: false, ghost: null };
+    // 터치: 길게 누르면 카드 상세 (마우스의 우클릭 대신)
+    if (e.pointerType === 'touch') B.drag.timer = setTimeout(() => { const d = B && B.drag; if (d && !d.moved && d.card === card) { d.long = true; openCardDetail(card, B.me.hand); } }, 550);
     const move = ev => onDragMove(ev);
     const up = ev => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); onDragEnd(ev); };
     const cancel = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); if (B && B.drag) { if (B.drag.ghost) B.drag.ghost.remove(); B.drag = null; clearSelection(); renderHand(true); } };
@@ -361,7 +366,8 @@ function attachHandDrag(ce, card) {
 function onDragMove(e) {
   const d = B && B.drag; if (!d) return;
   const p = stagePoint(e.clientX, e.clientY);
-  if (!d.moved && Math.hypot(p.x - d.start.x, p.y - d.start.y) > 12) {
+  if (!d.moved && !d.long && Math.hypot(p.x - d.start.x, p.y - d.start.y) > 12) {
+    clearTimeout(d.timer);
     if (!canAct()) { B.drag = null; return; }
     if (B.selected !== d.card && !selectCard(d.card)) { B.drag = null; return; }
     d.moved = true;
@@ -379,6 +385,8 @@ function onDragMove(e) {
 function onDragEnd(e) {
   const d = B && B.drag; if (!d) return;
   B.drag = null;
+  clearTimeout(d.timer);
+  if (d.long) return;
   const card = d.card;
   if (!d.moved) { selectCard(card); return; }
   const from = d.ghost ? stageRect(d.ghost.firstElementChild) : null;
@@ -407,6 +415,14 @@ function dropTargetAt(cx, cy) {
 }
 
 // ---------- 렌더 ----------
+// 라운드와 작전 시간 초과까지 남은 라운드
+function renderRoundInfo() {
+  const el = $('.round-info'); if (!el || !B) return;
+  const r = Math.max(1, B.game.round()), ot = RULES.OVERTIME_ROUND;
+  const next = B.game.overtimeDamage(r + 1);
+  el.className = 'round-info' + (ot && r >= ot ? ' over' : ot && ot - r <= 2 ? ' soon' : '');
+  el.innerHTML = `ROUND <b>${r}</b>${!ot ? '' : r >= ot ? `<span>시간 초과 · 다음 피해 ${next}</span>` : `<span>시간 초과까지 ${ot - r}라운드</span>`}`;
+}
 function setPhaseLabel(t) { const p = $('.phase-label'); if (p) p.textContent = t; }
 
 function renderCmd(side, p) {
@@ -441,6 +457,7 @@ function renderAll(forceHand) {
   if (!B) return;
   const { game, me, ai } = B;
   renderCmd('me', me); renderCmd('enemy', ai); renderAp();
+  renderRoundInfo();
   $('[data-v=deck]').textContent = me.deck.length; $('[data-v=grave]').textContent = me.grave.length;
   $('[data-v=edeck]').textContent = ai.deck.length; $('[data-v=egrave]').textContent = ai.grave.length;
   const eh = $('.enemy-hand'); const n = ai.hand.length;
@@ -683,7 +700,16 @@ async function processEvents() {
         renderAll(true);
         showBanner(mine ? 'YOUR TURN' : 'ENEMY TURN', mine ? `오렌지에이드의 턴 ${game.round()}` : `${B.ai.name}의 턴`, mine ? 'mine' : 'theirs');
         Audio2.play('round', 0.7);
+        // 작전 시간 초과 예고: 시작 2라운드 전부터 내 턴에 알린다
+        const left = RULES.OVERTIME_ROUND ? RULES.OVERTIME_ROUND - game.round() : 0;
+        if (mine && left > 0 && left <= 2) toast(`${left}라운드 뒤부터 작전 시간 초과! 턴을 시작할 때마다 라이프 피해가 1씩 커집니다.`, true);
         await sleep(1000);
+        break;
+      }
+      case 'overtime': {
+        showBanner('OVERTIME', `작전 시간 초과 — ${ev.player === B.me ? '오렌지에이드' : esc(B.ai.name)} 피해 ${ev.v}`, 'theirs');
+        Audio2.play('warning', 0.8);
+        await sleep(900);
         break;
       }
       case 'apGain': {
@@ -757,6 +783,7 @@ async function processEvents() {
         Audio2.play('explosion');
         if (ev.player === B.me) { screenFlash('red'); quake(); }
         renderAll(); await sleep(380);
+        checkBark();
         break;
       }
       case 'heal': { if (!ev.v) break; const el = B.unitEls.get(ev.unit.uid); if (el) { const c = centerOf(el); sparkleAt(c.x, c.y, FX_COLOR.heal); floatOn(el, `+${ev.v}`, 'heal'); } Audio2.play('heal', 0.7); renderAll(); await sleep(200); break; }
@@ -790,6 +817,8 @@ async function finishBattle(surrendered) {
   B.resultShown = true; B.over = true; B.busy = true;
   clearSelection(); renderAll();
   Tutorial.stop();
+  // 시작 패 교체 창 등 전투 중에 열린 창은 결과 화면 전에 모두 닫는다
+  $$('#modal-root .modal').forEach(m => closeModal(m));
   const { game, me, cfg } = B;
   const win = game.winner === me;
   Store.clearBattle();
@@ -807,6 +836,7 @@ async function finishBattle(surrendered) {
     got = Store.grantRewards(stage.id, win);
   }
   Store.save();
+  const ch = recordChallengeResult({ win, surrendered, game, me, cfg });
   // MVP: 가장 많은 피해를 준 카드
   const dmg = Object.entries(me.stats.cardDmg).sort((a, b) => b[1] - a[1]);
   const mvp = dmg.length ? CARDS[dmg[0][0]] : CARDS['PECS_Orangeade'];
@@ -816,6 +846,7 @@ async function finishBattle(surrendered) {
     <div class="rs-body">
       <h2 class="${win ? 'win' : 'lose'}">${win ? 'VICTORY' : 'DEFEAT'}</h2>
       <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : '아깝다! 덱을 다듬어서 다시 도전해 봐요.'}</div>
+      ${stage && !win && stage.lose ? `<div class="rs-lose"><b>${esc(CARDS[stage.lose.who].n)}</b>“${esc(stage.lose.text)}”</div>` : ''}
       <div class="rs-stats">
         <div><span>라운드</span><b>${game.round()}</b></div>
         <div><span>상대 라이프에 준 피해</span><b>${st.dmgCmd}</b></div>
@@ -825,10 +856,15 @@ async function finishBattle(surrendered) {
         <div><span>지원 카드 / 회복</span><b>${st.skillsUsed} / ${st.healed}</b></div>
       </div>
       ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st lo-star ${stars[i] ? 'on' : ''}" style="animation-delay:${0.3 + i * 0.35}s"></span>${starLabel(s)}</div>`).join('')}</div>` : ''}
+      ${ch.note ? `<div class="rs-note">${esc(ch.note)}</div>` : ''}
+      ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}</div>` : ''}
       ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}
       <div class="modal-actions" style="margin-top:auto">
         <button class="btn" data-a="lobby">로비</button>
-        ${cfg.mode === 'campaign' ? '<button class="btn" data-a="retry">재도전</button><button class="btn primary" data-a="camp">스토리로</button>' : '<button class="btn" data-a="deck">덱 편성</button><button class="btn primary" data-a="retry">다시 하기</button>'}
+        ${cfg.mode === 'campaign' ? '<button class="btn" data-a="retry">재도전</button><button class="btn primary" data-a="camp">스토리로</button>'
+          : cfg.mode === 'gauntlet' ? (Store.data.gauntlet.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="gnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
+          : cfg.mode === 'daily' ? '<button class="btn" data-a="retry">다시 도전</button><button class="btn primary" data-a="chal">도전 모드로</button>'
+          : '<button class="btn" data-a="deck">덱 편성</button><button class="btn primary" data-a="retry">다시 하기</button>'}
       </div>
     </div></div>`);
   const rl = $('.rr-list', box);
@@ -837,10 +873,11 @@ async function finishBattle(surrendered) {
     got.secretaries.forEach(id => rl.appendChild(h(`<div class="rr-sec"><div class="rr-face" style="background-image:url('${artOf(CARDS[id])}')"></div><span>로비 캐릭터 해금<br><b>${esc(CARDS[id].n)}</b></span></div>`)));
   }
   const m = openModal(box, { closable: false });
-  if ((stars && stars.filter(Boolean).length === 3) || got.cards.length) setTimeout(() => Audio2.play('rankup'), 900);
+  if ((stars && stars.filter(Boolean).length === 3) || got.cards.length || ch.achievements.length) setTimeout(() => Audio2.play('rankup'), 900);
   const leave = async target => {
     closeModal(m);
     if (cfg.mode === 'campaign' && win && stage.outro) await playDialogue(stage.outro, { bg: stage.bg });
+    if (cfg.mode === 'campaign' && win && stage.epilogue) await playDialogue(stage.epilogue, { bg: 'barracks', title: ['EPILOGUE', '다음 시즌을 기다리며'] });
     if (cfg.mode === 'campaign' && win && cfg.stageIdx < CAMPAIGN.length - 1) selStage = cfg.stageIdx + 1;
     B = null;
     showScreen(target);
@@ -848,7 +885,29 @@ async function finishBattle(surrendered) {
   $('[data-a=lobby]', box).onclick = () => leave('lobby');
   const camp = $('[data-a=camp]', box); if (camp) camp.onclick = () => leave('campaign');
   const deck = $('[data-a=deck]', box); if (deck) deck.onclick = () => leave('deck');
-  $('[data-a=retry]', box).onclick = () => { closeModal(m); const c = B.cfg; B = null; startBattle(c); };
+  const chal = $('[data-a=chal]', box); if (chal) chal.onclick = () => leave('challenge');
+  const gnext = $('[data-a=gnext]', box); if (gnext) gnext.onclick = () => { closeModal(m); B = null; Gauntlet.play(); };
+  const retry = $('[data-a=retry]', box); if (retry) retry.onclick = () => { closeModal(m); const c = B.cfg; B = null; startBattle(c); };
+}
+
+// ---------- 전투 중 대사 (캠페인) ----------
+// 상대 라이프가 절반 이하가 되거나 내 라이프가 8 이하가 되면 스테이지의 대사를 한 번씩 띄운다
+function checkBark() {
+  if (!B || B.cfg.mode !== 'campaign' || B.game.phase === 'over') return;
+  const mid = CAMPAIGN[B.cfg.stageIdx].mid; if (!mid) return;
+  B.barked = B.barked || {};
+  const { me, ai } = B;
+  if (mid.half && !B.barked.half && ai.hp > 0 && ai.hp <= ai.maxHp / 2) { B.barked.half = true; showBark(mid.half); }
+  else if (mid.low && !B.barked.low && me.hp > 0 && me.hp <= 8) { B.barked.low = true; showBark(mid.low); }
+}
+function showBark(line) {
+  const c = CARDS[line.who]; if (!c) return;
+  const old = $('#scr-battle .bark'); if (old) old.remove();
+  const el = h(`<div class="bark ${speakerSide(line.who)}"><div class="bk-face" style="background-image:url('${artOf(c)}')"></div><div class="bk-body"><div class="bk-who">${esc(c.n)}</div><div class="bk-text">${esc(line.text)}</div></div></div>`);
+  $('#scr-battle').appendChild(el);
+  Audio2.play('card', 0.5);
+  setTimeout(() => el.classList.add('out'), 4200);
+  setTimeout(() => el.remove(), 4700);
 }
 
 // ---------- 키보드 ----------

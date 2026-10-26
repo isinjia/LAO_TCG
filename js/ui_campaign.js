@@ -119,9 +119,9 @@ async function launchStage(idx, deckId) {
 }
 
 // ---------- 대화 ----------
+// 오렌지에이드와 리그 운영자 콘스탄챠는 왼쪽, 대국 상대와 그 일행은 오른쪽에 선다
 function speakerSide(who) {
-  const c = CARDS[who];
-  return c && (c.enemy || CAMPAIGN.some(s => s.enemy.portrait === who)) ? 'right' : 'left';
+  return who === 'PECS_Orangeade' || who === '3P_ConstantiaS2' ? 'left' : 'right';
 }
 function playDialogue(lines, opts = {}) {
   if (!lines || !lines.length) return Promise.resolve();

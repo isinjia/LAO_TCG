@@ -1,11 +1,11 @@
 /* ===== 원작 UI 스킨 =====
    원작 아틀라스에서 뽑은 조각(assets/ui, tools/build_ui.py)과 원작 글꼴(고도체, Exo 2)로 style.css의 겉모습을 덮어쓴다.
    9분할 조각은 border-image로 그린다. border-image-width는 레이아웃에 영향을 주지 않으므로 border 폭은 0으로 둔다. */
-@font-face { font-family: "Godo"; src: url("../assets/font/GodoM.ttf") format("truetype"); font-weight: 100 600; font-display: swap; }
-@font-face { font-family: "Godo"; src: url("../assets/font/GodoB.ttf") format("truetype"); font-weight: 700 900; font-display: swap; }
-@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Bold.otf") format("opentype"); font-weight: 100 700; font-display: swap; }
-@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-ExtraBold.otf") format("opentype"); font-weight: 800; font-display: swap; }
-@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Godo"; src: url("../assets/font/GodoM.woff2") format("woff2"); font-weight: 100 600; font-display: swap; }
+@font-face { font-family: "Godo"; src: url("../assets/font/GodoB.woff2") format("woff2"); font-weight: 700 900; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Bold.woff2") format("woff2"); font-weight: 100 700; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-ExtraBold.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
 
 :root {
   --lo-yellow: #ffc600;
@@ -128,3 +128,76 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 /* ---------- 결과 ---------- */
 .result h2.win { color: var(--lo-yellow); text-shadow: 0 0 40px rgba(255,198,0,0.5); }
 .result .rs-art .mvp { color: var(--lo-yellow); }
+
+/* ---------- 전투 중 대사 ---------- */
+.bark { position: absolute; top: calc(150px + var(--oy)); z-index: 470; display: flex; align-items: flex-end; gap: 0; width: 520px; pointer-events: none; animation: barkIn 0.3s ease-out; transition: opacity 0.4s, transform 0.4s; }
+.bark.right { right: calc(320px + var(--ox)); flex-direction: row-reverse; }
+.bark.left { left: calc(320px + var(--ox)); top: calc(640px + var(--oy)); }
+.bark.out { opacity: 0; transform: translateY(-10px); }
+.bark .bk-face { width: 110px; height: 130px; flex-shrink: 0; background-size: cover; background-position: center 10%; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%); border-bottom: 4px solid var(--lo-yellow); }
+.bark .bk-body { flex: 1; background: rgba(20,21,24,0.95); border-left: 5px solid var(--lo-yellow); padding: 12px 18px 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.bark.right .bk-body { border-left: none; border-right: 5px solid #ff4d5a; }
+.bark .bk-who { color: var(--lo-yellow); font-weight: 900; font-size: 16px; margin-bottom: 4px; }
+.bark.right .bk-who { color: #ff8a92; }
+.bark .bk-text { font-size: 19px; line-height: 1.5; }
+@keyframes barkIn { from { opacity: 0; transform: translateY(12px); } }
+.rs-lose { background: rgba(255,77,90,0.08); border-left: 4px solid #ff4d5a; padding: 10px 14px; font-size: 17px; line-height: 1.5; color: #e8e8ea; }
+.rs-lose b { display: block; color: #ff8a92; font-size: 14px; margin-bottom: 2px; }
+
+/* ---------- 결과 화면: 도전 모드 문구·업적 ---------- */
+.rs-note { background: rgba(255,198,0,0.1); border-left: 4px solid var(--lo-yellow); padding: 10px 14px; font-size: 18px; font-weight: 700; }
+.rs-ach { display: flex; flex-direction: column; gap: 6px; }
+.rs-ach span { display: flex; align-items: center; gap: 8px; font-size: 17px; color: #e8e8ea; animation: barkIn 0.4s backwards; }
+.rs-ach b { color: var(--lo-yellow); }
+
+/* ---------- 도전 모드 화면 ---------- */
+.ch-deck { background: #1d1e22; color: var(--text); border: 1px solid var(--lo-edge); padding: 8px 10px; font-size: 17px; min-width: 260px; }
+.ch-wrap { position: absolute; left: 0; right: 0; top: 84px; bottom: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; padding: 30px 36px; }
+.ch-col { padding: 26px 30px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.ch-col h3 { margin: 0; font-size: 32px; font-weight: 900; }
+.ch-col h3 small { font-size: 18px; color: var(--muted); font-family: "Exo 2", sans-serif; }
+.ch-col p { margin: 0; font-size: 17px; line-height: 1.6; color: #cfcfd2; }
+.ch-kicker { font-family: "Exo 2", sans-serif; font-weight: 800; letter-spacing: 0.3em; color: var(--lo-yellow); font-size: 15px; }
+.ch-path { display: flex; align-items: center; gap: 0; margin: 10px 0; }
+.ch-path i { flex: 1; height: 3px; background: rgba(255,255,255,0.15); }
+.ch-node { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: "Exo 2", sans-serif; font-weight: 800; color: var(--muted); }
+.ch-node .cn-face { width: 72px; height: 72px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: #3a3c42 center 12% / cover; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #777; filter: grayscale(0.6) brightness(0.7); }
+.ch-node.done .cn-face { filter: none; box-shadow: inset 0 0 0 4px var(--good); }
+.ch-node.done { color: var(--good); }
+.ch-node.now .cn-face { filter: none; outline: 3px solid var(--lo-yellow); animation: pulseNode 1.6s infinite; }
+.ch-node.now { color: var(--lo-yellow); }
+.ch-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ch-stats div { background: rgba(255,255,255,0.04); border: 1px solid var(--line); padding: 10px 14px; }
+.ch-stats span { display: block; color: var(--muted); font-size: 14px; }
+.ch-stats b { font-family: "Exo 2", sans-serif; font-size: 26px; }
+.ch-now { color: var(--lo-yellow); font-weight: 700; font-size: 17px; }
+.ch-actions { margin-top: auto; display: flex; gap: 12px; justify-content: flex-end; }
+.ch-daily { display: flex; gap: 18px; align-items: center; }
+.ch-daily .cd-face { width: 150px; height: 180px; flex-shrink: 0; background: center 10% / cover; clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px)); border-bottom: 4px solid var(--lo-yellow); }
+.ch-daily .cd-name { font-size: 28px; font-weight: 900; }
+.ch-daily .cd-sub { color: var(--muted); font-size: 16px; margin: 2px 0 12px; }
+.ch-daily .cd-twist { background: rgba(255,77,90,0.1); border-left: 4px solid #ff4d5a; padding: 10px 14px; font-size: 17px; }
+.ch-daily .cd-twist b { display: block; color: #ff8a92; font-size: 15px; margin-bottom: 2px; }
+.ch-ach { min-height: 0; }
+.ach-list { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-right: 8px; min-height: 0; }
+.ach { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); opacity: 0.55; }
+.ach.on { opacity: 1; border-color: rgba(255,198,0,0.5); background: rgba(255,198,0,0.06); }
+.ach .lo-star { font-size: 22px; flex-shrink: 0; }
+.ach b { display: block; font-size: 17px; }
+.ach span { font-size: 14px; color: var(--muted); }
+.menu-item.locked { opacity: 0.55; }
+.menu-item.locked .mi-sub { color: var(--muted); }
+
+/* ---------- 휴대기기: 터치 조작과 세로 화면 안내 ---------- */
+#viewport { touch-action: none; -webkit-tap-highlight-color: transparent; }
+#rotate-hint { display: none; position: fixed; inset: 0; z-index: 9999; background: #0c0c0f; color: #f1f1f4; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-family: "Godo", sans-serif; font-size: 22px; font-weight: 700; text-align: center; padding: 24px; }
+#rotate-hint .rh-icon { font-size: 64px; color: var(--lo-yellow); animation: rhSpin 2.4s ease-in-out infinite; }
+#rotate-hint small { color: var(--muted); font-size: 15px; font-weight: 500; }
+@keyframes rhSpin { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(90deg); } }
+@media (orientation: portrait) and (max-width: 900px) { #rotate-hint { display: flex; } }
+.scroll, .howto-body { touch-action: pan-y; }
+.round-info { font-family: "Exo 2", sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.15em; color: var(--muted); text-align: center; line-height: 1.3; }
+.round-info b { color: #fff; font-size: 22px; }
+.round-info span { display: block; font-family: "Godo", sans-serif; letter-spacing: 0; font-size: 13px; font-weight: 700; }
+.round-info.soon span { color: var(--lo-yellow); }
+.round-info.over span { color: #ff6b75; animation: blink 1.2s infinite; }

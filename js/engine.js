@@ -100,6 +100,8 @@ class Game {
   log(msg, kind) { if (this.quiet) return; this.logs.push({ msg, kind: kind || '' }); this.emit({ type: 'log', msg, kind: kind || '' }); }
   emit(ev) { if (!this.noEvents) this.events.push(ev); }
   round() { return Math.ceil(this.turn / 2); }
+  // 이번 턴 시작 시 받을 작전 시간 초과 피해 (없으면 0)
+  overtimeDamage(round = this.round()) { const r = RULES.OVERTIME_ROUND; return r ? Math.max(0, round - r + 1) : 0; }
 
   // ---- 시작 전 배치 (캠페인) ----
   placeStart(p, lane, cardId) {
@@ -147,6 +149,14 @@ class Game {
     }
     this.emit({ type: 'apGain', player: p });
     if (this.turn > 1) p.draw(1, this);
+    // 작전 시간 초과: 정해진 라운드부터 턴을 시작하는 쪽이 1, 2, 3… 늘어나는 피해를 받는다 (교착 방지)
+    const ot = this.overtimeDamage();
+    if (ot > 0) {
+      this.log(`작전 시간 초과! ${p.name}에게 피해 ${ot}`, 'sys');
+      this.emit({ type: 'overtime', player: p, v: ot });
+      this.damageCmd(p, ot, null);
+      if (this.phase === 'over') return;
+    }
     p.units().forEach(u => {
       if (u.kw['재생'] && u.hp < u.maxHp) {
         const v = Math.min(u.kw['재생'], u.maxHp - u.hp);
@@ -427,7 +437,7 @@ class Game {
   }
 
   // 지정 플레이어가 지금 전투를 치르면 어떻게 되는지 예측 (UI 표시용)
-  // 반환: { hits: [{ fromUid, toUid | 'cmd', v, evaded }], cmdDmg, lethal, deadUids:Set }
+  // 반환: { hits: [{ fromUid, toUid | 'cmd', v, evaded }], cmdDmg(시간 초과 피해 포함), overtime, lethal, deadUids:Set }
   forecast(player) {
     const g = this.clone();
     const idx = this.players.indexOf(player);
@@ -445,7 +455,10 @@ class Game {
       else if (e.type === 'dmgCmd') hits.push({ fromUid: curFrom, toUid: 'cmd', v: e.v });
       else if (e.type === 'die') dead.add(e.unit.uid);
     }
-    return { hits, cmdDmg: hpBefore - opp.hp, lethal: opp.hp <= 0, deadUids: dead };
+    // 전투 직후 상대 턴이 시작되며 받는 작전 시간 초과 피해도 포함한다
+    const overtime = opp.hp > 0 ? g.overtimeDamage(Math.ceil((g.turn + 1) / 2)) : 0;
+    opp.hp -= overtime;
+    return { hits, cmdDmg: hpBefore - opp.hp, overtime, lethal: opp.hp <= 0, deadUids: dead };
   }
 }
 

@@ -17,6 +17,10 @@ const Store = {
       seenIntro: false,
       unlocked: [],              // 해금한 카드 id
       secretaries: [],           // 해금한 특별 부관 id
+      stats: { wins: 0, kills: 0, factionsWon: [] },          // 업적용 누적 기록
+      ach: {},                   // 달성한 업적 id → 달성 시각
+      gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
+      daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
     };
   },
   load() {
@@ -31,6 +35,13 @@ const Store = {
     d.settings = { ...def.settings, ...(d.settings || {}) };
     d.campaign = { ...def.campaign, ...(d.campaign || {}) };
     d.record = { ...def.record, ...(d.record || {}) };
+    d.stats = { ...def.stats, ...(d.stats || {}) };
+    d.gauntlet = { ...def.gauntlet, ...(d.gauntlet || {}) };
+    d.daily = { ...def.daily, ...(d.daily || {}) };
+    if (!d.ach || typeof d.ach !== 'object') d.ach = {};
+    if (!Array.isArray(d.stats.factionsWon)) d.stats.factionsWon = [];
+    // 순회전 진행 정보가 깨졌으면 버린다
+    if (d.gauntlet.run && !(Array.isArray(d.gauntlet.run.stages) && d.gauntlet.run.stages.every(id => CAMPAIGN.some(s => s.id === id)))) d.gauntlet.run = null;
     // 손상된 덱 제거
     if (!Array.isArray(d.unlocked)) d.unlocked = [];
     if (!Array.isArray(d.secretaries)) d.secretaries = [];

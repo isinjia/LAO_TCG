@@ -7,7 +7,7 @@ import numpy as np
 
 Image.MAX_IMAGE_PIXELS = None
 ROOT = Path(__file__).resolve().parent.parent
-SRC = Path(r'E:/LAO/Google_QA/Assets/AssetBundleResourceSub/Texture/FullbodyImg')
+SRC = Path(r'E:/LAO_Google_QA/Assets/AssetBundleResourceSub/Texture/FullbodyImg')
 OUT_ART = ROOT / 'assets' / 'art'
 OUT_FULL = ROOT / 'assets' / 'full'
 OUT_ART.mkdir(parents=True, exist_ok=True)
@@ -44,7 +44,7 @@ FIT = {'AGS_Aeda', 'DS_KunoichiShiden', 'DS_Ramiel', 'PECS_BlindPrincess', 'PECS
 
 
 # FullbodyImg에 완성본이 없어 2D 모델 폴더의 정식 일러스트를 쓰는 카드
-SUB2D = Path(r'E:/LAO/Google_QA/Assets/AssetBundleResourceSub/Character_2D')
+SUB2D = Path(r'E:/LAO_Google_QA/Assets/AssetBundleResourceSub/Character_2D')
 OVERRIDE_PATH = {}
 # 기본(N) 일러스트가 애니메이션용 2D 모델(스프라이트+스키닝 메시)로만 존재하는 카드는
 # tools/unity_render 로 Unity에서 직접 렌더링한 이미지를 최우선으로 쓴다.
