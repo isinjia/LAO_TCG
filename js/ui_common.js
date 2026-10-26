@@ -113,6 +113,12 @@ function cardEl(card, opts = {}) {
     <div class="c-text">${kwText(card) || (isUnit ? '<span style="opacity:.5">특수 능력 없음</span>' : '')}</div>
     ${isUnit ? `<div class="c-stat c-atk">${card.a}</div><div class="c-stat c-hp">${card.h}</div>` : ''}`;
   if (opts.lockCheck && !Store.isUnlocked(card.id)) { el.classList.add('locked'); el.dataset.lock = unlockSource(card.id); }
+  // 도감·덱 편성에서는 카드 숙련도(동·은·금)를 표시한다. 금은 테두리가 반짝인다
+  if (opts.lockCheck && typeof masteryLevel === 'function' && masteryLevel(card.id)) {
+    const lv = masteryLevel(card.id);
+    el.classList.add('mastery-' + lv);
+    el.insertAdjacentHTML('beforeend', `<div class="c-mastery m${lv}" title="숙련도 ${MASTERY[lv - 1].name} · 승리 ${masteryWins(card.id)}회">${MASTERY[lv - 1].name}</div>`);
+  }
   if (!opts.noHover) {
     el.addEventListener('mouseenter', () => { if (opts.preview) showPreview(card, opts.preview); });
     el.addEventListener('mouseleave', () => { if (opts.preview) hidePreview(); });
@@ -216,6 +222,7 @@ function openCardDetail(card, list) {
         ${isUnit ? `<div><span class="s-l">공격력</span><span style="color:#ffb13b">${card.a}</span></div><div><span class="s-l">체력</span><span style="color:#4fd66b">${card.h}</span></div>` : ''}
       </div>
       <div class="d-text">${kwText(card) || '특수 능력이 없는 기본 전투원입니다.'}</div>
+      ${typeof masteryWins === 'function' && !card.enemy ? `<div class="d-mastery">숙련도 <b class="m${masteryLevel(card.id)}">${masteryLevel(card.id) ? MASTERY[masteryLevel(card.id) - 1].name : '없음'}</b> · 이 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수 ${masteryWins(card.id)}회${masteryLevel(card.id) < 3 ? ` (다음 단계까지 ${MASTERY[masteryLevel(card.id)].n - masteryWins(card.id)}회)` : ''}</div>` : ''}
       ${!Store.isUnlocked(card.id) ? `<div class="d-lock">🔒 잠김 — 해금 조건: ${esc(unlockSource(card.id))}</div>` : ''}
       <div class="d-kw">${kwHelpList(card).map(([k, v]) => `<div><b>[${esc(k)}]</b>${esc(v)}</div>`).join('')}</div>
       <div class="d-nav">${list ? `<button class="btn small" data-n="-1" ${idx <= 0 ? 'disabled' : ''}>◀ 이전</button><button class="btn small" data-n="1" ${idx >= list.length - 1 ? 'disabled' : ''}>다음 ▶</button>` : ''}<span class="spacer"></span><span style="color:var(--muted);font-size:15px;align-self:center">${list ? `${idx + 1} / ${list.length}` : ''}</span></div>

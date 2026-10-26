@@ -20,6 +20,7 @@ const Store = {
       secretaries: [],           // 해금한 특별 부관 id
       stats: { wins: 0, kills: 0, factionsWon: [], fairStreak: 0 }, // 업적용 누적 기록 (쉬움 AI 상대 승리 제외)
       ach: {},                   // 달성한 업적 id → 달성 시각
+      mastery: {},               // 카드 숙련도: 카드 id → 그 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
     };
@@ -41,6 +42,7 @@ const Store = {
     d.gauntlet = { ...def.gauntlet, ...(d.gauntlet || {}) };
     d.daily = { ...def.daily, ...(d.daily || {}) };
     if (!d.ach || typeof d.ach !== 'object') d.ach = {};
+    if (!d.mastery || typeof d.mastery !== 'object') d.mastery = {};
     if (!Array.isArray(d.stats.factionsWon)) d.stats.factionsWon = [];
     // 순회전 진행 정보가 깨졌으면 버린다
     if (d.gauntlet.run && !(Array.isArray(d.gauntlet.run.stages) && d.gauntlet.run.stages.every(id => CAMPAIGN.some(s => s.id === id)))) d.gauntlet.run = null;

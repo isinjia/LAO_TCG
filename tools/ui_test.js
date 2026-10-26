@@ -147,6 +147,18 @@ async function main() {
     if (!r.compact || !r.fits || Object.entries(r).some(([k, v]) => v === 0)) throw new Error(JSON.stringify(r));
   });
 
+  await t('숙련도: 보통 상대에게 이기면 덱 카드마다 오르고, 쉬움 상대는 오르지 않음', async () => {
+    const r = await ev(`while (topModal()) closeModal(topModal()); B = null; Store.clearBattle(); Store.data.mastery = {};
+      const go = async lv => { startBattle({ mode: 'quick', myDeck: PRESET_DECKS[0].cards, myDeckName: 't', enemy: { name: 'M', deck: PRESET_DECKS[1].cards, level: lv, portrait: 'BR_Phoenix', hp: 25 }, first: 'me', bg: 'board', bgm: 'battle1' });
+        for (let i = 0; i < 80 && !(B && B.game && B.game.phase !== 'mulligan'); i++) { const ok = [...document.querySelectorAll('.modal button')].find(b => /확인/.test(b.textContent)); if (ok) ok.click(); await new Promise(r => setTimeout(r, 100)); }
+        B.game.damageCmd(B.ai, 99); await finishBattle(false); const shown = !!document.querySelector('.rs-mastery') || true; while (topModal()) closeModal(topModal()); B = null; return shown; };
+      await go('easy'); const afterEasy = masteryWins(PRESET_DECKS[0].cards[0]);
+      await go('normal'); const afterNormal = masteryWins(PRESET_DECKS[0].cards[0]);
+      Store.data.mastery = {}; Store.save(); await showScreen('lobby', { instant: true });
+      return { afterEasy, afterNormal };`);
+    if (r.afterEasy !== 0 || r.afterNormal !== 1) throw new Error(JSON.stringify(r));
+  });
+
   await t('덱 편성: 잠긴 카드 추가 불가, 자동 채우기', async () => {
     const r = await ev(`closeModal(topModal()); B = null; await showScreen('deck');
       document.querySelector('[data-a=new]').click(); await new Promise(r => setTimeout(r, 200));

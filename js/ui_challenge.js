@@ -1,5 +1,12 @@
 // ===== 도전 모드: 리그 순회전 · 오늘의 대국 · 업적 =====
 
+// ---------- 카드 숙련도 ----------
+// 카드가 든 덱으로 보통 이상 상대에게 이길 때마다 그 카드의 숙련도가 오른다 (능력치에는 영향 없음, 꾸미기와 기록용)
+const MASTERY = [{ n: 3, name: '동' }, { n: 10, name: '은' }, { n: 25, name: '금' }];
+function masteryWins(id) { return (Store.data.mastery || {})[id] || 0; }
+function masteryLevel(id) { const w = masteryWins(id); return MASTERY.filter(m => w >= m.n).length; }
+function goldCount() { return Object.keys(Store.data.mastery || {}).filter(id => masteryLevel(id) >= 3).length; }
+
 // ---------- 업적 ----------
 // test(ctx): 대국이 끝날 때마다 호출. ctx = { win, mode, level, round, hp, kills, userDeck, factions }
 // test(ctx): 대국이 끝날 때마다 호출. ctx = { win, fair(쉬움이 아닌 상대에게 승리), mode, level, round, hp, kills, userDeck, factions }
@@ -10,6 +17,8 @@ const ACHIEVEMENTS = [
   { id: 'streak5', name: '연승 행진', desc: '보통 이상 상대에게 5연승한다.', test: c => c.stats.fairStreak >= 5 },
   { id: 'story', name: '오르카 카드 마스터', desc: '스토리 결승에서 승리한다.', test: () => !!Store.data.campaign.cleared.s8 },
   { id: 'stars', name: '완벽주의자', desc: '스토리 별 27개를 모두 모은다.', test: () => Store.totalStars() >= CAMPAIGN.length * 3 },
+  { id: 'mastery1', name: '손에 익은 카드', desc: '카드 하나의 숙련도를 금까지 올린다.', test: () => goldCount() >= 1 },
+  { id: 'mastery12', name: '황금 덱', desc: '카드 12장의 숙련도를 금까지 올린다.', test: () => goldCount() >= 12 },
   { id: 'exstory', name: '붉은 시뮬레이션 종결', desc: '외전 결전 「오메가」에서 승리한다.', test: () => !!Store.data.campaign.cleared.ex4 },
   { id: 'hardstory', name: '어려움 정복', desc: '스토리 난이도 어려움으로 결승에서 승리한다.', test: () => !!Store.data.campaign.hardCleared.s8 },
   { id: 'hardall', name: '전 리그 제패', desc: '스토리 여덟 대국을 모두 어려움 난이도로 이긴다.', test: () => CAMPAIGN.every(s => s.tutorial || Store.data.campaign.hardCleared[s.id]) },
@@ -37,6 +46,7 @@ const LOBBY_BGS = [
   { id: 'camp_night', name: '야영지의 밤', ach: 'stars' },
   { id: 'blacksun', name: '검은 태양', ach: 'hardstory' },
   { id: 'red_boss', name: '붉은 서버', ach: 'exstory' },
+  { id: 'mansion_dark', name: '밤의 저택', ach: 'mastery12' },
 ];
 function lobbyBgUnlocked(bg) { return !bg.ach || !!Store.data.ach[bg.ach]; }
 
@@ -47,7 +57,14 @@ const Ach = {
   record(info) {
     const st = Store.data.stats;
     info.fair = info.win && info.level !== 'easy'; // 쉬움 인공지능 상대 승리는 누적 업적에 세지 않는다
+    info.masteryUps = [];
     if (info.fair) {
+      // 숙련도: 덱의 카드마다 승리 1회
+      new Set(info.cards || []).forEach(id => {
+        const before = masteryLevel(id);
+        Store.data.mastery[id] = masteryWins(id) + 1;
+        if (masteryLevel(id) > before) info.masteryUps.push({ id, level: masteryLevel(id) });
+      });
       st.wins++; st.fairStreak = (st.fairStreak || 0) + 1;
       info.factions.forEach(f => { if (!st.factionsWon.includes(f)) st.factionsWon.push(f); });
     } else if (!info.win) st.fairStreak = 0;
@@ -197,12 +214,13 @@ function recordChallengeResult({ win, surrendered, game, me, cfg }) {
   if (cfg.mode === 'gauntlet') note = Gauntlet.finish(win && !surrendered, me.hp);
   if (cfg.mode === 'daily') note = Daily.finish(win && !surrendered, cfg.daily.day);
   const before = LOBBY_BGS.filter(lobbyBgUnlocked).length;
-  const achievements = Ach.record({
+  const info = {
     win: win && !surrendered, mode: cfg.mode, level: cfg.enemy.level, round: game.round(), hp: me.hp, maxHp: me.maxHp,
-    kills: me.stats.kills, userDeck: !!cfg.userDeck, factions: [...new Set(cfg.myDeck.map(id => CARDS[id].f))],
-  });
+    kills: me.stats.kills, userDeck: !!cfg.userDeck, factions: [...new Set(cfg.myDeck.map(id => CARDS[id].f))], cards: cfg.tutorial ? [] : cfg.myDeck,
+  };
+  const achievements = Ach.record(info);
   const newBgs = LOBBY_BGS.filter(lobbyBgUnlocked).length > before ? LOBBY_BGS.filter(b => b.ach && achievements.some(a => a.id === b.ach)) : [];
-  return { note, achievements, newBgs };
+  return { note, achievements, newBgs, masteryUps: info.masteryUps || [] };
 }
 
 // ---------- 도전 모드 화면 ----------

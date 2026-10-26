@@ -74,7 +74,7 @@ screenHooks.battle = async el => {
   applySpeedVar();
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/${cfg.bg || 'board'}.jpg')"></div><div class="bg-dim"></div>
-    <div class="table"><div class="table-mid"></div></div>
+    <div class="table"><div class="table-scan"></div><div class="table-mid"></div><div class="table-emblem"><span>VS</span></div><div class="table-side enemy">ENEMY FIELD</div><div class="table-side me">ALLY FIELD</div></div>
     ${cmdHtml('enemy', ai)}
     <div class="enemy-hand"></div>
     <div class="stack enemy"><div class="st-deck" data-pile="edeck" title="적 덱"><b data-v="edeck">0</b></div><div class="st-grave" data-pile="egrave" title="적 묘지">묘지 <b data-v="egrave">0</b></div></div>
@@ -885,6 +885,7 @@ async function finishBattle(surrendered) {
       </div>
       ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st lo-star ${stars[i] ? 'on' : ''}" style="animation-delay:${0.3 + i * 0.35}s"></span>${starLabel(s)}</div>`).join('')}</div>` : ''}
       ${ch.note ? `<div class="rs-note">${esc(ch.note)}</div>` : ''}
+      ${ch.masteryUps.length ? `<div class="rs-mastery">${ch.masteryUps.slice(0, 6).map(m => `<span class="mst m${m.level}">${esc(CARDS[m.id].n)} <b>${MASTERY[m.level - 1].name}</b></span>`).join('')}${ch.masteryUps.length > 6 ? `<span class="mst">외 ${ch.masteryUps.length - 6}장</span>` : ''}<em>숙련도 상승</em></div>` : ''}
       ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}${ch.newBgs.map(b => `<span><i class="lo-star on"></i>로비 배경 해금 · <b>${esc(b.name)}</b></span>`).join('')}</div>` : ''}
       ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}
       <div class="modal-actions" style="margin-top:auto">
