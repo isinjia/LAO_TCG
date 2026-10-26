@@ -39,6 +39,7 @@ function startBattle(cfg) {
   const game = meFirst ? new Game(me, ai) : new Game(ai, me);
   (cfg.enemy.start || []).forEach(s => game.placeStart(ai, s.lane, s.id));
   B = { cfg, game, me, ai, meFirst, unitEls: new Map(), selected: null, pending: null, busy: true, drag: null, over: false, handSig: '', logCount: 0 };
+  saveBattleSnapshot(); // 시작 패·선후공이 정해진 즉시 저장한다 (시작 연출 중 새로고침으로 다시 뽑지 못하게)
   showScreen('battle', { cfg });
 }
 
@@ -122,7 +123,7 @@ function cmdHtml(side, p) {
 
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
-  showBanner('BATTLE START', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${cfg.mode === 'campaign' ? CAMPAIGN[cfg.stageIdx].title : '자유 대국'}`, 'mine');
+  showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${cfg.mode === 'campaign' ? CAMPAIGN[cfg.stageIdx].title : '자유 대국'}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);
   // 멀리건
@@ -464,7 +465,7 @@ function renderRoundInfo() {
   const next = B.game.overtimeDamage(r + 1);
   el.className = 'round-info' + (ot && r >= ot ? ' over' : ot && ot - r <= 2 ? ' soon' : '');
   const mission = B.cfg.mode === 'campaign' ? missionProgress(CAMPAIGN[B.cfg.stageIdx], B.game, B.me) : null;
-  el.innerHTML = `ROUND <b>${r}</b>${!ot ? '' : r >= ot ? `<span>시간 초과 · 다음 피해 ${next}</span>` : `<span>시간 초과까지 ${ot - r}라운드</span>`}${mission ? `<span class="mission ${mission.ok ? 'ok' : ''}">임무 · ${mission.label}</span>` : ''}`;
+  el.innerHTML = `라운드 <b>${r}</b>${!ot ? '' : r >= ot ? `<span>시간 초과 · 다음 피해 ${next}</span>` : `<span>시간 초과까지 ${ot - r}라운드</span>`}${mission ? `<span class="mission ${mission.ok ? 'ok' : ''}">임무 · ${mission.label}</span>` : ''}`;
 }
 function setPhaseLabel(t) { const p = $('.phase-label'); if (p) p.textContent = t; }
 

@@ -23,7 +23,10 @@ function fitStage() {
   const vw = window.innerWidth, vh = window.innerHeight;
   stageScale = Math.min(vw / REF_W, vh / REF_H);
   // 휴대폰처럼 많이 줄어드는 화면에서는 작은 글자를 키운다 (lo_skin.css의 .compact)
+  const wasCompact = document.body.classList.contains('compact');
   document.body.classList.toggle('compact', stageScale < 0.6);
+  // 휴대폰 배치가 바뀌면 카드 크기를 다시 계산해야 하는 덱 편성·도감 화면을 다시 그린다
+  try { if (wasCompact !== (stageScale < 0.6) && (currentScreen === 'deck' || currentScreen === 'collection')) setTimeout(() => showScreen(currentScreen, { instant: true }), 0); } catch (e) {} // 첫 호출 때는 화면 변수가 아직 없다
   STAGE_W = Math.max(REF_W, vw / stageScale);
   STAGE_H = Math.max(REF_H, vh / stageScale);
   const st = $('#stage');

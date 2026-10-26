@@ -270,6 +270,7 @@ const CAMPAIGN = [
     desc: '알렉산드라의 철충 모의 카드 데이터가 폭주해 VR 리그를 점거했습니다. 회복과 철충 무리를 섞은 덱입니다.',
     enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 30, level: 'hard', style: 'aggro',
       deck: ['IW_LemonadeZeta', 'IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'PECS_Sekhmet', 'PECS_Ignis', 'SK_IW_Swarm', 'SK_PECS_Blessing'] },
+    start: [{ lane: 1, id: 'IW_NightChick' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 9 }, { type: 'kills', v: 13 }],
     intro: [
       { who: 'PECS_Orangeade', text: '시즌이 끝났는데 VR 훈련실에서 대국 신청이 계속 들어와요. 보낸 사람이… 없대요.' },

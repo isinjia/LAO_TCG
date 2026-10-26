@@ -355,7 +355,7 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .cmd-power .cp-icon { width: 64px; height: 64px; }
 .compact .cmd-power .cp-name { font-size: 28px; }
 .compact .cmd-power .cp-cost { width: 58px; height: 58px; font-size: 32px; }
-.compact #scr-battle .round-info { right: 24px; top: 160px; }
+.compact #scr-battle .round-info { right: auto; left: calc(150px + var(--ox, 0px)); top: 18px; text-align: left; }
 /* SS 전투원 등장: 카드를 크게, 금빛 테두리와 빛줄기, 잠깐 멈춘다 */
 .screen-flash.gold { background: radial-gradient(ellipse at center, rgba(255,214,90,0.55), rgba(255,170,0,0.15) 60%, transparent); }
 .reveal.ss { animation-duration: calc(1.65s / var(--spd)); }
@@ -446,3 +446,8 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .dialogue .dl-loglist b { font-size: 26px; }
 /* 큰 피해: 잠깐 멈추며 화면을 살짝 당긴다 */
 #stage.hitstop > .screen.active { transform: scale(1.015); filter: contrast(1.15) brightness(1.08); transition: none; }
+/* 휴대폰: 스토리 단계 판은 내용이 넘치면 스크롤하고, 그림 높이를 줄여 버튼이 잘리지 않게 */
+.compact .stage-panel { width: 760px; top: 96px; bottom: 16px; }
+.compact .stage-body { overflow-y: auto; padding-bottom: 20px; }
+.compact .stage-hero { height: 200px; }
+.compact .stack.me { top: 636px; }

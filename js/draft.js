@@ -46,7 +46,9 @@ function draftOffer(factions, picks, rnd) {
 // 대국 상대 다섯 명: 뒤로 갈수록 스토리 후반 상대가 나오도록 고른다
 function draftOpponents(rnd) {
   const story = CAMPAIGN.filter(s => !s.tutorial && s.chapter !== 'ex');
-  const tiers = [story.slice(0, 3), story.slice(2, 5), story.slice(4, 6), story.slice(5, 7), story.slice(7)];
+  // 단계는 실측 승률 순서로 묶었다 (s7 알파 덱은 보통 인공지능일 때 s5·s6보다 쉽다)
+  const by = id => story.find(s => s.id === id);
+  const tiers = [['s1', 's2'], ['s2', 's3'], ['s4', 's7'], ['s5', 's6'], ['s8']].map(t => t.map(by));
   const used = new Set();
   return tiers.map(t => { const opts = t.filter(s => !used.has(s.id)); const s = opts[Math.floor(rnd() * opts.length)]; used.add(s.id); return s.id; });
 }

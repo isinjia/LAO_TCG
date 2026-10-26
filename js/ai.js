@@ -4,7 +4,7 @@
 // hard   : 이번 턴 확정 승리 수순(행동 3개까지)을 먼저 찾고, 없으면 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
 const AI = {
-  EASY_SMART: 0.75, // 쉬움이 보통과 같은 수를 두는 비율 (보통 상대 승률 약 30%를 목표로 맞춘 값)
+  EASY_SMART: 0.55, // 쉬움이 보통과 같은 수를 두는 비율 (입문용: 보통 상대 승률 약 20%)
   // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
   nextAction(game, p, level = 'normal') {
     if (level === 'hard') return this.searchAction(game, p);
@@ -279,7 +279,7 @@ const AI = {
       const g = game.clone(); const gp = g.players[game.players.indexOf(p)];
       if (!this.applyAct(g, gp, f.a) || g.phase === 'over') continue;
       for (const a2 of this.legalActions(g, gp)) {
-        const s2 = this.scoreSeq(g, gp, [a2]);
+        const s2 = avg([f.a, a2]); // 첫 수와 같은 기준(가정 두 개 평균)으로 비교한다
         if (s2 > bestScore + 0.3) { bestScore = s2; best = f.a; }
       }
     }
@@ -298,7 +298,6 @@ const AI = {
 
   // 멀리건: 비싼 카드(5 이상)를 교체
   pickMulligan(p, level = 'normal') {
-    if (level === 'easy') return [];
     // 비용 곡선을 본다: 비용 5 이상은 한 장만 남기고, 첫 두 턴에 낼 카드(비용 2 이하)가 없으면 비용 4도 돌려보낸다
     const max = RULES.MULLIGAN_MAX ?? 3;
     const heavy = p.hand.filter(c => c.c >= 5).sort((a, b) => a.c - b.c);

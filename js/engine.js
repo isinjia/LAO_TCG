@@ -347,9 +347,9 @@ class Game {
   // attacker: 공격한 유닛(전투), src: 피해 출처 카드(통계용)
   damageUnit(u, dmg, attacker, src) {
     if (u.hp <= 0 || !u.owner.lanes.includes(u)) return 0;
-    if (u.evade) { u.evade = false; this.emit({ type: 'evade', unit: u }); this.log(`${u.card.n}이(가) 회피!`); return 0; }
     let d = dmg;
-    if (d <= 0) return 0; // 공격력 0은 피해가 없다 (보호기 최소 피해 1 규칙보다 먼저)
+    if (d <= 0) return 0; // 공격력 0은 피해가 없다 (회피도 쓰지 않고, 보호기 최소 피해 1 규칙보다 먼저)
+    if (u.evade) { u.evade = false; this.emit({ type: 'evade', unit: u }); this.log(`${u.card.n}이(가) 회피!`); return 0; }
     if (attacker && u.role === 'DEF' && RULES.DEF_ROLE_ARMOR) d = Math.max(1, d - RULES.DEF_ROLE_ARMOR);
     if (u.shield > 0) { const ab = Math.min(u.shield, d); u.shield -= ab; d -= ab; this.emit({ type: 'shieldHit', unit: u, v: ab }); }
     const dealt = Math.min(d, Math.max(0, u.hp));
