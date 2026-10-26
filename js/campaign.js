@@ -14,7 +14,7 @@ const CAMPAIGN = [
     playerDeck: ['3P_Poi', '3P_Hachiko', '3P_Ajax', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', '3P_Sowan', '3P_CSPerrault', '3P_BlackWyrm', '3P_ConstantiaS2', '3P_Labiata', 'SK_PECS_Medic'],
     playerFirst: true,
     openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', 'SK_PECS_Medic'], // 시작 패 4장 + 2턴·3턴에 뽑을 카드
-    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 13, level: 'easy',
+    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 9, level: 'easy',
       deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Shade', 'AGS_Seljuq', 'AGS_Roc', 'AGS_Rampart', 'AGS_Fallen', 'AGS_Aeda', 'AGS_Arachne', 'SK_AGS_Barrier'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 11 }],
     intro: [
@@ -435,7 +435,7 @@ const LOCKED = new Set([...Object.values(STAGE_REWARDS).flat(), ...SUPPLY_CARDS]
 const LOCKED_SECRETARIES = new Set(STAR_REWARDS.map(r => r.secretary));
 function unlockSource(id) {
   const sid = Object.keys(STAGE_REWARDS).find(k => STAGE_REWARDS[k].includes(id));
-  if (sid) { const s = CAMPAIGN.find(x => x.id === sid); return `스토리 ${s.no}. ${s.title} 승리`; }
+  if (sid) { const s = CAMPAIGN.find(x => x.id === sid); return `스토리 ${stageLabel(s)} 「${s.title}」 승리`; }
   if (SUPPLY_CARDS.has(id)) return `보급소에서 해금 (보급 포인트 ${SUPPLY_COST[CARDS[id].g]})`;
   const r = STAR_REWARDS.find(x => x.secretary === id);
   return r ? `스토리 별 ${r.stars}개` : '';

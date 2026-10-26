@@ -16,8 +16,10 @@ const TUTORIAL_STEPS = [
   { trigger: 'myTurn', text: '이번엔 <b>지원 카드</b>를 써 보자. 방금 뽑은 <b>야전 의료</b>를 고른 뒤, 빛나는 내 전투원을 누르렴. 그 전투원의 체력을 가득 채워 준단다.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
     cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },
   { trigger: 'myTurn', text: '오른쪽 아래 <b>포격 지원</b>도 써 볼래? 턴마다 한 번, AP 4로 적 전투원이나 상대 라이프에 2 피해를 준단다. 버튼을 누르고 대상을 고르렴.', spot: '.cmd-power', wait: 'cardPlayed',
-    cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() },
-  { text: '레인이 다 차도 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 겹쳐 내는 <b>교체 배치</b>를 할 수 있단다(AP 1 더). 기본은 여기까지야. 오른쪽 위 <b>?</b> 버튼으로 언제든 규칙을 다시 볼 수 있어.', spot: null },
+    cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // 내 전장이 비었을 때는 포격보다 배치가 먼저라 건너뛴다
+  { trigger: 'myTurn', text: '마지막으로 <b>이동</b>이야. 내 전투원을 누르면 옮길 수 있는 이웃 레인이 빛난단다. 턴마다 한 번, AP 2로 옮기고 아군이 있으면 자리를 바꿔. 상성이 불리한 전투원을 옮겨 보렴.', spot: '.lanes.me', wait: 'moved',
+    can: () => B.me.units().some(u => [0, 1, 2].some(l => B.game.canMove(u, l))) },
+  { text: '같은 제작사 전투원이 2기 모이면 <b>제작사 결속</b>이 켜져(초상 아래에 이름이 떠). 삼안은 포격 지원이 싸지고 세진단다. 레인이 다 차면 내 전투원 위에 겹쳐 내는 <b>교체 배치</b>도 할 수 있어(AP 1 더). 기본은 여기까지야. 오른쪽 위 <b>?</b> 버튼으로 언제든 규칙을 다시 볼 수 있어.', spot: null },
 ];
 
 const Tutorial = {
@@ -41,7 +43,7 @@ const Tutorial = {
     }
     this.waitingTrigger = false;
     // 카드 사용을 기다리는 단계인데 쓸 수 있는 카드가 없으면 건너뛴다 (막힘 방지)
-    if ((st.wait === 'cardSelected' || st.wait === 'cardPlayed') && !(st.can ? st.can() : tutHasPlayable())) { this.go(i + 1); return; }
+    if ((st.wait === 'cardSelected' || st.wait === 'cardPlayed' || st.wait === 'moved') && !(st.can ? st.can() : tutHasPlayable())) { this.go(i + 1); return; }
     this.render();
   },
   hide() { const c = $('#coach'); c.classList.remove('show'); },
@@ -106,8 +108,8 @@ function tutHasPlayable() {
 function tutAllowsEndTurn() {
   if (!Tutorial.active || Tutorial.waitingTrigger) return true;
   const st = TUTORIAL_STEPS[Tutorial.i];
-  if (st && (st.wait === 'cardPlayed' || st.wait === 'cardSelected')) {
-    if (!(st.can ? st.can() : tutHasPlayable())) { while (TUTORIAL_STEPS[Tutorial.i] && /^card/.test(TUTORIAL_STEPS[Tutorial.i].wait || '') && !TUTORIAL_STEPS[Tutorial.i].trigger) Tutorial.i++; Tutorial.go(Tutorial.i); return true; }
+  if (st && (st.wait === 'cardPlayed' || st.wait === 'cardSelected' || st.wait === 'moved')) {
+    if (!(st.can ? st.can() : tutHasPlayable())) { while (TUTORIAL_STEPS[Tutorial.i] && /^(card|moved)/.test(TUTORIAL_STEPS[Tutorial.i].wait || '') && !TUTORIAL_STEPS[Tutorial.i].trigger) Tutorial.i++; Tutorial.go(Tutorial.i); return true; }
     toast('튜토리얼: 먼저 안내에 따라 해 보세요.', true); return false;
   }
   return true;
@@ -121,7 +123,7 @@ const LESSONS = [
   { id: 'skill', when: b => b.me.hand.some(c => c.kind === 'skill' && b.me.canAfford(c)), spot: '.hand',
     text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 낸단다. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 되고, 끌어다 놓아도 쓸 수 있어.' },
   { id: 'guard', when: b => b.ai.units().some(u => u.role === 'DEF'), spot: '.lanes.enemy',
-    text: () => '상대에게 <b>보호기</b>가 나왔구나. 보호기는 양옆 레인으로 가는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어든단다. 포격 지원이나 광역 공격으로 넘기거나, 보호기가 없는 쪽을 노리렴.' },
+    text: () => '상대에게 <b>보호기</b>가 나왔구나. 보호기는 앞이 빈 양옆 레인에서 상대 라이프로 가는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어든단다. 포격 지원이나 광역 공격으로 넘기거나, 보호기가 없는 쪽을 노리렴.' },
   { id: 'keywords', when: b => [...b.me.units(), ...b.ai.units()].some(u => Object.keys(u.kw).some(k => KW_LESSON.includes(k))), spot: '.lanes.enemy',
     text: b => { const ks = [...new Set([...b.me.units(), ...b.ai.units()].flatMap(u => Object.keys(u.kw)).filter(k => KW_LESSON.includes(k)))].slice(0, 3);
       return '전투원 위의 작은 표시는 <b>키워드</b>란다. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와.'; } },

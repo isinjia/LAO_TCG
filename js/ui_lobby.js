@@ -3,7 +3,7 @@ const BATTLE_BGS = { board: '오르카호 격납고', camp_day: '야영지 (낮)
 // 로비 대사: 로비 캐릭터가 오렌지에이드면 혼잣말, 아니면 오렌지에이드에게 건네는 말
 const HERO_LINES = [
   '오늘도 카드 연습! 최고의 카드 마스터가 되려면 매일 한 판씩이에요.',
-  '다음 리그 상대는 누구일까? 덱부터 다시 점검해 봐야지.',
+  '다음 리그 상대는 누구일까요? 덱부터 다시 점검해 봐야겠어요.',
   '경장은 기동에, 기동은 중장에, 중장은 경장에 강하다… 외워 뒀어요!',
   '챔피언 라비아타 씨를 이기는 그날까지, 오렌지에이드는 멈추지 않아요!',
   'AP는 2까지 남겨 둘 수 있으니까, 큰 카드를 아껴 두는 것도 작전이에요.',
@@ -108,7 +108,7 @@ screenHooks.lobby = el => {
   };
   const pool = Store.data.secretary === 'PECS_Orangeade' ? HERO_LINES : SECRETARY_LINES;
   const pick = () => pool[Math.floor(Math.random() * pool.length)];
-  setTimeout(() => say(!Store.data.tutorialDone ? (Store.data.secretary === 'PECS_Orangeade' ? '좋아, 스토리 모드의 "첫 카드 수업"부터 시작하자!' : '오렌지에이드, 처음이지? 스토리 모드의 "첫 카드 수업"부터 해 봐!') : pick()), 500);
+  setTimeout(() => say(!Store.data.tutorialDone ? (Store.data.secretary === 'PECS_Orangeade' ? '좋아요, 스토리 모드의 "첫 카드 수업"부터 시작해 볼게요!' : '오렌지에이드, 처음이지? 스토리 모드의 "첫 카드 수업"부터 해 봐!') : pick()), 500);
   $('.secretary', el).onclick = () => { Audio2.play('click'); say(pick()); Audio2.voice(Store.data.secretary, 'idle', true); };
   $$('.menu-item', el).forEach(m => {
     m.onmouseenter = () => Audio2.play('card', 0.5);
@@ -202,7 +202,7 @@ screenHooks.setup = el => {
     // 이긴 적 있는 스토리 상대의 덱 (철충 특수 카드 포함)
     CAMPAIGN.filter(s => !s.tutorial && Store.data.campaign.cleared[s.id]).forEach(s => {
       const id = 'story:' + s.id;
-      const dc = deckCard({ name: s.enemy.name, cards: s.enemy.deck, desc: `스토리 ${s.no}. ${s.title}의 덱`, story: true }, setupState.oppDeck === id);
+      const dc = deckCard({ name: s.enemy.name, cards: s.enemy.deck, desc: `스토리 ${stageLabel(s)} 「${s.title}」의 덱`, story: true }, setupState.oppDeck === id);
       dc.onclick = () => { setupState.oppDeck = id; Audio2.play('click'); renderLists(); };
       opp.appendChild(dc);
     });

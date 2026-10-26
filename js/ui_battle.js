@@ -306,6 +306,7 @@ async function doMove(u, lane) {
   await processEvents(); alive(myB);
   B.busy = false; renderAll();
   saveBattleSnapshot();
+  tut('moved', u);
 }
 function clearSelection() {
   if (!B) return;
@@ -716,7 +717,7 @@ function tacticalTip() {
   if (me.hand.some(c => c.kind === 'unit' && me.canAfford(c)) && open.length) tips.push(`${open.map(l => LANE_NAMES[l]).join('·')} 레인은 적이 없어 배치하면 다음 턴 상대 라이프를 직접 공격합니다.`);
   const adv = me.hand.find(c => c.kind === 'unit' && me.canAfford(c) && me.emptyLanes().some(l => ai.lanes[l] && TYPE_BEATS[c.t] === ai.lanes[l].type));
   if (adv) tips.push(`${adv.n}(${TYPES[adv.t]})은 ${TYPES[TYPE_BEATS[adv.t]]}형 적 앞에 두면 상성상 유리합니다.`);
-  if (ai.units().some(u => u.role === 'DEF')) tips.push('적 보호기는 양옆 레인으로 가는 공격을 대신 받고 피해를 1 덜 받습니다.');
+  if (ai.units().some(u => u.role === 'DEF')) tips.push('적 보호기는 앞이 빈 양옆 레인에서 라이프로 가는 공격을 대신 받고 피해를 1 덜 받습니다.');
   if (me.ap >= 2 && !me.hand.some(c => me.canAfford(c)) && short.length) tips.push(`AP가 ${me.ap} 남았습니다. 남은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다.`);
   if (me.units().some(u => u.role === 'SUP')) tips.push('지원기 양옆에 전투원을 두면 공격력이 +1 됩니다.');
   return tips[0] || null;

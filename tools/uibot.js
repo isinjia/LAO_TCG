@@ -20,6 +20,13 @@ window.uiBot = async function (maxMs, stopRound) {
     if (stopRound && B.game.round() >= stopRound) return { stopped: true, round: B.game.round() };
     // 튜토리얼이 지원 카드·포격 지원을 직접 해 보라고 기다리는 단계면 그대로 따른다
     const st = Tutorial.active && !Tutorial.waitingTrigger && TUTORIAL_STEPS[Tutorial.i];
+    if (st && st.can && st.wait === 'moved' && st.can()) {
+      const u = B.me.units().find(x => [0, 1, 2].some(l => B.game.canMove(x, l))), l = [0, 1, 2].find(k => B.game.canMove(u, k));
+      document.querySelector(`.slot[data-side=me][data-lane="${B.me.lanes.indexOf(u)}"]`).click(); await W(60);
+      document.querySelector(`.slot[data-side=me][data-lane="${l}"]`).click();
+      for (let k = 0; k < 300 && B && B.busy; k++) await W(50);
+      continue;
+    }
     if (st && st.can && st.wait === 'cardPlayed' && st.can()) {
       if (st.cond(COMMAND_CARD)) { document.querySelector('.cmd-power').click(); await W(60); document.querySelector('#cmd-enemy').click(); }
       else {
