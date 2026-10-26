@@ -19,8 +19,20 @@ function sleepRaw(ms) { return new Promise(r => setTimeout(r, ms)); }
 // 요소는 CSS에서 가장자리(left/right/top/bottom) 또는 가운데(--ox/--oy 보정) 기준으로 고정된다.
 //   --ox / --oy : 기준 영역이 무대 가운데에 놓이도록 하는 가로/세로 여백 (가운데 앵커용)
 //   --ex / --ey : 기준보다 늘어난 전체 폭/높이 (반대쪽 가장자리 앵커용 = 여백 x2)
+// 세로 화면 회전: 휴대폰·태블릿을 세로로 들면 무대를 시계 방향 90도로 돌려 가로 게임을 그대로 보여 준다.
+// 이때 화면의 세로 길이가 무대의 가로가 되고, 좌표 변환(stageRect/stagePoint)도 회전을 되돌려 계산한다.
+let stageRotated = false;
+function wantRotate(vw, vh) {
+  if (vh <= vw) return false;
+  const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  return vw <= 900 || touch; // 마우스로 쓰는 큰 세로 창은 돌리지 않고 확장 배치로 보여 준다
+}
 function fitStage() {
-  const vw = window.innerWidth, vh = window.innerHeight;
+  const sw = window.innerWidth, sh = window.innerHeight;
+  stageRotated = wantRotate(sw, sh);
+  document.body.classList.toggle('rotated', stageRotated);
+  // 회전하면 무대 기준 가로·세로는 화면의 세로·가로다
+  const vw = stageRotated ? sh : sw, vh = stageRotated ? sw : sh;
   stageScale = Math.min(vw / REF_W, vh / REF_H);
   // 휴대폰처럼 많이 줄어드는 화면에서는 작은 글자를 키운다 (lo_skin.css의 .compact)
   const wasCompact = document.body.classList.contains('compact');
@@ -30,20 +42,27 @@ function fitStage() {
   STAGE_W = Math.max(REF_W, vw / stageScale);
   STAGE_H = Math.max(REF_H, vh / stageScale);
   const st = $('#stage');
-  Object.assign(st.style, { width: STAGE_W + 'px', height: STAGE_H + 'px', transform: `scale(${stageScale})` });
+  // 회전: 무대 좌표 (x, y) → 화면 (sw - y·배율, x·배율). 원점은 왼쪽 위(transform-origin 0 0)
+  const tf = stageRotated ? `translate(${sw}px, 0) rotate(90deg) scale(${stageScale})` : `scale(${stageScale})`;
+  Object.assign(st.style, { width: STAGE_W + 'px', height: STAGE_H + 'px', transform: tf });
   const ex = STAGE_W - REF_W, ey = STAGE_H - REF_H;
   st.style.setProperty('--ox', ex / 2 + 'px'); st.style.setProperty('--oy', ey / 2 + 'px');
   st.style.setProperty('--ex', ex + 'px'); st.style.setProperty('--ey', ey + 'px');
 }
-// 요소의 스테이지 좌표 (스케일 보정)
+// 요소의 스테이지 좌표 (스케일·회전 보정)
 function stageRect(el) {
   const s = $('#stage').getBoundingClientRect();
   const r = el.getBoundingClientRect();
-  return { x: (r.left - s.left) / stageScale, y: (r.top - s.top) / stageScale, w: r.width / stageScale, h: r.height / stageScale,
-    get cx() { return this.x + this.w / 2; }, get cy() { return this.y + this.h / 2; } };
+  const k = stageScale;
+  // 회전 상태: 화면 위→아래가 무대 왼쪽→오른쪽, 화면 오른쪽→왼쪽이 무대 위→아래
+  const [x, y, w, hh] = stageRotated
+    ? [(r.top - s.top) / k, (s.right - r.right) / k, r.height / k, r.width / k]
+    : [(r.left - s.left) / k, (r.top - s.top) / k, r.width / k, r.height / k];
+  return { x, y, w, h: hh, get cx() { return this.x + this.w / 2; }, get cy() { return this.y + this.h / 2; } };
 }
 function stagePoint(clientX, clientY) {
   const s = $('#stage').getBoundingClientRect();
+  if (stageRotated) return { x: (clientY - s.top) / stageScale, y: (s.right - clientX) / stageScale };
   return { x: (clientX - s.left) / stageScale, y: (clientY - s.top) / stageScale };
 }
 function applySpeedVar() { $('#stage').style.setProperty('--spd', Store.settings.speed || 1); }

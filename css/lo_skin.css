@@ -194,7 +194,7 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 #rotate-hint .rh-icon { font-size: 64px; color: var(--lo-yellow); animation: rhSpin 2.4s ease-in-out infinite; }
 #rotate-hint small { color: var(--muted); font-size: 15px; font-weight: 500; }
 @keyframes rhSpin { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(90deg); } }
-@media (orientation: portrait) and (max-width: 900px) { #rotate-hint { display: flex; } }
+/* 세로 화면에서도 게임을 가리지 않는다: 무대를 90도 돌려 보여 준다 (ui_common.js fitStage의 stageRotated) */
 .scroll, .howto-body { touch-action: pan-y; }
 #scr-battle .round-info { position: absolute; right: 350px; top: 22px; z-index: 13; text-align: right; }
 .round-info { font-family: "Exo 2", sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.15em; color: var(--muted); text-align: center; line-height: 1.3; }
