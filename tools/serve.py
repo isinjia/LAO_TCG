@@ -1,0 +1,26 @@
+"""로컬 정적 서버 (개발용, 캐시 끔).
+
+브라우저가 예전 js/css를 캐시에서 읽지 않도록 모든 응답에 Cache-Control: no-store를 붙인다.
+사용법: python tools/serve.py [포트]   (기본 8765)
+"""
+import http.server
+import os
+import sys
+
+
+class NoCache(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
+    def log_message(self, fmt, *args):
+        # 정상 요청 로그는 숨기고 오류(4xx/5xx)만 보여 준다
+        if len(args) >= 2 and str(args[1])[:1] in "45":
+            super().log_message(fmt, *args)
+
+
+if __name__ == "__main__":
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
+    print(f"serving http://localhost:{port}  (Ctrl+C to stop)", flush=True)
+    http.server.ThreadingHTTPServer(("127.0.0.1", port), NoCache).serve_forever()
