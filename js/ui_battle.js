@@ -114,13 +114,22 @@ function mulliganPrompt() {
   return new Promise(res => {
     const { game, me } = B;
     const marked = new Set();
-    const box = h(`<div class="modal-box" style="text-align:center"><div class="coin">${B.meFirst ? '선공 — 첫 턴에는 카드를 뽑지 않습니다' : `후공 — 시작 패 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}`}</div>
-      <h3 style="margin-top:10px">시작 패 교체</h3><p>교체할 카드를 클릭하세요. 선택한 카드는 덱으로 돌아가고 새 카드를 뽑습니다. (1회)</p>
+    const MAX = RULES.MULLIGAN_MAX ?? 3;
+    const box = h(`<div class="modal-box" style="text-align:center"><div class="coin">${B.meFirst ? '선공 — 첫 턴에는 카드를 뽑지 않습니다' : `후공 — 교체 후 카드 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}`}</div>
+      <h3 style="margin-top:10px">시작 패 교체</h3><p>교체할 카드를 클릭하세요. <b>최대 ${MAX}장</b>까지 고를 수 있고, 선택한 카드는 덱으로 돌아가고 새 카드를 뽑습니다. (1회)</p>
+      <div class="mull-count">교체 0 / ${MAX}</div>
       <div class="mull-hand"></div><div class="modal-actions" style="justify-content:center"><button class="btn primary big" data-a="ok">확인</button></div></div>`);
     const row = $('.mull-hand', box);
     me.hand.forEach(c => {
       const ce = cardEl(c, { w: 210 });
-      ce.onclick = () => { marked.has(c) ? marked.delete(c) : marked.add(c); ce.classList.toggle('marked', marked.has(c)); Audio2.play('card'); $('[data-a=ok]', box).textContent = marked.size ? `${marked.size}장 교체` : '확인'; };
+      ce.onclick = () => {
+        if (!marked.has(c) && marked.size >= MAX) { toast(`최대 ${MAX}장까지 교체할 수 있습니다.`, true); return; }
+        marked.has(c) ? marked.delete(c) : marked.add(c);
+        ce.classList.toggle('marked', marked.has(c)); Audio2.play('card');
+        $('[data-a=ok]', box).textContent = marked.size ? `${marked.size}장 교체` : '확인';
+        $('.mull-count', box).textContent = `교체 ${marked.size} / ${MAX}`;
+        row.classList.toggle('full', marked.size >= MAX);
+      };
       row.appendChild(ce);
     });
     const m = openModal(box, { closable: false });

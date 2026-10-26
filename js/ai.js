@@ -164,6 +164,7 @@ const AI = {
   // 멀리건: 비싼 카드(5 이상)를 교체
   pickMulligan(p, level = 'normal') {
     if (level === 'easy') return [];
-    return p.hand.filter(c => c.c >= 5);
+    // 비싼 카드부터 최대 교체 장수까지만 돌려보낸다
+    return p.hand.filter(c => c.c >= 5).sort((a, b) => b.c - a.c).slice(0, RULES.MULLIGAN_MAX ?? 3);
   },
 };

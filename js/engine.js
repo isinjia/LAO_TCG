@@ -90,8 +90,9 @@ class Game {
     this.winner = null;
     this.quiet = false;      // 로그 생략 (AI 시뮬레이션용)
     this.noEvents = false;   // 이벤트 생략 (AI 시뮬레이션용)
+    // 양쪽 모두 같은 장수로 시작한다. 후공 보정 카드는 교체가 끝난 뒤 start()에서 준다.
     p0.draw(RULES.START_HAND, this);
-    p1.draw(RULES.START_HAND + (RULES.SECOND_EXTRA_CARDS ?? 1), this);
+    p1.draw(RULES.START_HAND, this);
   }
   get cur() { return this.players[this.current]; }
   get opp() { return this.players[1 - this.current]; }
@@ -108,11 +109,11 @@ class Game {
     p.lanes[lane] = u;
   }
 
-  // ---- 멀리건: 선택한 카드를 덱에 되돌리고 같은 수만큼 다시 뽑는다 (1회) ----
+  // ---- 멀리건: 선택한 카드를 덱에 되돌리고 같은 수만큼 다시 뽑는다 (1회, 최대 MULLIGAN_MAX장) ----
   mulligan(p, cards) {
     if (p.mulliganDone) return;
     p.mulliganDone = true;
-    const back = cards.filter(c => p.hand.includes(c));
+    const back = cards.filter((c, i) => p.hand.includes(c) && cards.indexOf(c) === i).slice(0, RULES.MULLIGAN_MAX ?? 3);
     back.forEach(c => p.hand.splice(p.hand.indexOf(c), 1));
     const n = back.length;
     // 돌려놓은 카드가 바로 다시 나오지 않도록, 남은 덱에서 먼저 뽑는다
@@ -124,6 +125,9 @@ class Game {
 
   start() {
     this.players.forEach(p => { p.mulliganDone = true; });
+    // 후공 보정: 교체 단계가 끝난 뒤 추가 카드를 준다
+    const extra = RULES.SECOND_EXTRA_CARDS ?? 1;
+    if (extra > 0) { this.players[1].draw(extra, this); this.log(`${this.players[1].name}: 후공 보정 카드 +${extra}`, 'sys'); }
     this.beginTurn();
   }
 

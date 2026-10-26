@@ -49,7 +49,8 @@ t('캠페인 덱·대사·초상 유효', () => CAMPAIGN.forEach(s => {
 t('튜토리얼 시작 패에 비용 1 카드', () => { const s = CAMPAIGN[0]; ok(s.openingHand.some(id => CARDS[id].c === 1)); });
 
 // ---------- 엔진 규칙 ----------
-t('시작 패: 선공 4장, 후공 6장', () => { const { a, b } = fresh(D0, D1); eq(a.hand.length, RULES.START_HAND); eq(b.hand.length, RULES.START_HAND + RULES.SECOND_EXTRA_CARDS); });
+t('시작 패: 교체 단계는 양쪽 모두 4장', () => { const { a, b } = fresh(D0, D1); eq(a.hand.length, 4); eq(b.hand.length, 4); eq(RULES.START_HAND, 4); });
+t('후공 보정: 교체 후 시작하면 후공만 추가 카드', () => { const { a, b, g } = fresh(D0, D1); g.mulligan(a, []); g.mulligan(b, []); g.start(); eq(a.hand.length, RULES.START_HAND); eq(b.hand.length, RULES.START_HAND + RULES.SECOND_EXTRA_CARDS); });
 t('AP: 매 턴 최대치 +1, 충전 + 남은 AP 이월, 최대 10', () => {
   const { a, g } = fresh(D0, D1); g.start(); eq(a.ap, 1); eq(a.maxAp, 1);
   g.endTurn(); g.endTurn(); eq(a.maxAp, 2); eq(a.ap, 2 + Math.min(1, RULES.AP_CARRY), '남은 AP 이월 포함');
@@ -95,6 +96,9 @@ t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); 
 t('격파 효과 발동 (메탈 패러사이트)', () => { const { a, b, g } = fresh(D0, D1); const u = makeUnit(CARDS['IW_Parasite'], b); b.lanes[0] = u; const hp = a.hp; g.damageUnit(u, 10, null); eq(a.hp, hp - 2); });
 t('소환 효과 (철충 무리)', () => { const { a, b } = fresh(D0, D1); const p = new Player('I', CAMPAIGN[5].enemy.deck); const g2 = new Game(p, a); g2.start(); p.ap = 9; p.hand.push(CARDS['SK_IW_Swarm']); g2.play(CARDS['SK_IW_Swarm']); eq(p.units().length, 3); });
 t('멀리건: 같은 장수 유지', () => { const { a, g } = fresh(D0, D1); const n = a.hand.length; g.mulligan(a, a.hand.slice(0, 2)); eq(a.hand.length, n); eq(a.hand.length + a.deck.length, 12); });
+t('멀리건: 4장을 골라도 최대 3장만 교체', () => { const { a, g } = fresh(D0, D1); const before = a.hand.slice(); g.mulligan(a, before.slice()); eq(a.hand.length, 4); eq(a.hand.length + a.deck.length, 12); eq(before.filter(c => a.hand.includes(c)).length, 1, '남은 원래 카드 수'); eq(RULES.MULLIGAN_MAX, 3); });
+t('멀리건: 1회만 가능', () => { const { a, g } = fresh(D0, D1); g.mulligan(a, []); const h = a.hand.slice(); g.mulligan(a, a.hand.slice(0, 3)); eq(a.hand.every((c, i) => c === h[i]), true); });
+t('AI 멀리건: 최대 3장', () => { const p = new Player('X', D0, { isAI: true }); p.hand = [...p.deck]; eq(AI.pickMulligan(p, 'normal').length <= 3, true); });
 t('덱 소진 시 묘지 재순환', () => { const { a, g } = fresh(D0, D1); a.grave.push(...a.deck.splice(0)); a.hand.length = 0; a.draw(3, g); eq(a.hand.length, 3); });
 t('패 최대치 초과 시 소각', () => { const { a, g } = fresh(D0, D1); a.draw(10, g); eq(a.hand.length, RULES.HAND_MAX); });
 t('clone은 원본을 바꾸지 않음', () => {

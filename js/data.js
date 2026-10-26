@@ -252,13 +252,14 @@ const RULES = {
   DECK_SIZE: 12,
   MAX_FACTIONS: 3,
   HAND_MAX: 7,
-  START_HAND: 4,
+  START_HAND: 4,          // 시작 패 (선공·후공 모두 이 장수로 교체 단계를 시작한다)
+  MULLIGAN_MAX: 3,        // 시작 패에서 교체할 수 있는 최대 장수
   MAX_AP: 10,             // AP 최대치 (매 턴 +1)
   START_AP: 1,           // 첫 턴 AP 최대치
   AP_CARRY: 2,           // 다음 턴으로 넘길 수 있는 남은 AP
   LANES: 3,
   TYPE_BONUS: 1,
-  SECOND_EXTRA_CARDS: 1, // 후공 시작 패 추가 장수
+  SECOND_EXTRA_CARDS: 1, // 후공 보정: 교체를 마친 뒤 추가로 뽑는 장수
   SECOND_AP_BONUS: 1,    // 후공 첫 턴 추가 AP
   ATK_ROLE_PIERCE: 0,    // 공격기 역할이 기본으로 관통을 가짐
   DEF_ROLE_ARMOR: 1,     // 보호기 역할: 유닛 공격으로 받는 피해 감소량 (최소 1)
