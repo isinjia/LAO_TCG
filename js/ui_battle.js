@@ -316,6 +316,7 @@ function selectCard(card) {
   if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   if (!me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
+  hidePreview(); // 마우스를 올렸던 카드의 큰 그림은 닫는다
   showSelPreview(card);
   if (card.kind === 'unit') {
     const lanesOk = me.placeableLanes(B.game.turn, card);
@@ -627,7 +628,7 @@ function refreshForecast() {
     const f = $('.u-fc', el);
     if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '회피'; return; }
     f.className = `u-fc show ${isMine ? 'self' : 'opp'}${mine.deadUids.has(uid) ? ' kill' : ''}`;
-    f.textContent = isMine ? `반격 -${e.v}` : `-${e.v}`;
+    f.textContent = isMine ? `받는 피해 -${e.v}` : `-${e.v}`; // 내 전투원이 받는 피해는 반격·격파 효과 등 여러 가지라 이름을 붙이지 않는다
   });
   if (mine.cmdDmg > 0) {
     const f = $('#cmd-enemy .cm-fc'); f.className = `cm-fc show${mine.lethal ? ' lethal' : ''}`; f.textContent = mine.lethal ? `-${mine.cmdDmg} 격파!` : `-${mine.cmdDmg}`;
@@ -693,6 +694,7 @@ function showTacticalTip() {
 }
 
 // ---------- 연출 ----------
+async function hitStop() { const st = $('#stage'); st.classList.add('hitstop'); await sleepRaw(130); st.classList.remove('hitstop'); }
 function showBanner(main, sub, side) {
   const b = h(`<div class="banner ${side}"><div class="bn-main">${esc(main)}</div><div class="bn-sub">${esc(sub || '')}</div></div>`);
   $('#stage').appendChild(b); setTimeout(() => b.remove(), 1300 / (Store.settings.speed || 1));
@@ -817,6 +819,7 @@ async function processEvents() {
       case 'dmg': {
         const el = B.unitEls.get(ev.unit.uid);
         if (el) { retrigger(el, 'hit'); const c = centerOf(el); burstAt(c.x, c.y, '#ff6a50'); floatAt(c.x, c.y - 30, `-${ev.v}`, ev.v >= 6 ? 'dmg big' : 'dmg'); }
+        if (ev.v >= 5) await hitStop(); // 큰 한 방은 잠깐 멈추고 화면을 당긴다
         renderAll(); await sleep(260);
         break;
       }
@@ -832,6 +835,7 @@ async function processEvents() {
         const r = stageRect(el); floatAt(r.x + r.w * 0.6, r.cy, `-${ev.v}`, 'dmg big');
         Audio2.play('explosion');
         if (ev.player === B.me) { screenFlash('red'); quake(); vibrate(ev.v >= 5 ? 160 : 70); }
+        if (ev.v >= 5) await hitStop();
         renderAll(); await sleep(380);
         checkBark();
         break;

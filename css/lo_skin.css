@@ -317,6 +317,9 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 /* 휴대폰 전투: 내 초상을 왼쪽 아래로 옮기고, 비운 자리로 손패를 올려 카드가 거의 다 보이게 한다 */
 .compact .cmd.hero.me { left: calc(420px + var(--ox)); top: 836px; }
 .compact .hand { left: 1100px; bottom: -18px; }
+/* 데스크톱도 같은 배치: 초상을 왼쪽 아래로, 손패를 올려 비용·공격력·체력이 늘 보이게 */
+body:not(.compact) .cmd.hero.me { left: calc(440px + var(--ox)); top: 836px; }
+body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .hand .hslot { width: 196px; height: calc(196px * 1.4); }
 .compact .hand .card { --w: 196px; }
 .compact .hand .hslot:hover .card { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-120px - var(--dy, 0px))) scale(1.15); }
@@ -422,3 +425,24 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 /* 시간 초과: 화면 가장자리가 붉게 맥박친다 */
 #scr-battle.overtime::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 9; box-shadow: inset 0 0 120px rgba(255,40,50,0.45); animation: otPulse 1.6s ease-in-out infinite; }
 @keyframes otPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+/* 휴대폰(배율 0.6 미만): 모든 버튼·필터를 손가락으로 누를 수 있는 크기(화면에서 약 40px)로 */
+.compact .btn { font-size: 30px; padding: 20px 32px; min-height: 104px; }
+.compact .btn.small { font-size: 27px; padding: 16px 24px; min-height: 92px; }
+.compact .btn.big { font-size: 36px; }
+.compact .chip { font-size: 26px; padding: 12px 18px; }
+.compact .filters input[type=search], .compact .filters select, .compact .ch-deck, .compact .title-bar select { font-size: 28px; min-height: 84px; }
+.compact .coach .ch-box { width: 760px; }
+.compact .coach .ch-btns .btn { min-height: 92px; }
+.compact .fac-toggle button { font-size: 24px; padding: 14px 16px; min-height: 80px; }
+/* 대화: 지난 대사·자동 넘김·건너뛰기 */
+.dialogue .dl-tools { position: absolute; right: 40px; top: 30px; z-index: 3; display: flex; gap: 10px; }
+.dialogue .dl-tools .dl-skip { position: static; }
+.dialogue .dl-auto.on { color: var(--lo-yellow); }
+.dialogue .dl-logbox { position: absolute; inset: 0; z-index: 5; background: rgba(8,9,11,0.88); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.dialogue .dl-loglist { width: 1100px; max-width: 90%; max-height: 78%; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 20px; font-size: 22px; line-height: 1.5; }
+.dialogue .dl-loglist b { display: block; color: var(--lo-yellow); font-size: 17px; }
+.dialogue .dl-logbox small { color: var(--muted); font-size: 16px; }
+.compact .dialogue .dl-loglist { font-size: 32px; }
+.compact .dialogue .dl-loglist b { font-size: 26px; }
+/* 큰 피해: 잠깐 멈추며 화면을 살짝 당긴다 */
+#stage.hitstop > .screen.active { transform: scale(1.015); filter: contrast(1.15) brightness(1.08); transition: none; }

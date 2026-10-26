@@ -51,7 +51,7 @@ const screenHooks = {};
 async function showScreen(id, opts = {}) {
   const fade = $('#fade');
   if (currentScreen && !opts.instant) { fade.classList.add('on'); await sleepRaw(320); }
-  hideTip(); hidePreview();
+  hideTip(); hidePreview(); Audio2.stopVoice();
   if (id !== 'battle' && typeof Lessons !== 'undefined') { if (Tutorial.active) Tutorial.stop(); Lessons.close(); } // 전투를 떠나면 안내 상자도 닫는다
   $$('.screen').forEach(s => s.classList.remove('active'));
   const el = $('#scr-' + id);
@@ -287,6 +287,10 @@ function openSettings(inBattle) {
         if (!await confirmBox('저장 불러오기', '지금 저장 데이터를 파일 내용으로 바꿉니다. 지금 진행 상황은 사라집니다.', '불러오기', true)) return;
         // 불러온 파일은 보급소 도입 전 저장으로 치지 않는다 (보급 카드를 공짜로 받는 것을 막음)
         if (obj.data.supplyV === undefined) obj.data.supplyV = 1;
+        // 진행 중이던 대국은 패배로 정리하고, 파일에 든 진행 중 순회전·원정은 가져오지 않는다 (예전 저장으로 패배를 되돌리는 것을 막음)
+        abandonSavedBattle();
+        if (obj.data.gauntlet) obj.data.gauntlet.run = null;
+        if (obj.data.draft) obj.data.draft.run = null;
         localStorage.setItem(STORE_KEY, JSON.stringify(obj.data)); Store.clearBattle(); Store.load(); Store.save();
         closeModal(m); toast('저장 데이터를 불러왔습니다.'); showScreen('lobby');
       } catch (e) { toast('이 게임의 저장 파일이 아닙니다.', true); }

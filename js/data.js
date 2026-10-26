@@ -52,10 +52,10 @@ const UNITS = [
   { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 3, h: 6, kw: ['회피'], death: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '격파: 양옆 아군에게 방어막 1.' },
   { id: '3P_Ajax', n: '에이젝스', f: '3P', t: 'L', r: 'DEF', g: 'A', c: 3, a: 3, h: 5, kw: ['반격'], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Vanilla', n: '바닐라 A-1', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'res', v: 1 }], text: '전개: 이번 턴 AP +1.' },
-  { id: '3P_SnowFeather', n: '스노우 페더', f: '3P', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: [], deploy: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '전개: 무작위 적 유닛에게 1 피해.' },
+  { id: '3P_SnowFeather', n: '스노우 페더', f: '3P', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 4, kw: [], deploy: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '전개: 무작위 적 유닛에게 1 피해.' },
   { id: '3P_Rhea', n: '레아', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 6, kw: ['방어막:1'], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Merope', n: '메로페', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['방어막:1'], strike: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '공격 후: 내 라이프 1 회복.' },
-  { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
+  { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 3, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
   { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: [] },
@@ -189,7 +189,7 @@ const UNITS = [
 
 // 토큰 (덱에 넣을 수 없음)
 const TOKENS = [
-  { id: 'TK_Spartan', art: 'AGS_SpartanA', n: '스파르탄 증원기', f: 'AGS', t: 'H', r: 'DEF', g: 'B', c: 0, a: 1, h: 3, kw: [], token: true },
+  { id: 'TK_Spartan', art: 'AGS_SpartanA', n: '스파르탄 증원기', f: 'AGS', t: 'H', r: 'DEF', g: 'B', c: 0, a: 1, h: 4, kw: [], token: true },
   { id: 'TK_NightChick', art: 'IW_NightChick', n: '나이트 칙 유충', f: 'IW', t: 'L', r: 'ATK', g: 'B', c: 0, a: 1, h: 1, kw: [], enemy: true, token: true },
 ];
 

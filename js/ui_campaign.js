@@ -157,14 +157,17 @@ function playDialogue(lines, opts = {}) {
     d.innerHTML = `${opts.bg ? `<div class="dl-bg" style="background-image:url('assets/bg/${opts.bg}.jpg')"></div>` : ''}<div class="dl-dim"></div>
       <div class="dl-char left"></div><div class="dl-char right"></div>
       ${opts.title ? `<div class="dl-title"><div class="t1">${esc(opts.title[0])}</div><div class="t2">${esc(opts.title[1])}</div></div>` : ''}
-      <button class="btn small ghost dl-skip">건너뛰기 ▶▶</button>
+      <div class="dl-tools"><button class="btn small ghost dl-log">지난 대사</button><button class="btn small ghost dl-auto">자동 넘김</button><button class="btn small ghost dl-skip">건너뛰기 ▶▶</button></div>
       <div class="dl-box"><div class="dl-name"></div><div class="dl-text"></div><div class="dl-next">▼ 클릭</div></div>`;
     d.classList.add('show');
-    let i = -1, typing = null, full = '';
+    let i = -1, typing = null, full = '', auto = false, autoT = null;
     const textEl = $('.dl-text', d);
-    const finish = () => { clearInterval(typing); d.classList.remove('show'); d.innerHTML = ''; d.onclick = null; window.removeEventListener('keydown', key); resolve(); };
+    // 자동 넘김: 글이 다 나온 뒤 길이에 맞춰 기다렸다가 다음 대사로
+    const armAuto = () => { clearTimeout(autoT); if (auto && !typing) autoT = setTimeout(() => { if (auto && !$('.dl-logbox', d)) next(); }, 1400 + full.length * 45); };
+    const finish = () => { clearInterval(typing); clearTimeout(autoT); d.classList.remove('show'); d.innerHTML = ''; d.onclick = null; window.removeEventListener('keydown', key); resolve(); };
     const next = () => {
-      if (typing) { clearInterval(typing); typing = null; textEl.textContent = full; return; }
+      if (typing) { clearInterval(typing); typing = null; textEl.textContent = full; armAuto(); return; }
+      clearTimeout(autoT);
       i++;
       if (i >= lines.length) return finish();
       const L = lines[i], c = CARDS[L.who];
@@ -183,10 +186,23 @@ function playDialogue(lines, opts = {}) {
       if (/[!！]$/.test(L.text.trim()) && !glitch) retrigger($('.dl-box', d), 'excite');
       full = L.text; let k = 0; textEl.textContent = '';
       Audio2.play(glitch ? 'zap' : 'card', glitch ? 0.35 : 0.4);
-      typing = setInterval(() => { k += 2; textEl.textContent = full.slice(0, k); if (k >= full.length) { clearInterval(typing); typing = null; } }, 22);
+      typing = setInterval(() => { k += 2; textEl.textContent = full.slice(0, k); if (k >= full.length) { clearInterval(typing); typing = null; armAuto(); } }, 22);
     };
     const key = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); next(); } if (e.key === 'Escape') finish(); };
-    d.onclick = e => { if (e.target.classList.contains('dl-skip')) { finish(); return; } next(); };
+    d.onclick = e => {
+      const t = e.target;
+      if (t.classList.contains('dl-skip')) { finish(); return; }
+      if (t.classList.contains('dl-auto')) { auto = !auto; t.classList.toggle('on', auto); armAuto(); return; }
+      if (t.classList.contains('dl-log')) {
+        // 지금까지 나온 대사를 모아 보여 준다. 아무 곳이나 누르면 닫힌다
+        const past = lines.slice(0, i + 1).map(L => `<div><b>${esc(CARDS[L.who] ? CARDS[L.who].n : L.who)}</b>${esc(L.text)}</div>`).join('');
+        const box = h(`<div class="dl-logbox"><div class="dl-loglist">${past}</div><small>아무 곳이나 누르면 닫힙니다</small></div>`);
+        box.onclick = ev => { ev.stopPropagation(); box.remove(); armAuto(); };
+        d.appendChild(box); clearTimeout(autoT); $('.dl-loglist', box).scrollTop = 1e9; return;
+      }
+      if ($('.dl-logbox', d)) return;
+      next();
+    };
     window.addEventListener('keydown', key);
     // 전신 그림을 미리 받아 글자보다 인물이 늦게 뜨지 않게 하고(최대 0.8초 기다림),
     // 대화에 나오는 양쪽 첫 인물을 처음부터 함께 세워 둔다 (말하는 쪽만 밝게)

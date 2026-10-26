@@ -116,7 +116,7 @@ const AI = {
     for (const c of p.hand) {
       if (!p.canAfford(c) || seen.has(c.id)) continue;
       seen.add(c.id);
-      if (c.kind === 'unit') (p.emptyLanes().length ? p.emptyLanes() : p.placeableLanes(game.turn, c)).forEach(l => acts.push({ card: c, lane: l }));
+      if (c.kind === 'unit') p.placeableLanes(game.turn, c).forEach(l => acts.push({ card: c, lane: l })); // 교체 배치도 늘 후보에 넣는다
       else {
         const k = skillTargetKind(c);
         if (k === 'none') acts.push({ card: c });
@@ -202,10 +202,10 @@ const AI = {
 
   // 탐색용 복제: 상대의 손패와 덱 순서는 알 수 없으므로, 남은 카드(손패+덱)를 섞어 다시 나눈다.
   // 상대 덱 구성(공개 정보)은 알지만 지금 무엇을 쥐었는지, 다음에 무엇을 뽑을지는 모르는 상태로 둔다.
-  hiddenInfoView(game, p) {
+  hiddenInfoView(game, p, salt = 0) {
     const g = game.clone();
     const o = g.players[1 - game.players.indexOf(p)];
-    g.seed = (g.seed ^ 0x9E3779B9) >>> 0; // 실제 대국의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
+    g.seed = (g.seed ^ 0x9E3779B9 ^ (salt * 0x85EBCA6B)) >>> 0; // 실제 대국의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
     const pool = shuffle([...o.hand, ...o.deck], () => g.random());
     o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
     // 내 덱 순서도 모르는 것으로 한다 (다음에 뽑을 카드를 미리 알고 판단하지 않게)
@@ -268,8 +268,11 @@ const AI = {
     const p = game.players[real.players.indexOf(rp)];
     const win = this.lethalPath(game, p, 3);
     if (win) return win.length ? this.toReal(real, game, rp, win[0]) : null; // 이번 턴에 확실히 이기는 수순이 있으면 그대로 둔다
-    const base = this.scoreSeq(game, p, []);
-    const firsts = this.legalActions(game, p).map(a => ({ a, s: this.scoreSeq(game, p, [a]) })).filter(x => x.s > -Infinity).sort((x, y) => y.s - x.s);
+    // 상대 손패·덱 순서 가정을 두 가지 만들어 평균을 낸다 (한 가지 가정에만 맞춘 수를 덜 고르게)
+    const alt = this.hiddenInfoView(real, rp, 1), ap = alt.players[real.players.indexOf(rp)];
+    const avg = acts => { const s1 = this.scoreSeq(game, p, acts); return s1 === -Infinity ? s1 : (s1 + this.scoreSeq(alt, ap, acts)) / 2; };
+    const base = avg([]);
+    const firsts = this.legalActions(game, p).map(a => ({ a, s: avg([a]) })).filter(x => x.s > -Infinity).sort((x, y) => y.s - x.s);
     let best = null, bestScore = base + 0.5; // 아무것도 안 하는 것보다 확실히 나을 때만 행동
     for (const f of firsts) if (f.s > bestScore) { bestScore = f.s; best = f.a; }
     for (const f of firsts.slice(0, 4)) {
@@ -296,7 +299,11 @@ const AI = {
   // 멀리건: 비싼 카드(5 이상)를 교체
   pickMulligan(p, level = 'normal') {
     if (level === 'easy') return [];
-    // 비싼 카드부터 최대 교체 장수까지만 돌려보낸다
-    return p.hand.filter(c => c.c >= 5).sort((a, b) => b.c - a.c).slice(0, RULES.MULLIGAN_MAX ?? 3);
+    // 비용 곡선을 본다: 비용 5 이상은 한 장만 남기고, 첫 두 턴에 낼 카드(비용 2 이하)가 없으면 비용 4도 돌려보낸다
+    const max = RULES.MULLIGAN_MAX ?? 3;
+    const heavy = p.hand.filter(c => c.c >= 5).sort((a, b) => a.c - b.c);
+    const out = heavy.slice(heavy.length && p.hand.some(c => c.c <= 3) ? 1 : 0);
+    if (!p.hand.some(c => c.c <= 2)) out.push(...p.hand.filter(c => c.c === 4));
+    return out.sort((a, b) => b.c - a.c).slice(0, max);
   },
 };

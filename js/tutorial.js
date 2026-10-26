@@ -109,18 +109,18 @@ function tutAllowsEndTurn() {
 // 튜토리얼에서 다루지 않은 규칙을, 실제 대국에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
 const LESSONS = [
   { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '.cmd-power',
-    text: () => `오른쪽 아래 <b>포격 지원</b>은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 줘요. 카드를 다 내고 AP가 남을 때 쓰면 좋아요.` },
+    text: () => `오른쪽 아래 <b>포격 지원</b>은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 준단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },
   { id: 'skill', when: b => b.me.hand.some(c => c.kind === 'skill' && b.me.canAfford(c)), spot: '.hand',
-    text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 내요. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 돼요. 끌어다 놓아도 사용돼요.' },
+    text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 낸단다. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 되고, 끌어다 놓아도 쓸 수 있어.' },
   { id: 'guard', when: b => b.ai.units().some(u => u.role === 'DEF'), spot: '.lanes.enemy',
-    text: () => '상대에게 <b>보호기</b>가 나왔어요. 보호기는 양옆 레인으로 가는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어요. 포격 지원이나 광역 공격으로 넘기거나, 보호기가 없는 쪽을 노리세요.' },
+    text: () => '상대에게 <b>보호기</b>가 나왔구나. 보호기는 양옆 레인으로 가는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어든단다. 포격 지원이나 광역 공격으로 넘기거나, 보호기가 없는 쪽을 노리렴.' },
   { id: 'keywords', when: b => [...b.me.units(), ...b.ai.units()].some(u => Object.keys(u.kw).some(k => KW_LESSON.includes(k))), spot: '.lanes.enemy',
     text: b => { const ks = [...new Set([...b.me.units(), ...b.ai.units()].flatMap(u => Object.keys(u.kw)).filter(k => KW_LESSON.includes(k)))].slice(0, 3);
-      return '전투원 위의 작은 표시는 <b>키워드</b>예요. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와요.'; } },
+      return '전투원 위의 작은 표시는 <b>키워드</b>란다. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와.'; } },
   { id: 'replace', when: b => !b.me.emptyLanes().length && b.me.hand.some(c => c.kind === 'unit' && b.me.placeableLanes(b.game.turn, c).length), spot: '.lanes.me',
-    text: () => `레인이 다 찼어요. 그래도 <b>교체 배치</b>를 할 수 있어요. 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 놓으면 AP를 ${RULES.REPLACE_COST} 더 쓰고, 원래 전투원은 철수해요(격파 효과는 없어요).` },
+    text: () => `레인이 다 찼니? 그래도 <b>교체 배치</b>를 할 수 있단다. 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 놓으면 AP를 ${RULES.REPLACE_COST} 더 쓰고, 원래 전투원은 철수해(격파 효과는 없어).` },
   { id: 'overtime', when: b => b.game.round() >= RULES.OVERTIME_ROUND - 3, spot: '.round-info',
-    text: () => `오른쪽 위 라운드를 보세요. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해는 점점 커져요. 그 전에 끝낼 수 있게 몰아붙이세요.` },
+    text: () => `오른쪽 위 라운드를 보렴. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해도 점점 커진단다. 그 전에 끝낼 수 있게 몰아붙이렴.` },
 ];
 const KW_LESSON = ['회피', '방어막', '재생', '반격', '광역', '관통'];
 const Lessons = {

@@ -35,7 +35,7 @@ const Audio2 = {
     this.allEls().forEach(a => { a.muted = m; });
   },
   allEls() {
-    const out = [this.bgmA, this.bgmB].filter(Boolean);
+    const out = [this.bgmA, this.bgmB, this.voiceEl].filter(Boolean);
     Object.values(this.sfxCache).forEach(pool => out.push(...pool));
     return out;
   },
@@ -82,7 +82,7 @@ const Audio2 = {
     if (!(VOICE_LIST[cardId] || '').split(' ').includes(kind)) return;
     const cur = this.voiceEl;
     if (cur && !cur.paused && !cur.ended) { if (!force) return; cur.pause(); }
-    const a = this.voiceEl = new Audio(`assets/voice/${cardId}_${kind}.mp3`);
+    const a = this.voiceEl = new Audio(`assets/voice/${cardId}_${kind}.mp3`); a.muted = this.muted;
     a.volume = Math.min(1, v); a.play().catch(() => {});
   },
   stopVoice() { if (this.voiceEl) this.voiceEl.pause(); },
