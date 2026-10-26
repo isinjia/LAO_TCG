@@ -41,7 +41,7 @@ const CAMPAIGN = [
   {
     id: 's1', no: '1', title: '첫 도전', sub: '리그 1차전 · 레드후드', bg: 'barracks', bgm: 'battle1',
     desc: '스틸 라인 연대장 레드후드의 속공 덱. 보호기와 중장형으로 초반 공세를 버텨 내세요.',
-    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 16, level: 'easy', style: 'aggro',
+    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 10, level: 'easy', style: 'balanced',
       deck: ['BR_RedHood', 'BR_Cheona', 'BR_Harpy', 'BR_Impet', 'BR_PoniesAnger', 'BR_Emily', 'BR_Gremlin', 'BR_BeastHunter', 'BR_Leona', 'BR_Brownie', 'BR_Pixie', 'SK_BR_Snipe'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'guards', v: 1 }],
     intro: [
@@ -68,7 +68,7 @@ const CAMPAIGN = [
   {
     id: 's2', no: '2', title: '회복의 숲', sub: '리그 2차전 · 엘븐 포레스트메이커', bg: 'mansion', bgm: 'battle2',
     desc: '끊임없이 회복하는 엘프 덱. 회복량보다 빠르게 피해를 쌓아야 합니다.',
-    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 27, level: 'normal', style: 'control',
+    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 35, level: 'normal', style: 'control',
       deck: ['PECS_ElvenForestmaker', 'PECS_HighElven', 'PECS_DarkElf', 'PECS_Sekhmet', 'PECS_Hestia', 'PECS_LemonadeBeta', 'PECS_Fortune', 'PECS_Sonia', 'PECS_Cerberus', 'PECS_Muse', 'SK_PECS_Blessing', 'SK_PECS_Repair'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'kills', v: 15 }],
     intro: [
@@ -91,7 +91,7 @@ const CAMPAIGN = [
   {
     id: 's3', no: '3', title: '그림자 대국', sub: '리그 3차전 · 쿠노이치 제로', bg: 'corridor_dark', bgm: 'battle3',
     desc: '회피와 암살에 능한 덴세츠 덱. 회피는 한 번만 막아 준다는 점을 이용하세요.',
-    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 22, level: 'normal', style: 'aggro',
+    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 19, level: 'normal', style: 'aggro',
       deck: ['DS_Saraqael', 'DS_Sarena', 'DS_BunnySlayer', 'DS_Ramiel', 'DS_Baekto', 'DS_Faucre', 'DS_KunoichiZero', 'DS_Angel', 'DS_KunoichiShiden', 'DS_KunoichiEnrai', 'SK_DS_Smoke', 'SK_DS_Shuriken'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'commands', v: 5 }],
     intro: [
@@ -118,7 +118,7 @@ const CAMPAIGN = [
   {
     id: 's4', no: '4', title: '강철의 벽', sub: '리그 4차전 · 스트롱홀드', bg: 'board', bgm: 'battle2',
     desc: '방어막과 보호기로 무장한 AGS 덱. 보호기는 받는 피해가 줄어드니 빈 레인을 노리세요.',
-    enemy: { name: '스트롱홀드', portrait: 'AGS_Stronghold', hp: 21, level: 'normal', style: 'control',
+    enemy: { name: '스트롱홀드', portrait: 'AGS_Stronghold', hp: 17, level: 'normal', style: 'control',
       deck: ['AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_RheinRitter', 'AGS_Arachne', 'AGS_Albatross', 'AGS_SpartanB', 'AGS_Roc', 'PECS_Hestia', 'PECS_LemonadeBeta', 'SK_AGS_Barrier', 'SK_AGS_Protocol'] },
     start: [{ lane: 1, id: 'AGS_SpartanA' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'commands', v: 5 }],
@@ -143,7 +143,7 @@ const CAMPAIGN = [
   {
     id: 's5', no: '5', title: '철충 테마 덱', sub: '리그 5차전 · 알렉산드라', bg: 'vr', bgm: 'battle3',
     desc: '철충 연구 자료로 만든 특수 카드 덱. 철충 무리 카드가 빈 레인을 한꺼번에 채웁니다.',
-    enemy: { name: '알렉산드라', portrait: '3P_Alexandra', hp: 14, level: 'normal', style: 'control',
+    enemy: { name: '알렉산드라', portrait: '3P_Alexandra', hp: 19, level: 'normal', style: 'control',
       deck: ['IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'IW_RocC', 'IW_MetalGuard', 'IW_Robert', 'AGS_Gigantes', 'AGS_Deathstalker', 'SK_IW_Swarm', 'SK_IW_Corrode'] },
     start: [{ lane: 0, id: 'IW_NightChick' }, { lane: 1, id: 'IW_Stalker' }, { lane: 2, id: 'IW_NightChick' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'kills', v: 10 }],
@@ -169,7 +169,7 @@ const CAMPAIGN = [
   {
     id: 's6', no: '6', title: '강철 군단', sub: '리그 6차전 · 신속의 칸', bg: 'sub', bgm: 'battle1',
     desc: '침식된 AGS와 아이언 프린스 카드로 짠 신속의 칸의 덱. 광역 공격에 대비해 유닛을 분산하세요.',
-    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 15, level: 'normal', style: 'balanced',
+    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 18, level: 'normal', style: 'balanced',
       deck: ['IW_IronPrince', 'IW_Robert', 'IW_MetalGuard', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Gigantes', 'AGS_Deathstalker', 'AGS_Fortress', 'AGS_Roc', 'SK_IW_Corrode', 'SK_AGS_Barrier'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'units', v: 9 }],
@@ -335,7 +335,7 @@ const CAMPAIGN = [
   {
     id: 'ex4', no: 'EX4', chapter: 'ex', title: '오메가', sub: '외전 결전 · 모의 개체 레모네이드 오메가', bg: 'red_boss', bgm: 'boss2', boss: true,
     desc: '외전의 마지막 상대. 비용 8의 오메가와 철충 보스를 모은 덱입니다. 어려움 인공지능이 상대합니다.',
-    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 19, level: 'hard', style: 'balanced',
+    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 21, level: 'hard', style: 'balanced',
       deck: ['IW_LemonadeOmega', 'IW_LemonadeZeta', 'IW_AzazelAlter', 'IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_Stalker', 'PECS_LemonadeGamma', 'PECS_Empress', 'PECS_Hathor', 'SK_IW_Corrode', 'SK_IW_Swarm'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 13 }, { type: 'rounds', v: 10 }],
     intro: [
