@@ -28,7 +28,8 @@ async function confirmAbandon() {
 function startBattle(cfg) {
   abandonSavedBattle(); // 새 전투를 시작하면 이전 진행 기록은 패배로 정리한다
   const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
-  if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp); // 순회전·오늘의 대국: 깎인 라이프로 시작
+  if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
+  if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 대국: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
@@ -212,7 +213,7 @@ async function aiTurn() {
   while (game.phase === 'main' && guard++ < 12 && !B.over) {
     const act = AI.nextAction(game, ai, cfg.enemy.level);
     if (!act) break;
-    await revealCard(act.card, false); alive(myB);
+    if (!act.move) { await revealCard(act.card, false); alive(myB); }
     const ok = game.act(act);
     if (!ok) break;
     await processEvents(); alive(myB); renderAll();
@@ -283,12 +284,35 @@ function showSelPreview(card) {
   box.appendChild(cardEl(card, { w: 380, noHover: true }));
   $('#scr-battle').appendChild(box);
 }
+function startMove(u) {
+  clearSelection();
+  B.moving = u;
+  const from = B.me.lanes.indexOf(u);
+  [from - 1, from + 1].forEach(l => {
+    if (l < 0 || l > 2 || !B.game.canMove(u, l)) return;
+    const s = $(`.slot[data-side=me][data-lane="${l}"]`); s.classList.add('place', 'move');
+    s.appendChild(h(`<div class="adv replace">${B.me.lanes[l] ? '자리 바꿈' : '이동'} · AP ${RULES.MOVE_COST}</div>`));
+  });
+  const cb = h(`<button class="cast-btn">${esc(u.card.n)} 이동<small>빛나는 레인을 누르면 옮깁니다 · 이 버튼을 누르면 상세 보기</small></button>`);
+  cb.onclick = e => { e.stopPropagation(); clearSelection(); openCardDetail(u.card); };
+  $('#scr-battle').appendChild(cb);
+  tut('moveSelected', u);
+}
+async function doMove(u, lane) {
+  const myB = B;
+  clearSelection();
+  if (!B.game.move(u, lane)) return;
+  B.busy = true; renderAll();
+  await processEvents(); alive(myB);
+  B.busy = false; renderAll();
+  saveBattleSnapshot();
+}
 function clearSelection() {
   if (!B) return;
   $$('.sel-preview').forEach(e => e.remove());
-  B.selected = null; B.pending = null;
+  B.selected = null; B.pending = null; B.moving = null;
   $$('.hand .card.selected').forEach(c => c.classList.remove('selected'));
-  $$('.slot').forEach(s => { s.classList.remove('place', 'replace', 'target', 'target-ally', 'hover'); const a = $('.adv', s); if (a) a.remove(); });
+  $$('.slot').forEach(s => { s.classList.remove('place', 'replace', 'move', 'target', 'target-ally', 'hover'); const a = $('.adv', s); if (a) a.remove(); });
   $$('.cast-btn').forEach(b => b.remove());
   $('#cmd-enemy') && $('#cmd-enemy').classList.remove('targetable');
 }
@@ -352,9 +376,13 @@ function selectCard(card) {
 
 function onSlotClick(s) {
   if (!B.selected) {
-    // 유닛 클릭 = 상세
     const lane = +s.dataset.lane, side = s.dataset.side;
+    // 이동 중: 빛나는 이웃 레인을 누르면 옮긴다
+    if (B.moving && side === 'me' && s.classList.contains('move')) { doMove(B.moving, lane); return; }
     const u = (side === 'me' ? B.me : B.ai).lanes[lane];
+    // 내 턴에 내 전투원을 누르면 이동할 레인을 보여 준다. 같은 전투원을 한 번 더 누르면 상세
+    if (u && side === 'me' && !B.moving && !B.busy && B.game.cur === B.me && B.game.canMove(u)) { startMove(u); return; }
+    clearSelection();
     if (u) openCardDetail(u.card);
     return;
   }
@@ -828,6 +856,7 @@ async function processEvents() {
       case 'evade': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing'); renderAll(); await sleep(280); break; }
       case 'counter': { const el = B.unitEls.get(ev.unit.uid), t = B.unitEls.get(ev.target.uid); floatOn(el, '반격!', 'info'); if (el && t) await boltTo(centerOf(el), centerOf(t), '#ff9a3b', 160); break; }
       case 'guard': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호!', 'shield'); Audio2.play('shield'); await sleep(200); break; }
+      case 'move': { Audio2.play('swing', 0.7); renderAll(); const el = B.unitEls.get(ev.unit.uid); if (el) floatOn(el, '이동', 'info'); await sleep(300); break; }
       case 'strike': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '공격 후', 'buff'); await sleep(140); break; }
       case 'pierce': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '관통!', 'buff'); await sleep(150); break; }
       case 'dmgCmd': {

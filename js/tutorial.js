@@ -13,7 +13,11 @@ const TUTORIAL_STEPS = [
   { text: '좋아. 상성이 유리한 레인이나, 적이 없는 레인(상대 직격)에 놓아 보렴.', spot: '.lanes.me', box: [1380, 140], wait: 'cardPlayed' },
   { text: '적 전투원과 상대 초상화 위의 <b>빨간 숫자</b>는 이번 턴 전투의 <b>예상 피해</b>야. ☠는 격파 예상이고, 주황색은 다음 상대 턴에 네가 받을 피해란다.', spot: '.lanes.enemy', box: [1380, 560] },
   { text: '<b>턴 종료</b> 버튼에 마우스를 올리면 공격 경로가 화살표로 보여. <b>보호기</b>는 양옆 레인을 지키고, <b>지원기</b>는 양옆 아군의 공격력을 1 올려 준단다.', spot: '.end-btn', box: [1380, 560] },
-  { text: '기본은 여기까지야. 남은 대국은 네 마음대로 지휘해 보렴. 오른쪽 위 <b>?</b> 버튼으로 언제든 규칙을 다시 볼 수 있어.', spot: null },
+  { trigger: 'myTurn', text: '이번엔 <b>지원 카드</b>를 써 보자. 방금 뽑은 <b>야전 의료</b>를 고른 뒤, 빛나는 내 전투원을 누르렴. 그 전투원의 체력을 가득 채워 준단다.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
+    cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },
+  { trigger: 'myTurn', text: '오른쪽 아래 <b>포격 지원</b>도 써 볼래? 턴마다 한 번, AP 4로 적 전투원이나 상대 라이프에 2 피해를 준단다. 버튼을 누르고 대상을 고르렴.', spot: '.cmd-power', wait: 'cardPlayed',
+    cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() },
+  { text: '레인이 다 차도 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 겹쳐 내는 <b>교체 배치</b>를 할 수 있단다(AP 1 더). 기본은 여기까지야. 오른쪽 위 <b>?</b> 버튼으로 언제든 규칙을 다시 볼 수 있어.', spot: null },
 ];
 
 const Tutorial = {
@@ -37,7 +41,7 @@ const Tutorial = {
     }
     this.waitingTrigger = false;
     // 카드 사용을 기다리는 단계인데 쓸 수 있는 카드가 없으면 건너뛴다 (막힘 방지)
-    if ((st.wait === 'cardSelected' || st.wait === 'cardPlayed') && !tutHasPlayable()) { this.go(i + 1); return; }
+    if ((st.wait === 'cardSelected' || st.wait === 'cardPlayed') && !(st.can ? st.can() : tutHasPlayable())) { this.go(i + 1); return; }
     this.render();
   },
   hide() { const c = $('#coach'); c.classList.remove('show'); },
@@ -99,8 +103,8 @@ function tutAllowsEndTurn() {
   if (!Tutorial.active || Tutorial.waitingTrigger) return true;
   const st = TUTORIAL_STEPS[Tutorial.i];
   if (st && (st.wait === 'cardPlayed' || st.wait === 'cardSelected')) {
-    if (!tutHasPlayable()) { while (TUTORIAL_STEPS[Tutorial.i] && /^card/.test(TUTORIAL_STEPS[Tutorial.i].wait || '')) Tutorial.i++; Tutorial.go(Tutorial.i); return true; }
-    toast('튜토리얼: 먼저 안내에 따라 카드를 배치해 보세요.', true); return false;
+    if (!(st.can ? st.can() : tutHasPlayable())) { while (TUTORIAL_STEPS[Tutorial.i] && /^card/.test(TUTORIAL_STEPS[Tutorial.i].wait || '') && !TUTORIAL_STEPS[Tutorial.i].trigger) Tutorial.i++; Tutorial.go(Tutorial.i); return true; }
+    toast('튜토리얼: 먼저 안내에 따라 해 보세요.', true); return false;
   }
   return true;
 }
@@ -119,6 +123,8 @@ const LESSONS = [
       return '전투원 위의 작은 표시는 <b>키워드</b>란다. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와.'; } },
   { id: 'replace', when: b => !b.me.emptyLanes().length && b.me.hand.some(c => c.kind === 'unit' && b.me.placeableLanes(b.game.turn, c).length), spot: '.lanes.me',
     text: () => `레인이 다 찼니? 그래도 <b>교체 배치</b>를 할 수 있단다. 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 놓으면 AP를 ${RULES.REPLACE_COST} 더 쓰고, 원래 전투원은 철수해(격파 효과는 없어).` },
+  { id: 'move', when: b => b.game.round() >= 3 && b.me.units().length >= 1 && b.game.canMove(b.me.units()[0]) && b.ai.units().some(e => b.me.units().some(m => TYPE_BEATS[e.type] === m.type)), spot: '.lanes.me',
+    text: () => `상성이 불리한 자리에 있는 전투원이 있구나. 내 턴에 내 전투원을 누르면 <b>이동</b>할 수 있단다. 턴마다 한 번, AP ${RULES.MOVE_COST}로 이웃 레인으로 옮기고, 아군이 있으면 자리를 바꿔.` },
   { id: 'overtime', when: b => b.game.round() >= RULES.OVERTIME_ROUND - 3, spot: '.round-info',
     text: () => `오른쪽 위 라운드를 보렴. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해도 점점 커진단다. 그 전에 끝낼 수 있게 몰아붙이렴.` },
 ];

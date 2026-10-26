@@ -100,6 +100,13 @@ t('교체 배치: 내 전투원 위에 내면 원래 전투원은 철수(묘지,
   ok(g.play(c, 0), '교체 배치 성공'); eq(p.ap, ap0 - c.c - RULES.REPLACE_COST, '추가 AP'); eq(p.lanes[0].cardId, '3P_Alice'); ok(p.grave.includes(CARDS['AGS_Shade']), '묘지로'); eq(o.hp, ohp, '격파 효과 없음');
   const c2 = CARDS['3P_Poi']; p.hand.push(c2); ok(!g.play(c2, 0), '이번 턴에 낸 전투원은 교체 불가');
 });
+t('이동: 턴마다 한 번, AP를 써서 이웃 레인으로 (아군이 있으면 자리 바꿈)', () => {
+  const { a, b, g } = fresh(D0, D1); g.mulligan(a, []); g.mulligan(b, []); g.start();
+  const p = g.cur; p.ap = 9;
+  const u1 = makeUnit(CARDS['3P_Alice'], p), u2 = makeUnit(CARDS['3P_Poi'], p); p.lanes = [u1, null, u2];
+  ok(!g.canMove(u1, 2), '두 칸은 불가'); ok(g.move(u1, 1), '이동'); eq(p.lanes[1], u1); eq(p.ap, 9 - RULES.MOVE_COST);
+  ok(!g.move(u2, 1), '턴당 한 번'); p.movedTurn = -1; ok(g.move(u2, 1), '자리 바꿈'); eq(p.lanes[1], u2); eq(p.lanes[2], u1);
+});
 t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); const g = new Game(a, new Player('X', D1)); const s = makeUnit(CARDS['3P_Vanilla'], a); const u = makeUnit(CARDS['3P_Alice'], a); a.lanes = [u, s, null]; eq(g.effectiveAtk(u), CARDS['3P_Alice'].a + 1); });
 t('격파 효과 발동 (메탈 패러사이트)', () => { const { a, b, g } = fresh(D0, D1); const u = makeUnit(CARDS['IW_Parasite'], b); b.lanes[0] = u; const hp = a.hp; g.damageUnit(u, 10, null); eq(a.hp, hp - 2); });
 t('소환 효과 (철충 무리)', () => { const { a, b } = fresh(D0, D1); const p = new Player('I', CAMPAIGN[5].enemy.deck); const g2 = new Game(p, a); g2.start(); p.ap = 9; p.hand.push(CARDS['SK_IW_Swarm']); g2.play(CARDS['SK_IW_Swarm']); eq(p.units().length, 3); });

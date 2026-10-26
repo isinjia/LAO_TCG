@@ -11,10 +11,10 @@ const CAMPAIGN = [
   {
     id: 's0', no: '0', title: '첫 카드 수업', sub: '튜토리얼 · 연습 상대: 스파르탄 캡틴', bg: 'board', bgm: 'battle1', tutorial: true,
     desc: '오르카호에서 처음 열리는 카드 리그. 리그 운영을 맡은 콘스탄챠에게 AP, 배치, 전투, 상성을 차례로 배웁니다.',
-    playerDeck: ['3P_Poi', '3P_Hachiko', '3P_Ajax', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', '3P_Sowan', '3P_CSPerrault', '3P_BlackWyrm', '3P_ConstantiaS2', '3P_Labiata', 'SK_3P_Barrage'],
+    playerDeck: ['3P_Poi', '3P_Hachiko', '3P_Ajax', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', '3P_Sowan', '3P_CSPerrault', '3P_BlackWyrm', '3P_ConstantiaS2', '3P_Labiata', 'SK_PECS_Medic'],
     playerFirst: true,
-    openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade'],
-    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 15, level: 'easy',
+    openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', 'SK_PECS_Medic'], // 시작 패 4장 + 2턴·3턴에 뽑을 카드
+    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 13, level: 'easy',
       deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Shade', 'AGS_Seljuq', 'AGS_Roc', 'AGS_Rampart', 'AGS_Fallen', 'AGS_Aeda', 'AGS_Arachne', 'SK_AGS_Barrier'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 11 }],
     intro: [

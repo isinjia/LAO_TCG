@@ -41,9 +41,9 @@ function sim(da, db, lvA, lvB, aFirst) {
     let n = 0;
     while (g.phase === 'main' && n++ < 12) {
       const a = AI.nextAction(g, p, lv.get(p)); if (!a) break;
-      played.get(p).add(a.card.id);
+      if (a.card) played.get(p).add(a.card.id); // 이동은 카드가 아니다
       const ok = g.act(a);
-      if (!ok) throw new Error('AI chose unplayable: ' + a.card.id);
+      if (!ok) throw new Error('AI chose unplayable: ' + (a.card ? a.card.id : 'move'));
       g.events.length = 0;
     }
     if (g.phase === 'main') g.endTurn();

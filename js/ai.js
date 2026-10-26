@@ -109,9 +109,16 @@ const AI = {
   },
 
   // ---- hard: 탐색 ----
+  // 이동 후보: 턴마다 한 번, 이웃 레인으로 옮기거나 자리를 바꾼다
+  moveActions(game, p) {
+    const acts = [];
+    if (!game.canMove(p.units()[0])) return acts;
+    p.lanes.forEach((u, i) => { if (u) [i - 1, i + 1].forEach(l => { if (l >= 0 && l < 3 && game.canMove(u, l) && !(p.lanes[l] && p.lanes[l].uid < u.uid)) acts.push({ move: true, unit: u, lane: l }); }); });
+    return acts;
+  },
   legalActions(game, p) {
     const o = game.other(p);
-    const acts = [];
+    const acts = [...this.moveActions(game, p)];
     const seen = new Set();
     for (const c of p.hand) {
       if (!p.canAfford(c) || seen.has(c.id)) continue;
@@ -168,6 +175,7 @@ const AI = {
 
   // 복제 게임 g에 행동을 적용한다 (대상 유닛을 uid로 다시 찾는다)
   applyAct(g, gp, act) {
+    if (act.move) { const u = gp.lanes.find(x => x && x.uid === act.unit.uid); return !!u && g.move(u, act.lane); }
     if (act.command && g.cur !== gp) return false;
     let target = act.target;
     if (target && target.unit) {
@@ -225,11 +233,13 @@ const AI = {
     const p = game.players[real.players.indexOf(rp)];
     const cands = this.heuristicOptions(game, p).slice(0, 5);
     const cmd = this.commandAction(game, p); if (cmd) cands.push(cmd);
+    cands.push(...this.moveActions(game, p));
     if (!cands.length) return null;
     const base = this.shallowScore(game, p, null);
     let best = null, bestScore = base - 1.5; // 손해가 크지 않으면 카드를 내서 판을 채운다
     for (const a of cands) { const s = this.shallowScore(game, p, a); if (s > bestScore) { bestScore = s; best = a; } }
     if (!best) return null;
+    if (best.move) { const u = rp.lanes.find(x => x && x.uid === best.unit.uid); return u ? { move: true, unit: u, lane: best.lane } : null; }
     if (best.command) { const t = best.target.cmd ? { cmd: real.players[game.players.indexOf(best.target.cmd)] } : (() => { for (const q of real.players) for (const u of q.lanes) if (u && u.uid === best.target.unit.uid) return { unit: u }; return null; })(); return t ? { command: true, card: COMMAND_CARD, target: t } : null; }
     const card = rp.hand.find(c => c.id === best.card.id);
     let target = best.target;
@@ -288,6 +298,7 @@ const AI = {
   },
   // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
   toReal(real, game, rp, best) {
+    if (best.move) { const u = rp.lanes.find(x => x && x.uid === best.unit.uid); return u ? { move: true, unit: u, lane: best.lane } : null; }
     const card = best.command ? COMMAND_CARD : rp.hand.find(c => c.id === best.card.id);
     let target = best.target;
     if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };

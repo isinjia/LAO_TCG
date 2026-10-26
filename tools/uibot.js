@@ -18,6 +18,18 @@ window.uiBot = async function (maxMs, stopRound) {
     if (top) { const ok = top.querySelector('[data-a=ok]'); if (ok) { ok.click(); continue; } }
     if (!canAct()) continue;
     if (stopRound && B.game.round() >= stopRound) return { stopped: true, round: B.game.round() };
+    // 튜토리얼이 지원 카드·포격 지원을 직접 해 보라고 기다리는 단계면 그대로 따른다
+    const st = Tutorial.active && !Tutorial.waitingTrigger && TUTORIAL_STEPS[Tutorial.i];
+    if (st && st.can && st.wait === 'cardPlayed' && st.can()) {
+      if (st.cond(COMMAND_CARD)) { document.querySelector('.cmd-power').click(); await W(60); document.querySelector('#cmd-enemy').click(); }
+      else {
+        const sk = B.me.hand.find(c => c.kind === 'skill' && B.me.canAfford(c)), ce = document.querySelectorAll('.hand .card')[B.me.hand.indexOf(sk)];
+        ce.dispatchEvent(new PointerEvent('pointerdown', at(ce))); window.dispatchEvent(new PointerEvent('pointerup', at(ce))); await W(60);
+        document.querySelector(`.slot[data-side=me][data-lane="${B.me.lanes.findIndex(Boolean)}"]`).click();
+      }
+      for (let k = 0; k < 300 && B && B.busy; k++) await W(50);
+      continue;
+    }
     const act = AI.heuristicAction(B.game, B.me);
     if (!act) { document.querySelector('.end-btn').click(); continue; }
     const ce = document.querySelectorAll('.hand .card')[B.me.hand.indexOf(act.card)];

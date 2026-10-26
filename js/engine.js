@@ -243,8 +243,26 @@ class Game {
     this.runEffects(COMMAND_CARD.fx, p, { target, src: null });
     return true;
   }
-  // AI·도구용: 행동 하나를 실행 ({ card, lane } | { card, target } | { command: true, target })
+  // ---- 이동: 턴마다 한 번, AP를 써서 내 전투원을 이웃 레인으로 옮긴다. 아군이 있으면 자리를 바꾼다 ----
+  canMove(u, lane) {
+    const p = this.cur, c = RULES.MOVE_COST;
+    if (c === undefined || this.phase !== 'main' || !u || u.owner !== p || p.movedTurn === this.turn || p.ap < c) return false;
+    const from = p.lanes.indexOf(u);
+    if (lane === undefined) return from >= 0;
+    return from >= 0 && Math.abs(lane - from) === 1;
+  }
+  move(u, lane) {
+    if (!this.canMove(u, lane)) return false;
+    const p = this.cur, from = p.lanes.indexOf(u), other = p.lanes[lane];
+    p.ap -= RULES.MOVE_COST; p.movedTurn = this.turn;
+    p.lanes[lane] = u; p.lanes[from] = other;
+    this.emit({ type: 'move', unit: u, from, lane, player: p, swap: other || null });
+    this.log(`${p.name}: ${u.card.n} 이동 (${LANE_NAMES[from]} → ${LANE_NAMES[lane]})${other ? ` · ${other.card.n}와 자리 바꿈` : ''}`);
+    return true;
+  }
+  // AI·도구용: 행동 하나를 실행 ({ card, lane } | { card, target } | { command: true, target } | { move: true, unit, lane })
   act(a) {
+    if (a.move) return this.move(a.unit, a.lane);
     if (a.command) return this.command(a.target);
     return a.card.kind === 'unit' ? this.play(a.card, a.lane) : this.play(a.card, null, a.target);
   }
@@ -371,6 +389,7 @@ class Game {
 
   damageCmd(p, dmg, src) {
     if (this.phase === 'over') return;
+    if (p.minHp) dmg = Math.min(dmg, Math.max(0, p.hp - p.minHp)); // 튜토리얼: 라이프가 minHp 아래로 내려가지 않는다 (지지 않는 첫 대국)
     p.hp -= dmg;
     const o = this.other(p);
     o.stats.dmgCmd += dmg;
@@ -522,7 +541,7 @@ function serializeGame(g) {
     players: g.players.map(p => ({
       name: p.name, isAI: p.isAI, portrait: p.portrait, style: p.style, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
-      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
+      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, movedTurn: p.movedTurn || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
       lanes: p.lanes.map(u => u && { cardId: u.cardId, atk: u.atk, hp: u.hp, maxHp: u.maxHp, shield: u.shield, evade: u.evade, slowed: u.slowed, summonedTurn: u.summonedTurn }),
     })),
   };
@@ -535,7 +554,7 @@ function restoreGame(snap) {
     const p = Object.create(Player.prototype);
     Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, style: sp.style || 'balanced', maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
       deck: sp.deck.map(card), hand: sp.hand.map(card), grave: sp.grave.map(card), factions: sp.factions,
-      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
+      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, movedTurn: sp.movedTurn || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
     p.lanes = sp.lanes.map(su => {
       if (!su) return null;
       const u = makeUnit(card(su.cardId), p);

@@ -451,3 +451,7 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .stage-body { overflow-y: auto; padding-bottom: 20px; }
 .compact .stage-hero { height: 200px; }
 .compact .stack.me { top: 636px; }
+/* 휴대폰: 전장 유닛을 15% 키운다 (레인 사이 빈 공간을 쓴다) */
+.compact .lanes { transform: translateX(-50%) scale(1.15); }
+.compact .lanes.enemy { transform-origin: 50% 40%; }
+.compact .lanes.me { transform-origin: 50% 60%; }
