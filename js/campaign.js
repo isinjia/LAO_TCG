@@ -335,7 +335,7 @@ const CAMPAIGN = [
   {
     id: 'ex4', no: 'EX4', chapter: 'ex', title: '오메가', sub: '외전 결전 · 모의 개체 레모네이드 오메가', bg: 'red_boss', bgm: 'boss2', boss: true,
     desc: '외전의 마지막 상대. 비용 8의 오메가와 철충 보스를 모은 덱입니다. 어려움 인공지능이 상대합니다.',
-    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 21, level: 'hard', style: 'balanced',
+    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 19, level: 'hard', style: 'balanced',
       deck: ['IW_LemonadeOmega', 'IW_LemonadeZeta', 'IW_AzazelAlter', 'IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_Stalker', 'PECS_LemonadeGamma', 'PECS_Empress', 'PECS_Hathor', 'SK_IW_Corrode', 'SK_IW_Swarm'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 13 }, { type: 'rounds', v: 10 }],
     intro: [

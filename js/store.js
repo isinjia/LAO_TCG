@@ -65,7 +65,13 @@ const Store = {
     this.data = d;
     return d;
   },
-  save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); } catch (e) { /* 저장 불가 환경 */ } },
+  save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); this.saveWarned = false; }
+    catch (e) {
+      // 용량 초과·사생활 보호 모드 등으로 저장하지 못하면 한 번 알린다 (진행은 이 창을 닫으면 사라진다)
+      if (!this.saveWarned && typeof toast === 'function') { this.saveWarned = true; toast('저장하지 못했습니다. 브라우저 저장 공간이나 사생활 보호 모드를 확인해 주세요.', true); }
+    }
+  },
   get settings() { return this.data.settings; },
 
   // ---- 덱 ----

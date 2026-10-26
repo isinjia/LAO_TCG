@@ -455,3 +455,12 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .lanes { transform: translateX(-50%) scale(1.15); }
 .compact .lanes.enemy { transform-origin: 50% 40%; }
 .compact .lanes.me { transform-origin: 50% 60%; }
+/* 시작 패 교체·원정 고르기 카드 크기: 창이 열린 채로 화면 크기가 바뀌어도 맞춰지도록 CSS로 정한다 */
+.mull-hand .card { --w: 210px; }
+.compact .mull-hand .card { --w: 300px; }
+.dp-cards .card { --w: 270px; }
+.compact .dp-cards .card { --w: 330px; }
+/* 휴대폰 로비: 「전투 이어하기」로 메뉴가 일곱 칸이 되면 간격을 줄여 아래 전적 글과 겹치지 않게 */
+.compact .lobby-menu.many { top: 170px; gap: 6px; }
+.compact .lobby-menu.many .menu-item { padding-top: 10px; padding-bottom: 16px; }
+.compact .lobby-menu.many .mi-sub { font-size: 18px; }

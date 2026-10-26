@@ -1,6 +1,13 @@
 // ===== 부트스트랩 =====
 window.addEventListener('DOMContentLoaded', async () => {
   Store.load();
+  // 다른 탭에서 저장이 바뀌면 이 탭의 오래된 데이터로 덮어쓰지 않도록 다시 불러온다
+  window.addEventListener('storage', e => {
+    if (e.key !== STORE_KEY || e.newValue === null) return;
+    Store.load();
+    toast('다른 창에서 진행 상황이 바뀌어 다시 불러왔습니다. 한 창에서만 플레이하는 것을 권장합니다.', true);
+    if (currentScreen && currentScreen !== 'battle') showScreen('lobby', { instant: true });
+  });
   Audio2.init();
   fitStage();
   applySpeedVar();

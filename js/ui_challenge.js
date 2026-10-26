@@ -175,7 +175,7 @@ const Draft = {
         <div class="dp-picked">${r.picks.map(id => `<span class="dp-chip g-${CARDS[id].g}">${CARDS[id].c} · ${esc(CARDS[id].n)}</span>`).join('') || '<span class="dp-empty">아직 고른 카드가 없습니다</span>'}</div>
         <div class="modal-actions"><button class="btn" data-a="later">나중에</button></div></div>`);
       const row = $('.dp-cards', box);
-      r.offer.forEach(id => { const ce = cardEl(CARDS[id], { w: document.body.classList.contains('compact') ? 330 : 250 }); ce.onclick = () => { Audio2.play(CARDS[id].g === 'SS' ? 'pickSS' : 'pick'); closeModal(m); this.pick(id); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(CARDS[id]); }; row.appendChild(ce); });
+      r.offer.forEach(id => { const ce = cardEl(CARDS[id]); /* 크기는 CSS(.dp-cards .card) */ ce.onclick = () => { Audio2.play(CARDS[id].g === 'SS' ? 'pickSS' : 'pick'); closeModal(m); this.pick(id); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(CARDS[id]); }; row.appendChild(ce); });
     }
     const m = openModal(box);
     $$('.dp-fac', box).forEach(b => b.onclick = () => { Audio2.play('click'); r.factions = r.choices[+b.dataset.i]; r.stage = 'cards'; Store.save(); closeModal(m); this.openPicker(); });

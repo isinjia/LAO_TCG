@@ -54,7 +54,11 @@ const Tutorial = {
       <div class="ch-btns"><button class="btn small ghost" data-a="skip">튜토리얼 끄기</button>${st.wait ? '' : `<button class="btn small primary" data-a="next">${this.i === TUTORIAL_STEPS.length - 1 ? '시작!' : '다음'}</button>`}</div></div>`;
     c.classList.add('show');
     const nx = $('[data-a=next]', c); if (nx) nx.onclick = () => { Audio2.play('click'); this.go(this.i + 1); };
-    $('[data-a=skip]', c).onclick = () => { this.stop(); toast('튜토리얼을 종료했습니다. ? 버튼으로 규칙을 볼 수 있어요.'); };
+    // 「다음」과 붙어 있어 잘못 누르기 쉬우므로 한 번 더 묻는다
+    $('[data-a=skip]', c).onclick = async () => {
+      if (!await confirmBox('튜토리얼 끄기', '안내를 끄고 남은 대국을 직접 진행할까요? 스토리 지도의 「첫 카드 수업」에서 언제든 다시 할 수 있습니다.', '끄기')) return;
+      this.stop(); toast('튜토리얼을 껐습니다. 오른쪽 위 ? 버튼으로 규칙을 볼 수 있어요.');
+    };
     this.place();
   },
   place() {
