@@ -161,6 +161,11 @@ t('효과: 완전 회복은 대상 체력을 최대로', () => {
 t('효과: AP 추가(바닐라)는 이번 턴 AP를 늘림', () => {
   const { g, p } = setup(['3P_Vanilla']); const before = p.ap; ok(g.play(p.hand[0], 0)); eq(p.ap, before - CARDS['3P_Vanilla'].c + 1);
 });
+t('공격력 0 유닛은 보호기에게도 피해를 주지 않음', () => {
+  const { g, p, o } = setup([], ['AGS_Rampart'], ['DS_Angel']);
+  const att = p.lanes[0]; att.atk = 0; const def = o.lanes[0]; const hp = def.hp;
+  g.damageUnit(def, 0, att, att.card); eq(def.hp, hp);
+});
 t('작전 지시: 턴당 1회, AP 차감, 대상 피해, 아군 대상 불가', () => {
   const { g, p, o } = setup([], ['AGS_Stronghold'], ['PECS_Muse']);
   ok(!g.canCommand({ unit: p.lanes[0] }), '아군 불가');

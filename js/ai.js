@@ -179,6 +179,8 @@ const AI = {
     g.seed = (g.seed ^ 0x9E3779B9) >>> 0; // 실제 대국의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
     const pool = shuffle([...o.hand, ...o.deck], () => g.random());
     o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
+    // 내 덱 순서도 모르는 것으로 한다 (다음에 뽑을 카드를 미리 알고 판단하지 않게)
+    const me = g.players[game.players.indexOf(p)]; me.deck = shuffle(me.deck.slice(), () => g.random());
     return g;
   },
 

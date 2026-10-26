@@ -244,7 +244,7 @@ function openSettings(inBattle) {
       <span class="hint">이번 턴 전투 결과(피해·격파)를 유닛 위에 미리 표시합니다.</span>
       <span>전술 팁</span><div class="switch ${s.tips ? 'on' : ''}" data-k="tips"></div>
     </div>
-    <div class="modal-actions">${inBattle ? '' : '<button class="btn danger small" data-a="reset">저장 데이터 초기화</button><span class="spacer"></span>'}<button class="btn primary" data-a="ok">닫기</button></div></div>`);
+    <div class="modal-actions">${inBattle ? '' : '<button class="btn danger small" data-a="reset">저장 데이터 초기화</button><button class="btn small" data-a="export">저장 내보내기</button><button class="btn small" data-a="import">저장 불러오기</button><span class="spacer"></span>'}<button class="btn primary" data-a="ok">닫기</button></div></div>`);
   const m = openModal(box);
   box.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => {
     s[r.dataset.k] = parseFloat(r.value);
@@ -262,6 +262,29 @@ function openSettings(inBattle) {
     if (sw.dataset.k === 'forecast' && typeof refreshForecast === 'function') refreshForecast();
   });
   box.querySelector('[data-a=ok]').onclick = () => closeModal(m);
+  // 저장 백업: 파일로 내려받고, 같은 파일로 되돌린다 (브라우저 저장소가 지워져도 복구할 수 있게)
+  const ex = box.querySelector('[data-a=export]');
+  if (ex) ex.onclick = () => {
+    const blob = new Blob([JSON.stringify({ game: 'lao-tcg', savedAt: new Date().toISOString(), data: Store.data }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `lao_tcg_save_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('저장 파일을 내려받았습니다.');
+  };
+  const im = box.querySelector('[data-a=import]');
+  if (im) im.onclick = () => {
+    const input = document.createElement('input'); input.type = 'file'; input.accept = '.json,application/json';
+    input.onchange = async () => {
+      const f = input.files && input.files[0]; if (!f) return;
+      try {
+        const obj = JSON.parse(await f.text());
+        if (!obj || obj.game !== 'lao-tcg' || typeof obj.data !== 'object') throw new Error('형식');
+        if (!await confirmBox('저장 불러오기', '지금 저장 데이터를 파일 내용으로 바꿉니다. 지금 진행 상황은 사라집니다.', '불러오기', true)) return;
+        localStorage.setItem(STORE_KEY, JSON.stringify(obj.data)); Store.clearBattle(); Store.load(); Store.save();
+        closeModal(m); toast('저장 데이터를 불러왔습니다.'); showScreen('lobby');
+      } catch (e) { toast('이 게임의 저장 파일이 아닙니다.', true); }
+    };
+    input.click();
+  };
   const rb = box.querySelector('[data-a=reset]');
   if (rb) rb.onclick = async () => {
     if (await confirmBox('저장 데이터 초기화', '덱, 스토리 진행도, 전적, 설정이 모두 삭제됩니다. 되돌릴 수 없습니다.', '초기화', true)) {
