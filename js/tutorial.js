@@ -45,7 +45,7 @@ const Tutorial = {
     const st = TUTORIAL_STEPS[this.i];
     const c = $('#coach');
     c.innerHTML = `<div class="ch-spot"></div><div class="ch-box"><div class="ch-face" style="background-image:url('${artOf(CARDS['3P_ConstantiaS2'])}')"></div>
-      <span class="ch-step">${this.i + 1}/${TUTORIAL_STEPS.length}</span><div class="ch-who">콘스탄챠 S2</div><div class="ch-text">${st.text}</div>
+      <span class="ch-step">${this.i + 1}/${TUTORIAL_STEPS.length}</span><div class="ch-who">콘스탄챠 S2</div><div class="ch-text">${touchText(st.text)}</div>
       ${st.wait ? '<div class="ch-wait">▶ 직접 해 보세요</div>' : ''}
       <div class="ch-btns"><button class="btn small ghost" data-a="skip">튜토리얼 끄기</button>${st.wait ? '' : `<button class="btn small primary" data-a="next">${this.i === TUTORIAL_STEPS.length - 1 ? '시작!' : '다음'}</button>`}</div></div>`;
     c.classList.add('show');

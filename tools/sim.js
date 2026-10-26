@@ -27,7 +27,7 @@ function sim(da, db, lvA, lvB, aFirst) {
     while (g.phase === 'main' && n++ < 12) {
       const a = AI.nextAction(g, p, lv.get(p)); if (!a) break;
       played.get(p).add(a.card.id);
-      const ok = a.card.kind === 'unit' ? g.play(a.card, a.lane) : g.play(a.card, null, a.target);
+      const ok = g.act(a);
       if (!ok) throw new Error('AI chose unplayable: ' + a.card.id);
       g.events.length = 0;
     }

@@ -22,6 +22,8 @@ function sleepRaw(ms) { return new Promise(r => setTimeout(r, ms)); }
 function fitStage() {
   const vw = window.innerWidth, vh = window.innerHeight;
   stageScale = Math.min(vw / REF_W, vh / REF_H);
+  // 휴대폰처럼 많이 줄어드는 화면에서는 작은 글자를 키운다 (lo_skin.css의 .compact)
+  document.body.classList.toggle('compact', stageScale < 0.6);
   STAGE_W = Math.max(REF_W, vw / stageScale);
   STAGE_H = Math.max(REF_H, vh / stageScale);
   const st = $('#stage');
@@ -58,6 +60,11 @@ async function showScreen(id, opts = {}) {
   if (screenHooks[id]) await screenHooks[id](el, opts, prev);
   if (!opts.instant) { await sleepRaw(30); fade.classList.remove('on'); }
 }
+
+// ---------- 터치 환경 문구 ----------
+// 마우스가 없는 기기(휴대폰·태블릿)에서는 "마우스를 올리면"·"우클릭" 안내를 길게 누르기로 바꿔 보여 준다
+const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
+function touchText(s) { return IS_TOUCH ? String(s).replace(/마우스를 올리면/g, '길게 누르면').replace(/우클릭으로/g, '길게 눌러').replace(/우클릭/g, '길게 누르기') : s; }
 
 // ---------- 카드 텍스트 ----------
 function kwText(card) {
@@ -264,10 +271,11 @@ const HOWTO = [
     <table><tr><th>1. AP 충전</th><td>매 턴 최대 AP가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 쓰지 않은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다. 모든 카드는 AP로 사용합니다.</td></tr>
     <tr><th>2. 드로우</th><td>카드 1장을 뽑습니다. 손패는 최대 ${RULES.HAND_MAX}장입니다.</td></tr>
     <tr><th>3. 배치·지원</th><td>전투원은 빈 레인에 배치하고, 지원 카드는 즉시 효과를 발휘합니다. 카드를 끌어다 놓거나 클릭해서 사용합니다.</td></tr>
-    <tr><th>4. 전투</th><td>턴 종료 버튼을 누르면 내 전투원이 왼쪽 레인부터 차례로 공격합니다.</td></tr></table>
+    <tr><th>4. 작전 지시</th><td>턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 <b>포격 지원</b>을 할 수 있습니다. 적 전투원 하나나 상대 라이프에 ${RULES.COMMAND.dmg} 피해를 줍니다. 카드를 다 내고 남은 AP를 쓰기 좋습니다.</td></tr>
+    <tr><th>5. 전투</th><td>턴 종료 버튼을 누르면 내 전투원이 왼쪽 레인부터 차례로 공격합니다.</td></tr></table>
     <h4>덱과 순환</h4>덱은 ${RULES.DECK_SIZE}장이며 같은 카드는 1장만 넣을 수 있습니다. 제작사는 최대 ${RULES.MAX_FACTIONS}곳까지 섞을 수 있습니다. 덱이 바닥나면 버린 카드를 섞어 다시 사용하므로, 강한 카드는 몇 번이고 돌아옵니다.
     ${RULES.OVERTIME_ROUND ? `<h4>작전 시간 초과</h4>${RULES.OVERTIME_ROUND}라운드부터는 턴을 시작하는 쪽이 라이프 피해를 받습니다. 피해는 1부터 시작해 라운드마다 1씩 커지므로, 교착 상태가 길어지면 라이프가 많은 쪽이 유리합니다.` : ''}
-    <h4>선공과 후공</h4>양쪽 모두 카드 ${RULES.START_HAND}장으로 시작하며, 그중 최대 ${RULES.MULLIGAN_MAX}장을 한 번 교체할 수 있습니다. 선공은 첫 턴에 카드를 뽑지 않습니다. 후공은 교체가 끝난 뒤 카드 ${RULES.SECOND_EXTRA_CARDS}장을 더 받고, 첫 턴에 AP를 ${RULES.SECOND_AP_BONUS} 더 받습니다.`],
+    <h4>선공과 후공</h4>양쪽 모두 카드 ${RULES.START_HAND}장으로 시작하며, 그중 최대 ${RULES.MULLIGAN_MAX}장을 한 번 교체할 수 있습니다. 선공은 첫 턴에 카드를 뽑지 않습니다. 후공은 교체가 끝난 뒤 카드 ${RULES.SECOND_EXTRA_CARDS}장을 더 받고, 첫 턴에 AP를 ${RULES.SECOND_AP_BONUS} 더 받으며, 라이프가 ${RULES.SECOND_HP_BONUS} 더 많습니다.`],
   ['전투 규칙', `
     <h4>레인 전투</h4>전장은 좌익·중앙·우익 3개 레인입니다. 전투원은 <b>마주 보는 적 전투원</b>을 공격하고, 앞이 비어 있으면 <b>상대 라이프</b>를 직접 공격합니다.
     <h4>소환 대기</h4>전투원은 배치된 턴에는 공격하지 않습니다. <b>돌격</b> 키워드가 있으면 바로 공격합니다.
@@ -294,7 +302,7 @@ const HOWTO = [
 function openHowTo(tab = 0) {
   const box = h(`<div class="modal-box howto"><h3>게임 방법</h3><div class="howto-tabs">${HOWTO.map((t, i) => `<button data-t="${i}" class="${i === tab ? 'on' : ''}">${t[0]}</button>`).join('')}</div><div class="howto-body scroll"></div></div>`);
   const body = box.querySelector('.howto-body');
-  const show = i => { body.innerHTML = HOWTO[i][1]; box.querySelectorAll('.howto-tabs button').forEach(b => b.classList.toggle('on', +b.dataset.t === i)); body.scrollTop = 0; };
+  const show = i => { body.innerHTML = touchText(HOWTO[i][1]); box.querySelectorAll('.howto-tabs button').forEach(b => b.classList.toggle('on', +b.dataset.t === i)); body.scrollTop = 0; };
   box.querySelectorAll('.howto-tabs button').forEach(b => b.onclick = () => show(+b.dataset.t));
   show(tab);
   openModal(box);

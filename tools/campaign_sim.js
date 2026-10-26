@@ -18,7 +18,7 @@ for (const s of CAMPAIGN) {
     while (g.phase !== 'over' && k++ < 200) {
       const p = g.cur, lv = p === en ? s.enemy.level : 'normal';
       let m = 0;
-      while (g.phase === 'main' && m++ < 12) { const a = AI.nextAction(g, p, lv); if (!a) break; a.card.kind === 'unit' ? g.play(a.card, a.lane) : g.play(a.card, null, a.target); }
+      while (g.phase === 'main' && m++ < 12) { const a = AI.nextAction(g, p, lv); if (!a) break; g.act(a); }
       if (g.phase === 'main') g.endTurn();
       g.events.length = 0;
     }

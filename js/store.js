@@ -9,9 +9,10 @@ const Store = {
       decks: [],                 // { id, name, cards }
       activeDeck: 'preset:0',    // 'preset:N' | 사용자 덱 id
       settings: { bgm: 0.45, sfx: 0.7, speed: 1, forecast: true, autoLevel: false, tips: true },
-      campaign: { stars: {}, difficulty: 'normal', cleared: {} },
+      campaign: { stars: {}, difficulty: 'normal', cleared: {}, hardCleared: {} },
       record: { w: 0, l: 0, streak: 0 },
       secretary: 'PECS_Orangeade',  // 로비 캐릭터 (기본: 주인공 오렌지에이드)
+      lobbyBg: 'barracks',       // 로비 배경 (업적으로 해금)
       storyV: 3,
       tutorialDone: false,
       seenIntro: false,
@@ -34,6 +35,7 @@ const Store = {
     for (const k of Object.keys(def)) if (d[k] === undefined) d[k] = def[k];
     d.settings = { ...def.settings, ...(d.settings || {}) };
     d.campaign = { ...def.campaign, ...(d.campaign || {}) };
+    if (!d.campaign.hardCleared || typeof d.campaign.hardCleared !== 'object') d.campaign.hardCleared = {};
     d.record = { ...def.record, ...(d.record || {}) };
     d.stats = { ...def.stats, ...(d.stats || {}) };
     d.gauntlet = { ...def.gauntlet, ...(d.gauntlet || {}) };

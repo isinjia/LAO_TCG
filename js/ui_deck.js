@@ -66,7 +66,7 @@ screenHooks.deck = el => {
   Audio2.bgm('lobby');
   if (!editing || !Store.allDecks().some(d => d.id === editing.id)) loadEditing(Store.data.activeDeck);
   el.innerHTML = `
-    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>덱 편성</h2><span class="sub">카드를 클릭해 추가·제거 · 우클릭으로 상세 정보</span><span class="spacer"></span><button class="btn small" data-a="howto">덱 규칙</button><button class="btn primary" data-a="battle">이 덱으로 빠른 전투</button></div>
+    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>덱 편성</h2><span class="sub">${touchText('카드를 클릭해 추가·제거 · 우클릭으로 상세 정보')}</span><span class="spacer"></span><button class="btn small" data-a="howto">덱 규칙</button><button class="btn primary" data-a="battle">이 덱으로 빠른 전투</button></div>
     <div class="deck-left">
       <div class="deck-select"><select data-a="pick"></select><button class="btn small" data-a="new" title="새 덱">＋</button></div>
       <input class="deck-name" maxlength="24" data-a="name">

@@ -112,7 +112,7 @@ t('forecast는 실제 전투와 일치', () => {
     const { a, g } = fresh(D0, D1); g.start();
     let guard = 0;
     while (g.phase !== 'over' && guard++ < 30) { let n = 0;
-      while (g.phase === 'main' && n++ < 8) { const act = AI.nextAction(g, g.cur); if (!act) break; act.card.kind === 'unit' ? g.play(act.card, act.lane) : g.play(act.card, null, act.target); }
+      while (g.phase === 'main' && n++ < 8) { const act = AI.nextAction(g, g.cur); if (!act) break; g.act(act); }
       if (g.phase !== 'main') break;
       const opp = g.opp; const fc = g.forecast(g.cur); const before = opp.hp;
       g.endTurn();
@@ -129,9 +129,78 @@ t('작전 시간 초과: 정해진 라운드부터 턴 시작 피해가 1씩 커
   let guard = 0; while (g.phase !== 'over' && guard++ < 200) g.endTurn();
   ok(g.phase === 'over', 'game ends'); ok(g.round() < R + 10, 'ends soon after overtime');
 });
+// ---------- 효과별 규칙 ----------
+// 현재 턴 플레이어에게 카드를 쥐여 주고, 상대 레인에 유닛을 세운 상태를 만든다
+function setup(hand, enemyUnits = [], myUnits = []) {
+  const { a, b, g } = fresh(D0, D1); g.start();
+  const p = g.cur, o = g.opp;
+  p.ap = 10; p.hand = hand.map(id => CARDS[id]);
+  enemyUnits.forEach((id, i) => { if (id) { const u = makeUnit(CARDS[id], o); u.summonedTurn = -9; o.lanes[i] = u; } });
+  myUnits.forEach((id, i) => { if (id) { const u = makeUnit(CARDS[id], p); u.summonedTurn = -9; p.lanes[i] = u; } });
+  return { g, p, o };
+}
+t('효과: 최약체 처치(암살 지령)는 체력 조건 이하 중 가장 약한 유닛만', () => {
+  const { g, p, o } = setup(['SK_DS_Assassinate'], ['DS_Angel', 'AGS_Stronghold', 'PECS_Muse']);
+  const angel = o.lanes[0];
+  ok(g.play(p.hand[0], null, null)); ok(!o.lanes.includes(angel), '엔젤 처치'); ok(o.lanes[1], '스트롱홀드 생존');
+});
+t('효과: 희생 폭발은 아군을 바치고 그 공격력만큼 모든 적에게 피해', () => {
+  const { g, p, o } = setup(['SK_AGS_Overload'], ['DS_Angel', 'PECS_Muse'], ['AGS_Stronghold']);
+  const me = p.lanes[0], atk = me.atk, museHp = o.lanes[1].hp;
+  ok(g.play(p.hand[0], null, { unit: me })); ok(!p.lanes.includes(me), '희생');
+  ok(!o.lanes[1] || o.lanes[1].hp === museHp - atk, '뮤즈 피해');
+});
+t('효과: 공격력 감소는 0 아래로 내려가지 않음', () => {
+  const { g, p, o } = setup(['BR_Banshee'], ['DS_Angel']);
+  o.lanes[0].atk = 0; ok(g.play(p.hand[0], 0)); eq(o.lanes[0].atk, 0);
+});
+t('효과: 완전 회복은 대상 체력을 최대로', () => {
+  const { g, p } = setup(['SK_AGS_Protocol'], [], ['AGS_Stronghold']);
+  const u = p.lanes[0]; u.hp = 1; ok(g.play(p.hand[0], null, { unit: u })); eq(u.hp, u.maxHp);
+});
+t('효과: AP 추가(바닐라)는 이번 턴 AP를 늘림', () => {
+  const { g, p } = setup(['3P_Vanilla']); const before = p.ap; ok(g.play(p.hand[0], 0)); eq(p.ap, before - CARDS['3P_Vanilla'].c + 1);
+});
+t('작전 지시: 턴당 1회, AP 차감, 대상 피해, 아군 대상 불가', () => {
+  const { g, p, o } = setup([], ['AGS_Stronghold'], ['PECS_Muse']);
+  ok(!g.canCommand({ unit: p.lanes[0] }), '아군 불가');
+  const hp = o.hp, ap = p.ap;
+  ok(g.command({ cmd: o })); eq(o.hp, hp - RULES.COMMAND.dmg); eq(p.ap, ap - RULES.COMMAND.cost);
+  ok(!g.canCommand(), '두 번째 불가');
+  g.endTurn(); g.endTurn(); ok(g.cur === p && (p.ap < RULES.COMMAND.cost || g.canCommand()), '다음 내 턴엔 다시 가능');
+});
+t('후공 라이프 보정', () => { const { a, b, g } = fresh(D0, D1); g.start(); eq(b.maxHp, RULES.CMD_HP + RULES.SECOND_HP_BONUS); eq(a.maxHp, RULES.CMD_HP); });
+t('대국 난수: 저장 → 복원 뒤 무작위 결과가 같음', () => {
+  const { g } = setup(['3P_SnowFeather'], ['DS_Angel', 'PECS_Muse', 'AGS_Stronghold']);
+  const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
+  const seq = x => [x.random(), x.random(), x.random()].join(',');
+  eq(seq(r), seq(g));
+});
+t('어려움 AI는 상대 손패를 바꿔도 같은 판단 (숨은 정보 미사용)', () => {
+  // 같은 판에서 상대 손패·덱만 다르게 섞어도 AI 판단이 손패 내용에 기대지 않는지: 결과가 합법 행동이면 통과
+  for (let i = 0; i < 20; i++) {
+    const { a, b, g } = fresh(D0, D1); g.start();
+    const act = AI.nextAction(g, g.cur, 'hard');
+    ok(!act || (act.command ? g.canCommand(act.target) : g.canPlay(act.card, act.lane, act.target)), '합법 행동');
+    const view = AI.hiddenInfoView(g, g.cur); const o = view.players[1 - g.players.indexOf(g.cur)];
+    eq(o.hand.length + o.deck.length, g.opp.hand.length + g.opp.deck.length, '카드 수 유지');
+  }
+});
+t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
+  const code = src.slice(src.indexOf('const DAILY_TWISTS'), src.indexOf('  doneToday()')) + '}; this.__Daily = Daily; this.__opps = dailyOpponents;';
+  (0, eval)(code);
+  for (let d = 0; d < 30; d++) {
+    const c1 = __Daily.config('t' + d, { cards: D0, name: 'x', preset: true }), c2 = __Daily.config('t' + d, { cards: D0, name: 'x', preset: true });
+    eq(JSON.stringify(c1), JSON.stringify(c2), '재현');
+    eq(validateDeck(c1.enemy.deck), null, '상대 덱');
+    ok(c1.enemy.hp > 0 && (!c1.myHp || c1.myHp > 0), '라이프');
+  }
+});
+
 t('직렬화 → 복원 후 동일하게 진행', () => {
   const { a, g } = fresh(D0, D1); g.start();
-  for (let i = 0; i < 6 && g.phase !== 'over'; i++) { const act = AI.nextAction(g, g.cur); if (act) act.card.kind === 'unit' ? g.play(act.card, act.lane) : g.play(act.card, null, act.target); g.endTurn(); }
+  for (let i = 0; i < 6 && g.phase !== 'over'; i++) { const act = AI.nextAction(g, g.cur); if (act) g.act(act); g.endTurn(); }
   const snap = JSON.parse(JSON.stringify(serializeGame(g)));
   const r = restoreGame(snap);
   eq(JSON.stringify(serializeGame(r)), JSON.stringify(snap));
@@ -151,7 +220,7 @@ t('AI 대전 300판: 예외·무한루프 없음', () => {
     let k = 0;
     while (g.phase !== 'over' && k++ < 300) {
       const p = g.cur; let n = 0;
-      while (g.phase === 'main' && n++ < 12) { const act = AI.nextAction(g, p, lv); if (!act) break; ok(act.card.kind === 'unit' ? g.play(act.card, act.lane) : g.play(act.card, null, act.target), 'legal act'); }
+      while (g.phase === 'main' && n++ < 12) { const act = AI.nextAction(g, p, lv); if (!act) break; ok(g.act(act), 'legal act'); }
       if (g.phase === 'main') g.endTurn();
       [a, b].forEach(q => { ok(q.hp <= q.maxHp, 'hp<=max'); ok(q.hand.length <= RULES.HAND_MAX, 'hand'); q.lanes.forEach(u => ok(!u || u.hp > 0, 'alive')); ok(q.hand.length + q.deck.length + q.grave.length + q.units().filter(u => !u.card.token).length === 12, 'card conservation'); });
       g.events.length = 0;

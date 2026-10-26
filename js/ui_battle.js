@@ -8,8 +8,24 @@ const ROLE_SFX = { L: 'rifle', M: 'shot', H: 'cannon' };
 const FX_COLOR = { dmg: '#ff7a5a', heal: '#6bff88', shield: '#8fd4ff', buff: '#ffe08a', debuff: '#c08aff', slow: '#9fd8ff' };
 
 // ---------- 시작 ----------
+// 이어하지 않고 버린 대국은 패배로 기록한다 (순회전은 그 자리에서 끝난다). 새로고침으로 불리한 대국을 피하는 것을 막는다.
+function abandonSavedBattle() {
+  const snap = Store.loadBattle(); if (!snap) return false;
+  Store.clearBattle();
+  const rec = Store.data.record; rec.l++; rec.streak = 0;
+  if (snap.cfg.mode === 'gauntlet') Gauntlet.finish(false, 0);
+  Store.save();
+  toast(`이어하지 않은 ${snap.cfg.enemy.name} 전은 패배로 기록되었습니다.`, true);
+  return true;
+}
+// 진행 중인 대국이 저장돼 있으면 새로 시작하기 전에 확인한다
+async function confirmAbandon() {
+  const snap = Store.loadBattle(); if (!snap) return true;
+  return confirmBox('진행 중인 대국', `${snap.cfg.enemy.name} 전이 아직 끝나지 않았습니다. 새 대국을 시작하면 그 대국은 패배로 기록됩니다.`, '패배 처리하고 시작', true);
+}
+
 function startBattle(cfg) {
-  Store.clearBattle(); // 새 전투를 시작하면 이전 진행 기록은 버린다
+  abandonSavedBattle(); // 새 전투를 시작하면 이전 진행 기록은 패배로 정리한다
   const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp); // 순회전·오늘의 대국: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait });
@@ -52,6 +68,7 @@ async function resumeIntro() {
 }
 
 screenHooks.battle = async el => {
+  if (!B) return; // 화면 전환 중에 전투가 취소된 경우
   const { cfg, me, ai } = B;
   Audio2.bgm(cfg.bgm || 'battle1');
   applySpeedVar();
@@ -74,7 +91,9 @@ screenHooks.battle = async el => {
     <svg class="fc-svg"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
     ${cmdHtml('me', me)}
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
-    <div class="end-turn"><div class="round-info"></div><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
+    <div class="round-info"></div>
+    <div class="end-turn"><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
+    <button class="cmd-power" title="작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해. 카드를 다 내고 남은 AP를 쓰기 좋습니다."><span class="cp-icon" style="background-image:url('assets/skill/${COMMAND_CARD.icon}.png')"></span><span class="cp-name">포격 지원<small>작전 지시 · 턴당 1회</small></span><span class="cp-cost">${RULES.COMMAND.cost}</span></button>
     <div class="ap-bar" id="ap-me" title="AP: 매 턴 최대치가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 남은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다."><div class="ap-num"></div><div class="ap-gems"></div></div>
     <div class="hand"></div>
     <div class="log-panel"><h4>전투 기록</h4><div class="log-list scroll"></div></div>`;
@@ -186,7 +205,7 @@ async function aiTurn() {
     const act = AI.nextAction(game, ai, cfg.enemy.level);
     if (!act) break;
     await revealCard(act.card, false); alive(myB);
-    const ok = act.card.kind === 'unit' ? game.play(act.card, act.lane) : game.play(act.card, null, act.target);
+    const ok = game.act(act);
     if (!ok) break;
     await processEvents(); alive(myB); renderAll();
     await sleep(300); alive(myB);
@@ -211,7 +230,9 @@ function bindBattleInputs(el) {
   });
   $('#cmd-enemy').onclick = () => { if (B.selected && (B.pending === 'any')) playSelected(null, { cmd: B.ai }); };
   $('.end-btn', el).onclick = endMyTurn;
+  $('.cmd-power', el).onclick = () => { if (B.selected === COMMAND_CARD) { clearSelection(); renderAll(); return; } selectCard(COMMAND_CARD); renderAll(); };
   $('.end-btn', el).onmouseenter = () => drawArrows();
+  $('.end-btn', el).addEventListener('contextmenu', e => { e.preventDefault(); drawArrows(); setTimeout(clearArrows, 2500); });
   $('.end-btn', el).onmouseleave = () => clearArrows();
   $('[data-a=log]', el).onclick = () => $('.log-panel', el).classList.toggle('open');
   $('[data-a=help]', el).onclick = () => openHowTo(1);
@@ -276,6 +297,7 @@ function selectCard(card) {
     clearSelection(); renderHand(true); return false;
   }
   clearSelection();
+  if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   if (!me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
   if (card.kind === 'unit') {
@@ -326,7 +348,8 @@ async function playSelected(lane, target, fromRect) {
   const card = B.selected;
   if (!card) return;
   const { game } = B;
-  if (!game.canPlay(card, lane, target)) { toast('사용할 수 없습니다.', true); return; }
+  const isCmd = card === COMMAND_CARD;
+  if (isCmd ? !game.canCommand(target) : !game.canPlay(card, lane, target)) { toast('사용할 수 없습니다.', true); return; }
   const handEl = $(`.hand .card[data-id="${card.id}"]`);
   const from = fromRect || (handEl ? stageRect(handEl) : null);
   clearSelection(); B.busy = true; hidePreview(); clearArrows();
@@ -338,7 +361,7 @@ async function playSelected(lane, target, fromRect) {
     await revealCard(card, true);
   }
   alive(myB);
-  game.play(card, lane, target);
+  if (isCmd) game.command(target); else game.play(card, lane, target);
   Audio2.play(card.kind === 'unit' ? 'place' : 'energy');
   await processEvents(); alive(myB);
   B.busy = false; renderAll();
@@ -436,6 +459,8 @@ function renderCmd(side, p) {
 }
 function renderAp() {
   const { me } = B; const bar = $('#ap-me'); if (!bar) return;
+  const cp = $('.cmd-power');
+  if (cp) { const can = canAct() && B.game.canCommand(); cp.disabled = !can; cp.classList.toggle('used', me.cmdUsed === B.game.turn); cp.classList.toggle('selected', B.selected === COMMAND_CARD); }
   $('.ap-num', bar).innerHTML = `${me.ap}<small>/${me.maxAp}</small>`;
   const sig = me.ap + ':' + me.maxAp;
   if (bar.dataset.sig === sig) return; bar.dataset.sig = sig;
@@ -831,6 +856,9 @@ async function finishBattle(surrendered) {
   if (cfg.mode === 'campaign') {
     stage = CAMPAIGN[cfg.stageIdx];
     stars = evalStars(stage, game, me);
+    const diff = Store.data.campaign.difficulty;
+    if (diff === 'easy' && !stage.tutorial) stars[2] = false; // 쉬움 난이도는 별 2개까지
+    if (diff === 'hard' && win && !stage.tutorial) { Store.data.campaign.hardCleared[stage.id] = true; }
     Store.setStageResult(stage.id, stars);
     if (stage.tutorial && win) Store.data.tutorialDone = true;
     got = Store.grantRewards(stage.id, win);
@@ -857,7 +885,7 @@ async function finishBattle(surrendered) {
       </div>
       ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st lo-star ${stars[i] ? 'on' : ''}" style="animation-delay:${0.3 + i * 0.35}s"></span>${starLabel(s)}</div>`).join('')}</div>` : ''}
       ${ch.note ? `<div class="rs-note">${esc(ch.note)}</div>` : ''}
-      ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}</div>` : ''}
+      ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}${ch.newBgs.map(b => `<span><i class="lo-star on"></i>로비 배경 해금 · <b>${esc(b.name)}</b></span>`).join('')}</div>` : ''}
       ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}
       <div class="modal-actions" style="margin-top:auto">
         <button class="btn" data-a="lobby">로비</button>

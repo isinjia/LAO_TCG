@@ -7,8 +7,9 @@ const AI = {
   // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
   nextAction(game, p, level = 'normal') {
     if (level === 'hard') return this.searchAction(game, p);
-    const act = this.heuristicAction(game, p);
+    const act = this.heuristicAction(game, p) || this.commandAction(game, p, level);
     if (!act) return null;
+    if (act.command) return level === 'easy' && Math.random() < 0.5 ? null : act;
     if (level === 'easy') {
       if (Math.random() < 0.3) return null;
       if (act.card.kind === 'unit') { const e = p.emptyLanes(); act.lane = e[Math.floor(Math.random() * e.length)]; }
@@ -43,6 +44,16 @@ const AI = {
     }
     const all = [...skills, ...units].sort((a, b) => b.value - a.value);
     return all[0] || null;
+  },
+
+  // 카드를 다 낸 뒤 남은 AP로 작전 지시: 마무리 > 처치 가능한 가장 비싼 유닛 > 상대 라이프
+  commandAction(game, p) {
+    if (game.cur !== p || !game.canCommand()) return null;
+    const o = game.other(p), dmg = RULES.COMMAND.dmg;
+    if (o.hp <= dmg) return { command: true, card: COMMAND_CARD, target: { cmd: o } };
+    const kill = o.units().filter(u => !u.evade && u.hp + u.shield <= dmg).sort((a, b) => b.card.c - a.card.c)[0];
+    if (kill) return { command: true, card: COMMAND_CARD, target: { unit: kill } };
+    return { command: true, card: COMMAND_CARD, target: { cmd: o } };
   },
 
   evalSkill(game, p, o, c) {
@@ -92,6 +103,10 @@ const AI = {
         else if (k === 'any') { o.units().forEach(u => acts.push({ card: c, target: { unit: u } })); acts.push({ card: c, target: { cmd: o } }); }
       }
     }
+    if (game.cur === p && game.canCommand()) {
+      o.units().forEach(u => acts.push({ command: true, card: COMMAND_CARD, target: { unit: u } }));
+      acts.push({ command: true, card: COMMAND_CARD, target: { cmd: o } });
+    }
     return acts;
   },
 
@@ -124,6 +139,7 @@ const AI = {
 
   // 복제 게임 g에 행동을 적용한다 (대상 유닛을 uid로 다시 찾는다)
   applyAct(g, gp, act) {
+    if (act.command && g.cur !== gp) return false;
     let target = act.target;
     if (target && target.unit) {
       const uid = target.unit.uid;
@@ -131,6 +147,7 @@ const AI = {
       for (const q of g.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u };
       if (!target) return false;
     } else if (target && target.cmd) target = { cmd: g.other(gp) };
+    if (act.command) return g.command(target);
     const card = gp.hand.find(c => c.id === act.card.id);
     return !!card && g.play(card, act.lane, target);
   },
@@ -145,16 +162,30 @@ const AI = {
     const go = g.other(gp);
     g.current = g.players.indexOf(go); g.quiet = true; g.noEvents = true;
     g.beginTurn();
-    for (let i = 0; i < 6 && g.phase === 'main'; i++) {
+    for (let i = 0; i < 7 && g.phase === 'main'; i++) {
       const a = this.heuristicAction(g, go);
-      if (!a || !(a.card.kind === 'unit' ? g.play(a.card, a.lane) : g.play(a.card, null, a.target))) break;
+      const a2 = a || this.commandAction(g, go);
+      if (!a2 || !g.act(a2)) break;
     }
     return this.evaluate(g, gp);
   },
   scoreAfter(game, p, act) { return this.scoreSeq(game, p, act ? [act] : []); },
 
+  // 탐색용 복제: 상대의 손패와 덱 순서는 알 수 없으므로, 남은 카드(손패+덱)를 섞어 다시 나눈다.
+  // 상대 덱 구성(공개 정보)은 알지만 지금 무엇을 쥐었는지, 다음에 무엇을 뽑을지는 모르는 상태로 둔다.
+  hiddenInfoView(game, p) {
+    const g = game.clone();
+    const o = g.players[1 - game.players.indexOf(p)];
+    const pool = shuffle([...o.hand, ...o.deck]);
+    o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
+    g.seed = Math.floor(Math.random() * 4294967296); // 실제 대국의 난수 결과도 미리 알 수 없게
+    return g;
+  },
+
   // 2수 빔 탐색: 1수 후보 상위 4개에 대해 2번째 행동까지 평가한다
-  searchAction(game, p) {
+  searchAction(real, rp) {
+    const game = this.hiddenInfoView(real, rp);
+    const p = game.players[real.players.indexOf(rp)];
     const base = this.scoreSeq(game, p, []);
     const firsts = this.legalActions(game, p).map(a => ({ a, s: this.scoreSeq(game, p, [a]) })).filter(x => x.s > -Infinity).sort((x, y) => y.s - x.s);
     let best = null, bestScore = base + 0.5; // 아무것도 안 하는 것보다 확실히 나을 때만 행동
@@ -167,7 +198,14 @@ const AI = {
         if (s2 > bestScore + 0.3) { bestScore = s2; best = f.a; }
       }
     }
-    return best;
+    if (!best) return null;
+    // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
+    const card = best.command ? COMMAND_CARD : rp.hand.find(c => c.id === best.card.id);
+    let target = best.target;
+    if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };
+    else if (target && target.unit) { const uid = target.unit.uid; target = null; for (const q of real.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u }; }
+    if (best.command) return target ? { command: true, card, target } : null;
+    return card ? { card, lane: best.lane, target } : null;
   },
 
   // 멀리건: 비싼 카드(5 이상)를 교체

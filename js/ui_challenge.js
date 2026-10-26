@@ -9,6 +9,8 @@ const ACHIEVEMENTS = [
   { id: 'streak5', name: '연승 행진', desc: '5연승을 달성한다.', test: c => c.streak >= 5 },
   { id: 'story', name: '오르카 카드 마스터', desc: '스토리 결승에서 승리한다.', test: () => !!Store.data.campaign.cleared.s8 },
   { id: 'stars', name: '완벽주의자', desc: '스토리 별 27개를 모두 모은다.', test: () => Store.totalStars() >= CAMPAIGN.length * 3 },
+  { id: 'hardstory', name: '어려움 정복', desc: '스토리 난이도 어려움으로 결승에서 승리한다.', test: () => !!Store.data.campaign.hardCleared.s8 },
+  { id: 'hardall', name: '전 리그 제패', desc: '스토리 여덟 대국을 모두 어려움 난이도로 이긴다.', test: () => CAMPAIGN.every(s => s.tutorial || Store.data.campaign.hardCleared[s.id]) },
   { id: 'flawless', name: '무결점', desc: '라이프를 하나도 잃지 않고 승리한다.', test: c => c.win && c.hp >= c.maxHp },
   { id: 'comeback', name: '기사회생', desc: '라이프 3 이하로 승리한다.', test: c => c.win && c.hp <= 3 },
   { id: 'blitz', name: '전격전', desc: '6라운드 안에 승리한다.', test: c => c.win && c.round <= 6 },
@@ -22,6 +24,18 @@ const ACHIEVEMENTS = [
   { id: 'daily3', name: '꾸준함', desc: '서로 다른 3일 동안 오늘의 대국에서 승리한다.', test: () => Store.data.daily.wins >= 3 },
   { id: 'daily7', name: '개근상', desc: '서로 다른 7일 동안 오늘의 대국에서 승리한다.', test: () => Store.data.daily.wins >= 7 },
 ];
+
+// 업적 보상: 로비 배경 (첫 번째는 기본)
+const LOBBY_BGS = [
+  { id: 'barracks', name: '오르카호 숙소' },
+  { id: 'camp_day', name: '야영지', ach: 'win10' },
+  { id: 'beach', name: '해변', ach: 'daily3' },
+  { id: 'mansion', name: '저택', ach: 'gauntlet' },
+  { id: 'snow_night', name: '설산의 밤', ach: 'daily7' },
+  { id: 'camp_night', name: '야영지의 밤', ach: 'stars' },
+  { id: 'blacksun', name: '검은 태양', ach: 'hardstory' },
+];
+function lobbyBgUnlocked(bg) { return !bg.ach || !!Store.data.ach[bg.ach]; }
 
 const Ach = {
   has(id) { return !!Store.data.ach[id]; },
@@ -51,7 +65,9 @@ const GAUNTLET_POOL = [['s1', 's2', 's3'], ['s2', 's3', 's4'], ['s4', 's5', 's6'
 
 const Gauntlet = {
   get run() { return Store.data.gauntlet.run; },
-  start(deckId) {
+  async start(deckId) {
+    if (!await confirmAbandon()) return;
+    abandonSavedBattle();
     const picked = [];
     GAUNTLET_POOL.forEach(pool => {
       const opts = pool.filter(id => !picked.includes(id));
@@ -62,8 +78,14 @@ const Gauntlet = {
     Store.save();
     this.play();
   },
-  play() {
+  async play() {
     const r = this.run; if (!r) return;
+    // 이 대국을 하다 나갔다면 새로 시작하지 않고 이어서 한다
+    const saved = Store.loadBattle();
+    if (saved && saved.cfg.mode === 'gauntlet' && saved.cfg.gauntlet.idx === r.idx) { resumeBattle(saved); return; }
+    if (!await confirmAbandon()) return;
+    abandonSavedBattle();
+    if (!this.run) return;
     const deck = Store.getDeck(r.deckId);
     if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
     const st = CAMPAIGN.find(s => s.id === r.stages[r.idx]);
@@ -94,16 +116,20 @@ const Gauntlet = {
 };
 
 // ---------- 오늘의 대국 ----------
-// 날짜마다 정해지는 상대와 특수 조건. 상대 인공지능은 항상 어려움.
+// 날짜마다 정해지는 상대(스토리 상대 7명 + 프리셋 덱 4종)와 특수 조건 8종. 조건마다 상대 인공지능 수준이 다르다.
+// 보통 AI 플레이어 기준 전체 승률 약 40% (조건별 35~48%)로 맞췄다.
 const DAILY_TWISTS = [
-  { name: '철벽 상대', desc: '상대 라이프 +8', apply: c => { c.enemy.hp += 8; } },
-  { name: '벼랑 끝', desc: '내 라이프 18로 시작', apply: c => { c.myHp = 18; } },
-  { name: '선제 배치', desc: '상대가 모든 레인에 전투원을 미리 배치하고 시작', apply: (c, rnd) => {
+  { name: '철벽 상대', desc: '상대 라이프 +4', level: 'normal', apply: c => { c.enemy.hp += 4; } },
+  { name: '벼랑 끝', desc: '내 라이프 18로 시작', level: 'normal', apply: c => { c.myHp = 18; } },
+  { name: '선제 배치', desc: '상대가 중앙 레인에 전투원을 미리 배치하고 시작', level: 'normal', apply: (c, rnd) => {
     const units = c.enemy.deck.filter(id => CARDS[id].kind === 'unit' && CARDS[id].c <= 4);
-    c.enemy.start = [0, 1, 2].map(lane => ({ lane, id: units[Math.floor(rnd() * units.length)] }));
+    c.enemy.start = [{ lane: 1, id: units[Math.floor(rnd() * units.length)] }];
   } },
-  { name: '후공 강요', desc: '항상 상대가 먼저 시작', apply: c => { c.first = 'ai'; } },
-  { name: '단기 결전', desc: '상대 라이프 18, 내 라이프 18', apply: c => { c.enemy.hp = 18; c.myHp = 18; } },
+  { name: '후공 강요', desc: '항상 상대가 먼저 시작', level: 'normal', apply: c => { c.first = 'ai'; } },
+  { name: '단기 결전', desc: '상대 라이프 14, 내 라이프 18 · 상대 어려움', level: 'hard', apply: c => { c.enemy.hp = 14; c.myHp = 18; } },
+  { name: '정예 지휘관', desc: '상대 어려움 인공지능, 상대 라이프 16', level: 'hard', apply: c => { c.enemy.hp = 16; } },
+  { name: '물량 공세', desc: '상대가 먼저 시작하고 상대 라이프 +2', level: 'normal', apply: c => { c.first = 'ai'; c.enemy.hp += 2; } },
+  { name: '역전의 기회', desc: '양쪽 라이프 14', level: 'normal', apply: c => { c.myHp = 14; c.enemy.hp = 14; } },
 ];
 
 function todayKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -113,26 +139,41 @@ function seededRandom(seed) {
   for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
   return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
 }
+// 오늘의 대국 상대 후보
+function dailyOpponents() {
+  const fromStory = CAMPAIGN.filter(s => !s.tutorial && s.id !== 's1').map(s => ({ name: s.enemy.name, portrait: s.enemy.portrait, deck: s.enemy.deck, hp: RULES.CMD_HP, start: s.start || [], bg: s.bg, bgm: s.bgm, sub: `${s.title}의 덱` }));
+  const presets = PRESET_DECKS.map(d => {
+    const top = d.cards.map(id => CARDS[id]).filter(c => c.kind === 'unit').sort((a, b) => b.c - a.c)[0];
+    return { name: d.name.replace(/\s*\(.*\)$/, ''), portrait: top.id, deck: d.cards, hp: RULES.CMD_HP, start: [], bg: 'board', bgm: 'battle2', sub: '프리셋 덱' };
+  });
+  return [...fromStory, ...presets];
+}
 
 const Daily = {
   info(day = todayKey()) {
     const rnd = seededRandom('lao-daily-' + day);
-    const stages = CAMPAIGN.filter(s => !s.tutorial && s.id !== 's1');
-    const stage = stages[Math.floor(rnd() * stages.length)];
+    const opps = dailyOpponents();
+    const opp = opps[Math.floor(rnd() * opps.length)];
     const twist = DAILY_TWISTS[Math.floor(rnd() * DAILY_TWISTS.length)];
-    return { day, stage, twist, rnd };
+    return { day, opp, twist, rnd };
   },
-  doneToday() { return Store.data.daily.lastWin === todayKey(); },
-  play(deckId) {
-    const { day, stage, twist, rnd } = this.info();
-    const deck = Store.getDeck(deckId);
-    if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+  // 오늘의 대국 설정 (화면과 시뮬레이션이 같이 쓴다)
+  config(day, deck) {
+    const { opp, twist, rnd } = this.info(day);
     const cfg = {
       mode: 'daily', myDeck: deck.cards, myDeckName: deck.name, userDeck: !deck.preset,
-      enemy: { ...stage.enemy, deck: stage.enemy.deck.slice(), start: (stage.enemy.start || []).slice(), level: 'hard' },
-      first: 'random', bg: stage.bg, bgm: stage.bgm, daily: { day, twist: twist.name },
+      enemy: { name: opp.name, portrait: opp.portrait, deck: opp.deck.slice(), hp: opp.hp, start: opp.start.slice(), level: twist.level },
+      first: 'random', bg: opp.bg, bgm: opp.bgm, daily: { day, twist: twist.name },
     };
     twist.apply(cfg, rnd);
+    return cfg;
+  },
+  doneToday() { return Store.data.daily.lastWin === todayKey(); },
+  async play(deckId) {
+    if (!await confirmAbandon()) return;
+    const deck = Store.getDeck(deckId);
+    if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+    const cfg = this.config(todayKey(), deck);
     Store.data.daily.tries++; Store.save();
     startBattle(cfg);
   },
@@ -150,11 +191,13 @@ function recordChallengeResult({ win, surrendered, game, me, cfg }) {
   let note = '';
   if (cfg.mode === 'gauntlet') note = Gauntlet.finish(win && !surrendered, me.hp);
   if (cfg.mode === 'daily') note = Daily.finish(win && !surrendered, cfg.daily.day);
+  const before = LOBBY_BGS.filter(lobbyBgUnlocked).length;
   const achievements = Ach.record({
     win: win && !surrendered, mode: cfg.mode, level: cfg.enemy.level, round: game.round(), hp: me.hp, maxHp: me.maxHp,
     kills: me.stats.kills, userDeck: !!cfg.userDeck, factions: [...new Set(cfg.myDeck.map(id => CARDS[id].f))],
   });
-  return { note, achievements };
+  const newBgs = LOBBY_BGS.filter(lobbyBgUnlocked).length > before ? LOBBY_BGS.filter(b => b.ach && achievements.some(a => a.id === b.ach)) : [];
+  return { note, achievements, newBgs };
 }
 
 // ---------- 도전 모드 화면 ----------
@@ -186,8 +229,8 @@ screenHooks.challenge = el => {
       <div class="panel ch-col">
         <div class="ch-kicker">DAILY · ${dly.day}</div><h3>오늘의 대국</h3>
         <div class="ch-daily">
-          <div class="cd-face" style="background-image:url('${artOf(CARDS[dly.stage.enemy.portrait])}')"></div>
-          <div><div class="cd-name">${esc(dly.stage.enemy.name)}</div><div class="cd-sub">${esc(dly.stage.title)}의 덱 · 어려움 인공지능</div>
+          <div class="cd-face" style="background-image:url('${artOf(CARDS[dly.opp.portrait])}')"></div>
+          <div><div class="cd-name">${esc(dly.opp.name)}</div><div class="cd-sub">${esc(dly.opp.sub)} · ${dly.twist.level === 'hard' ? '어려움' : '보통'} 인공지능</div>
             <div class="cd-twist"><b>${esc(dly.twist.name)}</b>${esc(dly.twist.desc)}</div></div>
         </div>
         <p>날마다 상대와 특수 조건이 바뀝니다. 승리한 날짜 수가 기록됩니다.</p>
@@ -196,7 +239,7 @@ screenHooks.challenge = el => {
       </div>
       <div class="panel ch-col ch-ach">
         <div class="ch-kicker">ACHIEVEMENTS</div><h3>업적 <small>${Ach.count()} / ${ACHIEVEMENTS.length}</small></h3>
-        <div class="ach-list scroll">${ACHIEVEMENTS.map(a => `<div class="ach ${Ach.has(a.id) ? 'on' : ''}"><span class="lo-star ${Ach.has(a.id) ? 'on' : ''}"></span><div><b>${esc(a.name)}</b><span>${esc(a.desc)}</span></div></div>`).join('')}</div>
+        <div class="ach-list scroll">${ACHIEVEMENTS.map(a => `<div class="ach ${Ach.has(a.id) ? 'on' : ''}"><span class="lo-star ${Ach.has(a.id) ? 'on' : ''}"></span><div><b>${esc(a.name)}</b><span>${esc(a.desc)}</span>${LOBBY_BGS.some(b => b.ach === a.id) ? `<em>보상: 로비 배경 「${esc(LOBBY_BGS.find(b => b.ach === a.id).name)}」</em>` : ''}</div></div>`).join('')}</div>
       </div>
     </div>`;
   $('.ch-deck', el).onchange = e => { challengeState.deck = e.target.value; };

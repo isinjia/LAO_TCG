@@ -49,11 +49,11 @@ const UNITS = [
   { id: '3P_Sowan', n: '소완', f: '3P', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: [] , deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
   { id: '3P_Ran', n: '란', f: '3P', t: 'M', r: 'SUP', g: 'S', c: 4, a: 2, h: 5, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
   { id: '3P_Alexandra', n: '알렉산드라', f: '3P', t: 'L', r: 'SUP', g: 'A', c: 3, a: 2, h: 4, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
-  { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 3, h: 6, kw: ['회피'] },
+  { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['회피'] },
   { id: '3P_Ajax', n: '에이젝스', f: '3P', t: 'L', r: 'DEF', g: 'A', c: 3, a: 3, h: 5, kw: ['반격'] },
   { id: '3P_Vanilla', n: '바닐라 A-1', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'res', v: 1 }], text: '전개: 이번 턴 AP +1.' },
   { id: '3P_SnowFeather', n: '스노우 페더', f: '3P', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: [], deploy: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '전개: 무작위 적 유닛에게 1 피해.' },
-  { id: '3P_Rhea', n: '레아', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 7, kw: ['방어막:2'] },
+  { id: '3P_Rhea', n: '레아', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 6, kw: ['방어막:1'], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Merope', n: '메로페', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['방어막:1'] },
   { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'] },
@@ -76,7 +76,7 @@ const UNITS = [
   { id: 'PECS_Draculina', n: '드라큘리나', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 5, h: 5, kw: ['재생:2'] },
   { id: 'PECS_Orangeade', n: '오렌지에이드', f: 'PECS', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 5, kw: [], deploy: [{ op: 'draw', v: 1 }, { op: 'buff', tgt: 'adjAllies', a: 1, h: 0 }], text: '전개: 카드 1장 드로우, 양옆 아군 공격력 +1.' },
   { id: 'PECS_Hestia', n: '헤스티아', f: 'PECS', t: 'M', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['재생:1'] },
-  { id: 'PECS_LemonadeAlpha', n: '레모네이드 알파', f: 'PECS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['관통'] },
+  { id: 'PECS_LemonadeAlpha', n: '레모네이드 알파', f: 'PECS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 3, h: 3, kw: ['관통'], deploy: [{ op: 'buff', tgt: 'adjAllies', a: 1, h: 0 }], text: '전개: 양옆 아군 공격력 +1.' },
   { id: 'PECS_LemonadeBeta', n: '레모네이드 베타', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '전개: 내 라이프 2 회복.' },
   { id: 'PECS_LemonadeGamma', n: '레모네이드 감마', f: 'PECS', t: 'L', r: 'DEF', g: 'A', c: 3, a: 2, h: 5, kw: ['방어막:2'] },
   { id: 'PECS_Fortune', n: '포츈', f: 'PECS', t: 'L', r: 'SUP', g: 'A', c: 3, a: 1, h: 4, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
@@ -84,7 +84,7 @@ const UNITS = [
   { id: 'PECS_MightyR', n: '마이티 R', f: 'PECS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'] },
   { id: 'PECS_Muse', n: '뮤즈', f: 'PECS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'healAll', v: 1 }], text: '전개: 모든 아군 유닛 1 회복.' },
   { id: 'PECS_Sonia', n: '소니아', f: 'PECS', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 3, kw: [], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
-  { id: 'PECS_Hussar', n: '후사르', f: 'PECS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 3, h: 4, kw: ['돌격'] },
+  { id: 'PECS_Hussar', n: '후사르', f: 'PECS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'] },
   { id: 'PECS_Cerberus', n: '케르베로스', f: 'PECS', t: 'M', r: 'ATK', g: 'B', c: 2, a: 2, h: 2, kw: ['돌격'] },
   { id: 'PECS_MissSafety', n: '미스 세이프티', f: 'PECS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 2, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'PECS_Express76', n: '익스프레스 76', f: 'PECS', t: 'M', r: 'SUP', g: 'B', c: 2, a: 1, h: 3, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
@@ -119,7 +119,7 @@ const UNITS = [
   { id: 'BR_Leona', n: '레오나', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['회피'] },
   { id: 'BR_Nashorn', n: '나스호른', f: 'BR', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 6, kw: ['반격'] },
   { id: 'BR_RedHood', n: '레드후드', f: 'BR', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 2, kw: ['관통'] },
-  { id: 'BR_Shirayuri', n: '시라유리', f: 'BR', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'evade', tgt: 'adjAllies' }], text: '전개: 양옆 아군에게 회피 부여.' },
+  { id: 'BR_Shirayuri', n: '시라유리', f: 'BR', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '전개: 마주한 적 유닛 공격력 -1.' },
   { id: 'BR_Sirene', n: '시렌', f: 'BR', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 5, kw: ['방어막:2'] },
   { id: 'BR_Undine', n: '운디네', f: 'BR', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 3, kw: [], deploy: [{ op: 'healAll', v: 1 }], text: '전개: 모든 아군 유닛 1 회복.' },
   { id: 'BR_Brownie', n: '브라우니', f: 'BR', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: [], death: [{ op: 'dmg', tgt: 'enemyCmd', v: 1 }], text: '격파: 상대 라이프에 1 피해.' },
@@ -135,17 +135,17 @@ const UNITS = [
   { id: 'DS_Sarena', n: '사레나', f: 'DS', t: 'H', r: 'DEF', g: 'SS', c: 6, a: 4, h: 10, kw: ['회피', '방어막:2'] },
   { id: 'DS_Arman', n: '아르망', f: 'DS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['회피'] },
   { id: 'DS_Atalanta', n: '아탈란테', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 5, h: 3, kw: ['돌격', '회피'] },
-  { id: 'DS_BunnySlayer', n: '버니 슬레이어', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 5, kw: ['회피'] },
+  { id: 'DS_BunnySlayer', n: '버니 슬레이어', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 6, kw: ['회피'] },
   { id: 'DS_Charlotte', n: '샬럿', f: 'DS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 3, h: 9, kw: ['회피'] },
   { id: 'DS_KunoichiKaen', n: '쿠노이치 카엔', f: 'DS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 5, h: 6, kw: [], deploy: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 1 }], text: '전개: 모든 적 유닛에게 1 피해.' },
-  { id: 'DS_Ramiel', n: '라미엘', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 4, kw: ['회피'], deploy: [{ op: 'slow', tgt: 'oppUnit' }], text: '전개: 마주한 적 유닛 둔화.' },
-  { id: 'DS_Baekto', n: '백토', f: 'DS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['회피'] },
+  { id: 'DS_Ramiel', n: '라미엘', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: ['회피'], deploy: [{ op: 'slow', tgt: 'oppUnit' }], text: '전개: 마주한 적 유닛 둔화.' },
+  { id: 'DS_Baekto', n: '백토', f: 'DS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 4, kw: ['회피'] },
   { id: 'DS_Cloverace', n: '클로버 에이스', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'] },
   { id: 'DS_Faucre', n: '포크레', f: 'DS', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'evade', tgt: 'adjAllies' }], text: '전개: 양옆 아군에게 회피 부여.' },
   { id: 'DS_Johanna', n: '요한나', f: 'DS', t: 'H', r: 'SUP', g: 'A', c: 3, a: 2, h: 5, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 2 }], text: '전개: 양옆 아군에게 방어막 2.' },
   { id: 'DS_KunoichiEnrai', n: '쿠노이치 엔라이', f: 'DS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 3, h: 4, kw: ['회피'] },
   { id: 'DS_KunoichiShiden', n: '쿠노이치 시덴', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 3, kw: ['돌격'] },
-  { id: 'DS_KunoichiZero', n: '쿠노이치 제로', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 2, kw: ['관통'] },
+  { id: 'DS_KunoichiZero', n: '쿠노이치 제로', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['관통'] },
   { id: 'DS_MoMo', n: '모모', f: 'DS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: ['회피'] },
   { id: 'DS_Koyori', n: '코요리', f: 'DS', t: 'M', r: 'ATK', g: 'B', c: 2, a: 2, h: 2, kw: ['회피'] },
   { id: 'DS_Angel', n: '엔젤', f: 'DS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: ['회피'] },
@@ -170,7 +170,7 @@ const UNITS = [
   { id: 'AGS_Watcher', n: '와쳐', f: 'AGS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'AGS_SpartanA', n: '스파르탄 캡틴', f: 'AGS', t: 'H', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: ['방어막:1'] },
   { id: 'AGS_SpartanB', n: '스파르탄 부머', f: 'AGS', t: 'H', r: 'ATK', g: 'B', c: 2, a: 3, h: 3, kw: [], death: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '격파: 마주한 적 유닛에게 2 피해.' },
-  { id: 'AGS_SpartanC', n: '스파르탄 어썰트', f: 'AGS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: [] },
+  { id: 'AGS_SpartanC', n: '스파르탄 어썰트', f: 'AGS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 1, kw: ['돌격'] },
 
   // ---------- 철충 (캠페인 적 전용) ----------
   { id: 'IW_NightChick', n: '나이트 칙', f: 'IW', t: 'L', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: [], enemy: true },
@@ -204,7 +204,7 @@ const SKILLS = [
   { id: 'SK_BR_Strike', icon: 'Chargeshot', art: 'BR_Brunhild', n: '집중 포화', f: 'BR', g: 'A', c: 3, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 5 }], text: '적 유닛 하나에게 5 피해.' },
   { id: 'SK_BR_Flame', icon: 'WideFireShot', art: 'BR_Efreeti', n: '이프리트의 화염', f: 'BR', g: 'A', c: 4, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }], text: '모든 적 유닛에게 2 피해.' },
   { id: 'SK_BR_Snipe', icon: 'Snipe', art: 'BR_NightAngel', n: '저격', f: 'BR', g: 'B', c: 2, fx: [{ op: 'dmg', tgt: 'pickAny', v: 3 }], text: '적 유닛 또는 상대 라이프에 3 피해.' },
-  { id: 'SK_DS_Smoke', icon: 'Haze', art: 'DS_KunoichiEnrai', n: '연막탄', f: 'DS', g: 'A', c: 4, fx: [{ op: 'evade', tgt: 'allAllies' }], text: '모든 아군 유닛에게 회피 부여.' },
+  { id: 'SK_DS_Smoke', icon: 'Haze', art: 'DS_KunoichiEnrai', n: '연막탄', f: 'DS', g: 'A', c: 3, fx: [{ op: 'evade', tgt: 'allAllies' }], text: '모든 아군 유닛에게 회피 부여.' },
   { id: 'SK_DS_Assassinate', icon: 'SwordAttk', art: 'DS_KunoichiZero', n: '암살 지령', f: 'DS', g: 'S', c: 5, fx: [{ op: 'destroyLowest', v: 5 }], text: '체력 5 이하인 적 유닛 중 가장 약한 하나를 처치.' },
   { id: 'SK_DS_Shuriken', icon: 'SlowShot', art: 'DS_KunoichiShiden', n: '수리검 투척', f: 'DS', g: 'B', c: 2, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 2 }, { op: 'slow', tgt: 'pickEnemyUnit' }], text: '적 유닛 하나에게 2 피해 및 둔화.' },
   { id: 'SK_AGS_Protocol', icon: 'Scan', art: 'AGS_MrAlfred2', n: 'AGS 수리 프로토콜', f: 'AGS', g: 'A', c: 3, fx: [{ op: 'healFull', tgt: 'pickAllyUnit' }, { op: 'shield', tgt: 'pickAllyUnit', v: 2 }], text: '아군 유닛 하나를 완전 회복하고 방어막 2.' },
@@ -261,8 +261,14 @@ const RULES = {
   TYPE_BONUS: 1,
   SECOND_EXTRA_CARDS: 1, // 후공 보정: 교체를 마친 뒤 추가로 뽑는 장수
   SECOND_AP_BONUS: 1,    // 후공 첫 턴 추가 AP
+  SECOND_HP_BONUS: 3,    // 후공 라이프 보정 (작전 지시가 선공에게 더 유리해서 넣었다)
   ATK_ROLE_PIERCE: 0,    // 공격기 역할이 기본으로 관통을 가짐
   DEF_ROLE_ARMOR: 1,     // 보호기 역할: 유닛 공격으로 받는 피해 감소량 (최소 1)
   ATK_ROLE_TYPE_BONUS: 0, // 공격기 역할: 상성 유리 시 추가 피해
-  OVERTIME_ROUND: 12,    // 작전 시간 초과: 이 라운드부터 턴을 시작하는 쪽이 1, 2, 3… 피해 (0이면 끔)
+  COMMAND: { cost: 4, dmg: 2 }, // 작전 지시(포격 지원): 턴당 1회, AP를 써서 적 유닛 또는 상대 라이프에 피해
+  OVERTIME_ROUND: 14,    // 작전 시간 초과: 이 라운드부터 턴을 시작하는 쪽이 1, 2, 3… 피해 (0이면 끔)
 };
+
+// 작전 지시를 화면에서 카드처럼 다루기 위한 가짜 카드 (덱·도감에는 없다)
+const COMMAND_CARD = { id: '__command', icon: 'AirStrike', art: '3P_Labiata', n: '포격 지원', kind: 'skill', f: '3P', g: 'S', c: RULES.COMMAND.cost,
+  fx: [{ op: 'dmg', tgt: 'pickAny', v: RULES.COMMAND.dmg }], text: `작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해.` };

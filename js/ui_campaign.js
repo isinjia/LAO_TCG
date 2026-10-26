@@ -1,9 +1,9 @@
 // ===== 캠페인 지도 / 대화 =====
 const NODE_POS = [[120, 800], [330, 660], [210, 460], [430, 300], [640, 460], [820, 660], [1000, 480], [860, 250], [1080, 110]];
 const DIFF = {
-  easy: { label: '쉬움', hp: 0.8, shift: -1, desc: '적 체력 -20%, AI 한 단계 약화' },
+  easy: { label: '쉬움', hp: 0.8, shift: -1, desc: '적 체력 -20%, AI 한 단계 약화 · 별은 2개까지만 얻을 수 있음' },
   normal: { label: '보통', hp: 1.0, shift: 0, desc: '기본 난이도' },
-  hard: { label: '어려움', hp: 1.25, shift: 1, desc: '적 체력 +25%, AI 한 단계 강화' },
+  hard: { label: '어려움', hp: 1.25, shift: 1, desc: '적 체력 +25%, AI 한 단계 강화 · 이기면 지도에 어려움 정복 표시' },
 };
 const LEVELS = ['easy', 'normal', 'hard'];
 const LEVEL_LABEL = { easy: '쉬움', normal: '보통', hard: '어려움' };
@@ -61,7 +61,7 @@ function renderMap(el) {
     const n = h(`<div class="node ${s.boss ? 'boss' : ''} ${i === selStage ? 'sel' : ''} ${unlocked ? '' : 'locked'} ${i === nextIdx ? 'next' : ''}" style="left:${x}px;top:${y}px">
       <div class="n-hex"><div class="n-img" style="background-image:url('${artOf(CARDS[s.enemy.portrait])}')"></div><span class="n-no">${unlocked ? s.no : '🔒'}</span></div>
       <div class="n-title">${esc(s.title)}</div>
-      <div class="n-stars">${stars.map(v => `<span class="lo-star ${v ? 'on' : ''}"></span>`).join('')}</div></div>`);
+      <div class="n-stars">${stars.map(v => `<span class="lo-star ${v ? 'on' : ''}"></span>`).join('')}</div>${Store.data.campaign.hardCleared[s.id] ? '<div class="n-hard">어려움 정복</div>' : ''}</div>`);
     n.onclick = () => {
       if (!unlocked) { toast('이전 대국에서 먼저 이겨야 합니다.', true); return; }
       selStage = i; Audio2.play('click'); renderMap(el); renderStagePanel(el);
@@ -109,6 +109,7 @@ async function launchStage(idx, deckId) {
   const s = CAMPAIGN[idx];
   const deck = s.playerDeck ? { cards: s.playerDeck, name: '훈련용 덱' } : Store.getDeck(deckId || Store.data.activeDeck);
   if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+  if (!await confirmAbandon()) return;
   Audio2.play('start');
   await playDialogue(s.intro, { bg: s.bg, title: [`MATCH ${s.no}`, s.title] });
   const en = stageEnemy(s);

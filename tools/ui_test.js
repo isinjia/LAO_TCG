@@ -68,7 +68,7 @@ async function main() {
   });
 
   await t('리그 순회전: 승리하면 다음 대국, 패배하면 종료', async () => {
-    const r = await ev(`Store.data.gauntlet = { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 };
+    const r = await ev(`Store.clearBattle(); Store.data.gauntlet = { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 };
       Gauntlet.start('preset:0'); for (let i = 0; i < 80 && !(B && B.game && B.game.phase !== 'mulligan'); i++) { const ok = [...document.querySelectorAll('.modal button')].find(b => /확인/.test(b.textContent)); if (ok) ok.click(); await new Promise(r => setTimeout(r, 100)); }
       B.game.damageCmd(B.ai, 99); await finishBattle(false);
       const afterWin = { idx: Store.data.gauntlet.run && Store.data.gauntlet.run.idx, next: !!document.querySelector('[data-a=gnext]') };
@@ -121,6 +121,30 @@ async function main() {
     if (!f.done) throw new Error('복원 후 끝나지 않음');
     const cleared = await ev(`await new Promise(r => setTimeout(r, 1200)); return !Store.loadBattle();`);
     if (!cleared) throw new Error('결과 후 저장이 남아 있음');
+  });
+
+  await t('진행 중 대국을 버리고 새로 시작하면 패배로 기록', async () => {
+    const r = await ev(`while (topModal()) closeModal(topModal()); B = null; Store.clearBattle();
+      startBattle({ mode: 'quick', myDeck: PRESET_DECKS[0].cards, myDeckName: 't', enemy: { name: 'Z', deck: PRESET_DECKS[1].cards, level: 'normal', portrait: 'BR_Phoenix', hp: 25 }, first: 'me', bg: 'board', bgm: 'battle1' });
+      await uiBot(60000, 2); const saved = !!Store.loadBattle(); const l0 = Store.data.record.l;
+      B = null; await showScreen('setup', { instant: true });
+      document.querySelector('#scr-setup [data-a=go]').click(); await new Promise(r => setTimeout(r, 400));
+      const asked = !!document.querySelector('.modal [data-a=ok]'); document.querySelector('.modal [data-a=ok]').click();
+      for (let i = 0; i < 60 && !(B && B.game); i++) await new Promise(r => setTimeout(r, 100));
+      const out = { saved, asked, l0, l1: Store.data.record.l };
+      while (topModal()) closeModal(topModal()); B = null; Store.clearBattle(); await showScreen('lobby', { instant: true }); return out;`);
+    if (!r.saved || !r.asked || r.l1 !== r.l0 + 1) throw new Error(JSON.stringify(r));
+  });
+
+  await t('휴대폰 가로 크기(844x390, 터치)에서 모든 화면 열기', async () => {
+    await send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 3, mobile: true });
+    await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    const r = await ev(`fitStage(); const out = { compact: document.body.classList.contains('compact') };
+      for (const s of ['campaign', 'deck', 'collection', 'setup', 'challenge', 'lobby']) { await showScreen(s, { instant: true }); out[s] = document.querySelector('#scr-' + s).childElementCount; }
+      const st = document.querySelector('#stage').getBoundingClientRect(); out.fits = st.width <= innerWidth + 1 && st.height <= innerHeight + 1; return out;`);
+    await send('Emulation.clearDeviceMetricsOverride'); await send('Emulation.setTouchEmulationEnabled', { enabled: false });
+    await ev(`fitStage(); return 1;`);
+    if (!r.compact || !r.fits || Object.entries(r).some(([k, v]) => v === 0)) throw new Error(JSON.stringify(r));
   });
 
   await t('덱 편성: 잠긴 카드 추가 불가, 자동 채우기', async () => {

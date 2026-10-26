@@ -12,6 +12,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   };
   window.addEventListener('scroll', lockScroll, true);
   document.addEventListener('dragstart', e => e.preventDefault());
+  // 터치: 길게 누르면 우클릭(상세 보기)으로 처리한다. iOS는 contextmenu가 없어서 직접 만든다. 손패 카드는 전투 코드가 따로 처리한다.
+  let lp = null, lastTouch = 0;
+  // 안드로이드가 스스로 보내는 길게 누르기 우클릭은 막고, 위에서 만든 것만 쓴다 (상세 창이 두 번 열리지 않게)
+  document.addEventListener('contextmenu', e => { if (e.isTrusted && Date.now() - lastTouch < 1500) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'touch') lastTouch = Date.now();
+    if (e.pointerType !== 'touch' || (e.target.closest && e.target.closest('.hand'))) return;
+    const t = e.target, x = e.clientX, y = e.clientY;
+    lp = { x, y, timer: setTimeout(() => { lp = null; t.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: x, clientY: y })); }, 550) };
+  });
+  const lpCancel = e => { if (lp && (e.type !== 'pointermove' || Math.hypot(e.clientX - lp.x, e.clientY - lp.y) > 12)) { clearTimeout(lp.timer); lp = null; } };
+  ['pointerup', 'pointercancel', 'pointermove'].forEach(t => document.addEventListener(t, lpCancel));
   document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('#stage')) e.preventDefault(); });
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) { if (e.key === 'Escape') e.target.blur(); return; }

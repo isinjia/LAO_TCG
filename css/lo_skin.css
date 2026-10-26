@@ -196,8 +196,53 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 @keyframes rhSpin { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(90deg); } }
 @media (orientation: portrait) and (max-width: 900px) { #rotate-hint { display: flex; } }
 .scroll, .howto-body { touch-action: pan-y; }
+#scr-battle .round-info { position: absolute; right: 350px; top: 22px; z-index: 13; text-align: right; }
 .round-info { font-family: "Exo 2", sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.15em; color: var(--muted); text-align: center; line-height: 1.3; }
 .round-info b { color: #fff; font-size: 22px; }
 .round-info span { display: block; font-family: "Godo", sans-serif; letter-spacing: 0; font-size: 13px; font-weight: 700; }
 .round-info.soon span { color: var(--lo-yellow); }
 .round-info.over span { color: #ff6b75; animation: blink 1.2s infinite; }
+.node .n-hard { display: inline-block; margin-top: 2px; font-size: 13px; font-weight: 900; color: #17181b; background: #ff6b75; padding: 1px 8px; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
+
+/* ---------- 작전 지시 버튼 ---------- */
+.cmd-power { position: absolute; right: 30px; bottom: calc(108px); z-index: 8; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; min-width: 250px; background: linear-gradient(90deg, rgba(20,21,24,0.95), rgba(40,42,48,0.95)); border: 1px solid var(--lo-edge); border-left: 4px solid var(--lo-yellow); color: #fff; cursor: pointer; font-family: inherit; text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); transition: filter 0.15s; }
+.cmd-power:hover:not(:disabled) { filter: brightness(1.25); }
+.cmd-power.selected { background: linear-gradient(90deg, rgba(255,198,0,0.35), rgba(40,42,48,0.95)); box-shadow: 0 0 20px rgba(255,198,0,0.5); }
+.cmd-power:disabled { filter: grayscale(1) brightness(0.6); cursor: default; }
+.cmd-power.used .cp-name small::after { content: " — 사용함"; color: var(--lo-yellow); }
+.cmd-power .cp-icon { width: 44px; height: 44px; background: center / contain no-repeat; flex-shrink: 0; }
+.cmd-power .cp-name { flex: 1; font-size: 19px; font-weight: 900; line-height: 1.15; }
+.cmd-power .cp-name small { display: block; font-size: 13px; font-weight: 700; color: var(--muted); }
+.cmd-power .cp-cost { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-weight: 900; font-size: 22px; color: #032; background: linear-gradient(180deg, #bff0ff, #1aa7e0); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.bg-pick { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 6px 0 16px; }
+.bgp { height: 96px; background: center / cover; position: relative; cursor: pointer; border: 2px solid transparent; }
+.bgp span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); font-size: 14px; font-weight: 700; padding: 4px 8px; line-height: 1.3; }
+.bgp small { display: block; font-size: 11px; color: var(--lo-yellow); }
+.bgp.on { border-color: var(--lo-yellow); }
+.bgp.locked { filter: grayscale(1) brightness(0.45); }
+.ach em { display: block; font-style: normal; font-size: 13px; color: var(--lo-yellow); }
+
+/* ---------- 작은 화면(축소 비율 0.6 미만): 작은 글자를 키운다 ---------- */
+.compact .menu-item .mi-sub { font-size: 20px; }
+.compact .menu-item .mi-title { font-size: 34px; }
+.compact .lobby-foot { font-size: 22px; }
+.compact .card .c-text { font-size: 0.72em; }
+.compact .card .c-name { font-size: 1.12em; }
+.compact .tag { font-size: 0.72em; }
+.compact .phase-label { font-size: 20px; }
+.compact .round-info span { font-size: 17px; }
+.compact .toast { font-size: 24px; }
+.compact .tip { font-size: 22px; max-width: 520px; }
+.compact .hero-name { font-size: 24px; }
+.compact .hero-name small { font-size: 17px; }
+.compact .cmd-power .cp-name small { font-size: 16px; }
+.compact .st-grave, .compact .hs-title { font-size: 18px; }
+.compact .coach .ch-box { font-size: 24px; width: 640px; }
+.compact .dialogue .dl-text { font-size: 34px; }
+.compact .bark .bk-text { font-size: 24px; }
+.compact .badge { font-size: 18px; }
+.compact .unit .u-name { font-size: 22px; }
+.compact .stage-body p, .compact .stage-info, .compact .star-list { font-size: 21px; }
+.compact .ch-col p, .compact .ach span { font-size: 19px; }
+.compact .modal-box p { font-size: 22px; }
+.compact .howto-body { font-size: 24px; }

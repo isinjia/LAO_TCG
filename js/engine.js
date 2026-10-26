@@ -4,9 +4,10 @@
 let _uid = 1;
 function uid() { return _uid++; }
 
-function shuffle(arr) {
+// rnd: 0 이상 1 미만 난수 함수. 대국 중에는 game.random을 넘겨 저장·복원 뒤에도 같은 결과가 나오게 한다
+function shuffle(arr, rnd = Math.random) {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rnd() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -60,7 +61,7 @@ class Player {
     for (let i = 0; i < n; i++) {
       if (this.deck.length === 0) {
         if (this.grave.length === 0) return;
-        this.deck = shuffle(this.grave); this.grave = [];
+        this.deck = shuffle(this.grave, () => game.random()); this.grave = [];
         game.log(`${this.name}의 덱이 소진되어 묘지를 다시 섞습니다.`, 'sys');
         game.emit({ type: 'reshuffle', player: this });
       }
@@ -88,6 +89,7 @@ class Game {
     this.events = [];
     this.logs = [];
     this.winner = null;
+    this.seed = Math.floor(Math.random() * 4294967296); // 대국 난수 상태 (저장에 포함되어 새로고침으로 무작위 결과를 다시 굴릴 수 없다)
     this.quiet = false;      // 로그 생략 (AI 시뮬레이션용)
     this.noEvents = false;   // 이벤트 생략 (AI 시뮬레이션용)
     // 양쪽 모두 같은 장수로 시작한다. 후공 보정 카드는 교체가 끝난 뒤 start()에서 준다.
@@ -100,6 +102,13 @@ class Game {
   log(msg, kind) { if (this.quiet) return; this.logs.push({ msg, kind: kind || '' }); this.emit({ type: 'log', msg, kind: kind || '' }); }
   emit(ev) { if (!this.noEvents) this.events.push(ev); }
   round() { return Math.ceil(this.turn / 2); }
+  // 대국 전용 난수 (mulberry32)
+  random() {
+    let t = (this.seed = (this.seed + 0x6D2B79F5) >>> 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
   // 이번 턴 시작 시 받을 작전 시간 초과 피해 (없으면 0)
   overtimeDamage(round = this.round()) { const r = RULES.OVERTIME_ROUND; return r ? Math.max(0, round - r + 1) : 0; }
 
@@ -119,9 +128,9 @@ class Game {
     back.forEach(c => p.hand.splice(p.hand.indexOf(c), 1));
     const n = back.length;
     // 돌려놓은 카드가 바로 다시 나오지 않도록, 남은 덱에서 먼저 뽑는다
-    shuffle(p.deck);
+    shuffle(p.deck, () => this.random());
     for (let i = 0; i < n; i++) p.hand.push(p.deck.pop());
-    p.deck.push(...back); shuffle(p.deck);
+    p.deck.push(...back); shuffle(p.deck, () => this.random());
     if (n) this.log(`${p.name}: 카드 ${n}장 교체`, 'sys');
   }
 
@@ -130,6 +139,8 @@ class Game {
     // 후공 보정: 교체 단계가 끝난 뒤 추가 카드를 준다
     const extra = RULES.SECOND_EXTRA_CARDS ?? 1;
     if (extra > 0) { this.players[1].draw(extra, this); this.log(`${this.players[1].name}: 후공 보정 카드 +${extra}`, 'sys'); }
+    const hpBonus = RULES.SECOND_HP_BONUS || 0;
+    if (hpBonus > 0) { const q = this.players[1]; q.maxHp += hpBonus; q.hp += hpBonus; this.log(`${q.name}: 후공 보정 라이프 +${hpBonus}`, 'sys'); }
     this.beginTurn();
   }
 
@@ -201,6 +212,29 @@ class Game {
       this.runEffects(card.fx, p, { target, src: card });
     }
     return true;
+  }
+
+  // ---- 작전 지시 (사령관 능력): 턴당 1회, AP를 써서 적 유닛이나 상대 라이프에 피해 ----
+  // target을 생략하면 지금 쓸 수 있는지만 확인한다
+  canCommand(target) {
+    const p = this.cur, c = RULES.COMMAND;
+    if (!c || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < c.cost) return false;
+    if (target === undefined) return true;
+    return !!(target && ((target.unit && target.unit.owner !== p && p.lanes.indexOf(target.unit) < 0) || (target.cmd && target.cmd !== p)));
+  }
+  command(target) {
+    if (!this.canCommand(target)) return false;
+    const p = this.cur;
+    p.ap -= RULES.COMMAND.cost; p.cmdUsed = this.turn; p.stats.commands = (p.stats.commands || 0) + 1;
+    this.emit({ type: 'skill', card: COMMAND_CARD, player: p, target });
+    this.log(`${p.name}: 작전 지시 — 포격 지원`, 'skill');
+    this.runEffects(COMMAND_CARD.fx, p, { target, src: null });
+    return true;
+  }
+  // AI·도구용: 행동 하나를 실행 ({ card, lane } | { card, target } | { command: true, target })
+  act(a) {
+    if (a.command) return this.command(a.target);
+    return a.card.kind === 'unit' ? this.play(a.card, a.lane) : this.play(a.card, null, a.target);
   }
 
   // ---- 효과 처리 ----
@@ -284,7 +318,7 @@ class Game {
       case 'allEnemyUnits': return o.units().map(u => ({ unit: u }));
       case 'enemyCmd': return [{ cmd: o }];
       case 'myCmd': return [{ cmd: p }];
-      case 'randomEnemyUnit': { const us = o.units(); return us.length ? [{ unit: us[Math.floor(Math.random() * us.length)] }] : []; }
+      case 'randomEnemyUnit': { const us = o.units(); return us.length ? [{ unit: us[Math.floor(this.random() * us.length)] }] : []; }
       case 'self': return ctx.unit ? [{ unit: ctx.unit }] : [];
       case 'adjAllies': {
         if (ctx.lane === undefined) return [];
@@ -419,7 +453,7 @@ class Game {
   // ---- 상태 복제 (AI 탐색 / 전투 예측용) ----
   clone() {
     const g = Object.create(Game.prototype);
-    g.opts = this.opts; g.turn = this.turn; g.current = this.current; g.phase = this.phase;
+    g.opts = this.opts; g.turn = this.turn; g.current = this.current; g.phase = this.phase; g.seed = this.seed;
     g.events = []; g.logs = []; g.quiet = true; g.noEvents = true;
     const map = new Map();
     g.players = this.players.map(p => {
@@ -466,24 +500,24 @@ class Game {
 function serializeGame(g) {
   const ids = arr => arr.map(c => c.id);
   return {
-    v: 2, turn: g.turn, current: g.current, phase: g.phase, logs: g.logs.slice(-60),
+    v: 2, turn: g.turn, current: g.current, phase: g.phase, seed: g.seed, logs: g.logs.slice(-60),
     players: g.players.map(p => ({
       name: p.name, isAI: p.isAI, portrait: p.portrait, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
-      ap: p.ap, maxAp: p.maxAp, stats: JSON.parse(JSON.stringify(p.stats)),
+      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, stats: JSON.parse(JSON.stringify(p.stats)),
       lanes: p.lanes.map(u => u && { cardId: u.cardId, atk: u.atk, hp: u.hp, maxHp: u.maxHp, shield: u.shield, evade: u.evade, slowed: u.slowed, summonedTurn: u.summonedTurn }),
     })),
   };
 }
 function restoreGame(snap) {
   const g = Object.create(Game.prototype);
-  Object.assign(g, { opts: {}, turn: snap.turn, current: snap.current, phase: snap.phase, events: [], logs: (snap.logs || []).slice(), winner: null, quiet: false, noEvents: false });
+  Object.assign(g, { opts: {}, turn: snap.turn, current: snap.current, phase: snap.phase, seed: snap.seed ?? Math.floor(Math.random() * 4294967296), events: [], logs: (snap.logs || []).slice(), winner: null, quiet: false, noEvents: false });
   const card = id => { if (!CARDS[id]) throw new Error('unknown card ' + id); return CARDS[id]; };
   g.players = snap.players.map(sp => {
     const p = Object.create(Player.prototype);
     Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
       deck: sp.deck.map(card), hand: sp.hand.map(card), grave: sp.grave.map(card), factions: sp.factions,
-      ap: sp.ap || 0, maxAp: sp.maxAp || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: true });
+      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: true });
     p.lanes = sp.lanes.map(su => {
       if (!su) return null;
       const u = makeUnit(card(su.cardId), p);

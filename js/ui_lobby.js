@@ -21,11 +21,24 @@ const SECRETARY_LINES = [
 ];
 
 // ---------- 로딩 ----------
+// 시작 화면에서 기다리는 것은 로비에 바로 보이는 그림뿐이다. 카드 그림 약 150장(8MB)은 로비에 들어간 뒤 뒤에서 받는다.
 function preloadList() {
+  const sec = CARDS[Store.data.secretary] || CARDS['PECS_Orangeade'];
+  return ['assets/bg/squad.jpg', `assets/bg/${Store.data.lobbyBg || 'barracks'}.jpg`, fullOf(sec), artOf(CARDS['PECS_Orangeade']),
+    'assets/ui/btn_on.png', 'assets/ui/btn_off.png', 'assets/ui/panel.png', 'assets/ui/popup.png', 'assets/ui/title_bg.png'];
+}
+function backgroundPreloadList() {
   const list = new Set();
   Object.values(CARDS).forEach(c => { list.add(artOf(c)); if (iconOf(c)) list.add(iconOf(c)); });
-  ['squad', 'barracks', 'board', 'vr2'].forEach(b => list.add(`assets/bg/${b}.jpg`));
+  ['board', 'vr2'].forEach(b => list.add(`assets/bg/${b}.jpg`));
+  ['frame_B', 'frame_A', 'frame_S', 'frame_SS', 'dlg_box', 'dlg_name', 'btn_big_on', 'btn_big_off'].forEach(n => list.add(`assets/ui/${n}.png`));
   return [...list];
+}
+// 네 장씩 차례로 받아 게임 조작을 방해하지 않게 한다
+function preloadInBackground() {
+  const queue = backgroundPreloadList();
+  const next = () => { const src = queue.shift(); if (!src) return; const img = new Image(); img.onload = img.onerror = next; img.src = src; };
+  for (let i = 0; i < 4; i++) next();
 }
 async function runLoading() {
   const el = $('#scr-loading');
@@ -46,6 +59,7 @@ async function runLoading() {
     img.src = src;
   })));
   txt.textContent = '동기화 완료';
+  preloadInBackground();
   const press = h('<div class="press">화면을 클릭하여 시작</div>');
   $('.load-wrap', el).appendChild(press);
   if (/[?&]dev(&|$)/.test(location.search)) { Audio2.unlocked = true; return; }
@@ -65,13 +79,13 @@ screenHooks.lobby = el => {
   const stars = Store.totalStars(), maxStars = CAMPAIGN.length * 3;
   const nextIdx = CAMPAIGN.findIndex((s, i) => Store.stageUnlocked(i) && !Store.data.campaign.cleared[s.id]);
   el.innerHTML = `
-    <div class="bg-layer" style="background-image:url('assets/bg/barracks.jpg')"></div>
+    <div class="bg-layer" style="background-image:url('assets/bg/${LOBBY_BGS.some(b => b.id === Store.data.lobbyBg && lobbyBgUnlocked(b)) ? Store.data.lobbyBg : 'barracks'}.jpg')"></div>
     <div class="secretary" style="background-image:url('${fullOf(sec)}')" title="클릭하여 대화"></div>
     <div class="bg-dim"></div>
     <div class="speech"><div class="who">${esc(sec.n)}</div><div class="line"></div></div>
     <div class="lobby-logo"><div class="logo-kicker">LAST ORIGIN</div><div class="logo-main">TACTICAL CARD GAME</div></div>
     <div class="lobby-top">
-      <button class="icon-btn" data-a="sec" title="로비 캐릭터 변경">👤</button>
+      <button class="icon-btn" data-a="sec" title="로비 꾸미기 (배경·캐릭터)">👤</button>
       ${document.fullscreenEnabled ? '<button class="icon-btn" data-a="full" title="전체 화면">⛶</button>' : ''}
       <button class="icon-btn" data-a="help" title="게임 방법">?</button>
       <button class="icon-btn" data-a="settings" title="설정">⚙</button>
@@ -85,11 +99,11 @@ screenHooks.lobby = el => {
       <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">전투원 ${POOL.filter(c => c.kind === 'unit').length}종 · 지원 카드 ${POOL.filter(c => c.kind === 'skill').length}종</div></div></div>
       <div class="menu-item" data-go="howto"><div class="mi-icon">📘</div><div><div class="mi-title">게임 방법</div><div class="mi-sub">규칙 · 상성 · 키워드</div></div></div>
     </div>
-    <div class="lobby-foot"><span>전적 <b>${rec.w}</b>승 <b>${rec.l}</b>패</span><span>연승 <b>${rec.streak}</b></span><span style="font-size:14px">마우스를 올리면 카드 정보 · 우클릭 상세 보기</span></div>`;
+    <div class="lobby-foot"><span>전적 <b>${rec.w}</b>승 <b>${rec.l}</b>패</span><span>연승 <b>${rec.streak}</b></span><span style="font-size:14px">${touchText('마우스를 올리면 카드 정보 · 우클릭 상세 보기')}</span></div>`;
   const speech = $('.speech', el);
   let speechTimer = null;
   const say = line => {
-    $('.line', speech).textContent = line; speech.classList.add('show');
+    $('.line', speech).textContent = touchText(line); speech.classList.add('show');
     clearTimeout(speechTimer); speechTimer = setTimeout(() => speech.classList.remove('show'), 4200);
   };
   const pool = Store.data.secretary === 'PECS_Orangeade' ? HERO_LINES : SECRETARY_LINES;
@@ -115,7 +129,14 @@ screenHooks.lobby = el => {
 };
 
 function chooseSecretary() {
-  const box = h(`<div class="modal-box" style="width:1500px"><h3>로비 캐릭터 선택</h3><p>로비에 표시할 캐릭터를 고르세요. 스토리 별을 모으면 특별 캐릭터도 고를 수 있습니다.</p><div class="pile-view scroll" style="grid-template-columns:repeat(7,170px);max-height:680px"></div></div>`);
+  const box = h(`<div class="modal-box" style="width:1500px"><h3>로비 꾸미기</h3><p>로비 배경과 캐릭터를 고르세요. 배경은 업적으로, 특별 캐릭터는 스토리 별로 해금됩니다.</p>
+    <div class="bg-pick">${LOBBY_BGS.map(b => `<div class="bgp ${b.id === Store.data.lobbyBg ? 'on' : ''} ${lobbyBgUnlocked(b) ? '' : 'locked'}" data-bg="${b.id}" style="background-image:url('assets/bg/${b.id}.jpg')"><span>${esc(b.name)}${lobbyBgUnlocked(b) ? '' : `<small>업적 「${esc(ACHIEVEMENTS.find(a => a.id === b.ach).name)}」</small>`}</span></div>`).join('')}</div>
+    <div class="pile-view scroll" style="grid-template-columns:repeat(7,170px);max-height:520px"></div></div>`);
+  $$('.bgp', box).forEach(el => el.onclick = () => {
+    const bg = LOBBY_BGS.find(b => b.id === el.dataset.bg);
+    if (!lobbyBgUnlocked(bg)) { toast(`해금 조건: 업적 「${ACHIEVEMENTS.find(a => a.id === bg.ach).name}」`, true); return; }
+    Store.data.lobbyBg = bg.id; Store.save(); closeModal(m); showScreen('lobby', { instant: true });
+  });
   const grid = $('.pile-view', box);
   const bosses = STAR_REWARDS.map(r => CARDS[r.secretary]);
   [CARDS['PECS_Orangeade'], ...bosses, ...POOL.filter(c => c.kind === 'unit' && c.id !== 'PECS_Orangeade')].forEach(c => {
@@ -152,7 +173,7 @@ screenHooks.setup = el => {
       </div>
     </div>`;
   const deckCard = (d, on, list) => {
-    const err = Store.deckProblem(d.cards);
+    const err = d.story ? null : Store.deckProblem(d.cards); // 스토리 상대 덱은 특수 카드가 있어도 상대로는 쓸 수 있다
     const facs = [...new Set(d.cards.map(id => CARDS[id] && CARDS[id].f).filter(Boolean))];
     const top = d.cards.map(id => CARDS[id]).filter(c => c && c.kind === 'unit').sort((a, b) => b.c - a.c)[0];
     const dc = h(`<div class="deck-card ${on ? 'on' : ''} ${err ? 'invalid' : ''}">
@@ -178,6 +199,13 @@ screenHooks.setup = el => {
       dc.onclick = () => { setupState.oppDeck = d.id; Audio2.play('click'); renderLists(); };
       opp.appendChild(dc);
     });
+    // 이긴 적 있는 스토리 상대의 덱 (철충 특수 카드 포함)
+    CAMPAIGN.filter(s => !s.tutorial && Store.data.campaign.cleared[s.id]).forEach(s => {
+      const id = 'story:' + s.id;
+      const dc = deckCard({ name: s.enemy.name, cards: s.enemy.deck, desc: `스토리 ${s.no}. ${s.title}의 덱`, story: true }, setupState.oppDeck === id);
+      dc.onclick = () => { setupState.oppDeck = id; Audio2.play('click'); renderLists(); };
+      opp.appendChild(dc);
+    });
   };
   renderLists();
   $$('.seg', el).forEach(seg => {
@@ -187,15 +215,17 @@ screenHooks.setup = el => {
   $('select[data-k=bg]', el).onchange = e => { setupState.bg = e.target.value; $('.bg-layer', el).style.backgroundImage = `url('assets/bg/${setupState.bg}.jpg')`; };
   $('[data-a=back]', el).onclick = () => showScreen('lobby');
   $('[data-a=edit]', el).onclick = () => showScreen('deck');
-  $('[data-a=go]', el).onclick = () => {
+  $('[data-a=go]', el).onclick = async () => {
+    if (!await confirmAbandon()) return;
     const my = Store.getDeck(setupState.myDeck);
     if (Store.deckProblem(my.cards)) { toast(Store.deckProblem(my.cards), true); return; }
-    const opp = setupState.oppDeck === 'random' ? Store.allDecks()[Math.floor(Math.random() * PRESET_DECKS.length)] : Store.getDeck(setupState.oppDeck);
+    const story = setupState.oppDeck.startsWith('story:') ? CAMPAIGN.find(s => 'story:' + s.id === setupState.oppDeck) : null;
+    const opp = story ? { name: story.enemy.name, cards: story.enemy.deck } : setupState.oppDeck === 'random' ? Store.allDecks()[Math.floor(Math.random() * PRESET_DECKS.length)] : Store.getDeck(setupState.oppDeck);
     Store.data.activeDeck = my.id; Store.save();
     const top = opp.cards.map(id => CARDS[id]).filter(c => c.kind === 'unit').sort((a, b) => b.c - a.c || (b.g > a.g ? 1 : -1))[0];
     startBattle({
       mode: 'quick', myDeck: my.cards, myDeckName: my.name,
-      enemy: { name: opp.name.replace(/\s*\(.*\)$/, ''), deck: opp.cards, level: setupState.level, portrait: top.id, hp: RULES.CMD_HP },
+      enemy: { name: opp.name.replace(/\s*\(.*\)$/, ''), deck: opp.cards, level: setupState.level, portrait: story ? story.enemy.portrait : top.id, hp: RULES.CMD_HP },
       first: setupState.first, bg: setupState.bg, bgm: ['battle1', 'battle2', 'battle3'][Math.floor(Math.random() * 3)],
     });
   };
