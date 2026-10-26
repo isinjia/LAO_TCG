@@ -140,6 +140,14 @@ const Gauntlet = {
 };
 
 // ---------- 보급 원정 (드래프트) ----------
+// 지금까지 고른 카드의 전투원·지원 장수와 비용 곡선
+function draftSummary(picks) {
+  const cs = picks.map(id => CARDS[id]);
+  const units = cs.filter(c => c.kind === 'unit').length;
+  const bins = [1, 2, 3, 4, 5, 6, 7].map(v => cs.filter(c => (v === 7 ? c.c >= 7 : c.c === v)).length);
+  const max = Math.max(1, ...bins);
+  return `<div class="dp-sum"><span>전투원 <b>${units}</b> · 지원 <b>${cs.length - units}</b></span><div class="dp-curve">${bins.map((n, i) => `<div><i style="height:${n / max * 100}%"></i><b>${n || ''}</b><small>${i === 6 ? '7+' : i + 1}</small></div>`).join('')}</div></div>`;
+}
 // 규칙과 제시 카드는 draft.js. 고른 카드는 해금 여부와 상관없이 이번 원정에서만 쓴다.
 const Draft = {
   get run() { return Store.data.draft.run; },
@@ -163,10 +171,11 @@ const Draft = {
       if (!r.offer) { r.offer = draftOffer(r.factions, r.picks, Math.random); Store.save(); }
       box = h(`<div class="modal-box draft-pick"><h3>보급 원정 · 카드 선택 <small>${r.picks.length + 1} / ${RULES.DECK_SIZE}</small></h3><p>세 장 중 한 장을 덱에 넣습니다. 비용이 낮은 카드도 섞어야 초반을 버틸 수 있습니다.</p>
         <div class="dp-row dp-cards"></div>
+        ${draftSummary(r.picks)}
         <div class="dp-picked">${r.picks.map(id => `<span class="dp-chip g-${CARDS[id].g}">${CARDS[id].c} · ${esc(CARDS[id].n)}</span>`).join('') || '<span class="dp-empty">아직 고른 카드가 없습니다</span>'}</div>
         <div class="modal-actions"><button class="btn" data-a="later">나중에</button></div></div>`);
       const row = $('.dp-cards', box);
-      r.offer.forEach(id => { const ce = cardEl(CARDS[id], { w: 250 }); ce.onclick = () => { Audio2.play(CARDS[id].g === 'SS' ? 'pickSS' : 'pick'); closeModal(m); this.pick(id); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(CARDS[id]); }; row.appendChild(ce); });
+      r.offer.forEach(id => { const ce = cardEl(CARDS[id], { w: document.body.classList.contains('compact') ? 330 : 250 }); ce.onclick = () => { Audio2.play(CARDS[id].g === 'SS' ? 'pickSS' : 'pick'); closeModal(m); this.pick(id); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(CARDS[id]); }; row.appendChild(ce); });
     }
     const m = openModal(box);
     $$('.dp-fac', box).forEach(b => b.onclick = () => { Audio2.play('click'); r.factions = r.choices[+b.dataset.i]; r.stage = 'cards'; Store.save(); closeModal(m); this.openPicker(); });

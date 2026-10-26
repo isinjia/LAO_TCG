@@ -26,12 +26,18 @@ const AI = {
     if (!playable.length) return [];
     const skills = playable.filter(c => c.kind === 'skill').map(c => ({ card: c, ...this.evalSkill(game, p, o, c) })).filter(x => x.value > 0);
     const empty = p.emptyLanes();
+    // 빈 레인이 없으면 교체 배치를 본다. 철수시키는 전투원의 남은 가치만큼 깎는다
+    const lanes = empty.length ? empty : p.placeableLanes(game.turn);
+    const canAt = (c, l) => !p.lanes[l] || p.ap >= c.c + (RULES.REPLACE_COST || 0);
     const units = [];
-    if (empty.length) {
+    if (lanes.length) {
       playable.filter(c => c.kind === 'unit').forEach(c => {
         let best = null;
-        empty.forEach(l => {
+        lanes.forEach(l => {
           let v = c.c * 2 + c.a + c.h * 0.5 + (c.kw || []).length;
+          const mine = p.lanes[l];
+          if (!canAt(c, l)) return;
+          if (mine) { v -= mine.card.c * 2 + mine.atk + mine.hp * 0.5 + 3; if (v <= 0) return; }
           const opp = o.lanes[l];
           if (opp) {
             if (TYPE_BEATS[c.t] === opp.type) v += 2;
@@ -110,7 +116,7 @@ const AI = {
     for (const c of p.hand) {
       if (!p.canAfford(c) || seen.has(c.id)) continue;
       seen.add(c.id);
-      if (c.kind === 'unit') p.emptyLanes().forEach(l => acts.push({ card: c, lane: l }));
+      if (c.kind === 'unit') (p.emptyLanes().length ? p.emptyLanes() : p.placeableLanes(game.turn, c)).forEach(l => acts.push({ card: c, lane: l }));
       else {
         const k = skillTargetKind(c);
         if (k === 'none') acts.push({ card: c });

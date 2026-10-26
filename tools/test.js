@@ -67,7 +67,7 @@ t('소환 턴 공격 불가, 돌격은 가능', () => {
 t('상성 보너스 +1 (경장→기동)', () => {
   const { a, b, g } = fresh(D0, D1); g.start();
   const atk = makeUnit(CARDS['3P_Alice'], a); atk.summonedTurn = -5; a.lanes[0] = atk; // 경장 3
-  const def = makeUnit(CARDS['PECS_Express76'], b); def.summonedTurn = -5; b.lanes[0] = def; // 기동 1/3
+  const def = makeUnit(CARDS['PECS_Express76'], b); def.summonedTurn = -5; def.hp = def.maxHp = 3; b.lanes[0] = def; // 기동, 체력 3으로 고정
   g.endTurn(); ok(!b.lanes[0], '기동 유닛이 3+1 피해로 격파되어야 함');
 });
 t('보호기: 빈 레인 공격을 대신 받고 피해 -1', () => {
@@ -91,6 +91,14 @@ t('관통: 초과 피해가 사령관에게', () => {
   const p = makeUnit(CARDS['BR_RedHood'], a); p.summonedTurn = -5; a.lanes[0] = p; // 3 관통, 경장
   const v = makeUnit(CARDS['PECS_MissSafety'], b); v.summonedTurn = -5; v.hp = v.maxHp = 2; b.lanes[0] = v; // 경장, 체력 2로 고정
   const hp = b.hp; g.endTurn(); eq(b.hp, hp - 1);
+});
+t('교체 배치: 내 전투원 위에 내면 원래 전투원은 철수(묘지, 격파 효과 없음)', () => {
+  const { a, b, g } = fresh(D0, D1); g.mulligan(a, []); g.mulligan(b, []); g.start();
+  const p = g.cur, o = g.other(p);
+  const old = makeUnit(CARDS['AGS_Shade'], p); old.summonedTurn = -5; p.lanes = [old, null, null]; // 격파: 상대 라이프 2
+  const c = CARDS['3P_Alice']; p.hand.push(c); p.ap = 9; const ohp = o.hp, ap0 = p.ap;
+  ok(g.play(c, 0), '교체 배치 성공'); eq(p.ap, ap0 - c.c - RULES.REPLACE_COST, '추가 AP'); eq(p.lanes[0].cardId, '3P_Alice'); ok(p.grave.includes(CARDS['AGS_Shade']), '묘지로'); eq(o.hp, ohp, '격파 효과 없음');
+  const c2 = CARDS['3P_Poi']; p.hand.push(c2); ok(!g.play(c2, 0), '이번 턴에 낸 전투원은 교체 불가');
 });
 t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); const g = new Game(a, new Player('X', D1)); const s = makeUnit(CARDS['3P_Vanilla'], a); const u = makeUnit(CARDS['3P_Alice'], a); a.lanes = [u, s, null]; eq(g.effectiveAtk(u), CARDS['3P_Alice'].a + 1); });
 t('격파 효과 발동 (메탈 패러사이트)', () => { const { a, b, g } = fresh(D0, D1); const u = makeUnit(CARDS['IW_Parasite'], b); b.lanes[0] = u; const hp = a.hp; g.damageUnit(u, 10, null); eq(a.hp, hp - 2); });

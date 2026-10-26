@@ -77,6 +77,8 @@ class Player {
   units() { return this.lanes.filter(Boolean); }
   canAfford(card) { return this.ap >= card.c; }
   emptyLanes() { return this.lanes.map((u, i) => (u ? -1 : i)).filter(i => i >= 0); }
+  // 전투원을 낼 수 있는 레인: 빈 레인과, 이번 턴에 배치하지 않은 내 전투원이 있는 레인(교체 배치)
+  placeableLanes(turn, card) { return this.lanes.map((u, i) => (!u || (RULES.REPLACE && u.summonedTurn !== turn && (!card || this.ap >= card.c + (RULES.REPLACE_COST || 0))) ? i : -1)).filter(i => i >= 0); }
 }
 
 class Game {
@@ -184,7 +186,7 @@ class Game {
   canPlay(card, lane, target) {
     const p = this.cur;
     if (this.phase !== 'main' || !p.hand.includes(card) || !p.canAfford(card)) return false;
-    if (card.kind === 'unit') return lane !== undefined && lane !== null && p.lanes[lane] === null;
+    if (card.kind === 'unit') return lane !== undefined && lane !== null && p.placeableLanes(this.turn, card).includes(lane);
     const need = skillTargetKind(card);
     if (need === 'enemyUnit') return !!(target && target.unit && target.unit.owner !== p);
     if (need === 'allyUnit') return !!(target && target.unit && target.unit.owner === p);
@@ -198,6 +200,15 @@ class Game {
     p.ap -= card.c;
     p.hand.splice(p.hand.indexOf(card), 1);
     if (card.kind === 'unit') {
+      const old = p.lanes[lane];
+      if (old) {
+        // 교체 배치: AP를 더 내고, 원래 전투원은 철수해 묘지로 간다 (격파가 아니므로 격파 효과는 없다)
+        p.ap -= RULES.REPLACE_COST || 0;
+        p.lanes[lane] = null;
+        if (!old.card.token) p.grave.push(old.card);
+        this.emit({ type: 'withdraw', unit: old, lane, player: p });
+        this.log(`${p.name}: ${old.card.n} 철수`);
+      }
       const u = makeUnit(card, p);
       u.summonedTurn = this.turn;
       p.lanes[lane] = u;

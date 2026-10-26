@@ -396,3 +396,29 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .dp-empty { color: var(--muted); font-size: 15px; }
 .compact .dp-chip, .compact .dp-fac small, .compact .dp-empty { font-size: 22px; }
 .compact .dp-fac { font-size: 30px; }
+/* 교체 배치: 철수하는 전투원은 아래로 빠지며 사라진다 */
+.unit.withdrawing { transition: transform 0.3s, opacity 0.3s; transform: translateY(40px) scale(0.9); opacity: 0; }
+.slot .adv.replace { background: rgba(120,140,170,0.92); color: #fff; }
+/* 긴 전투원 이름은 잘리지 않게 글자를 줄인다 */
+.unit .u-name.long { font-size: 15px; }
+.compact .unit .u-name.long { font-size: 23px; }
+.unit .u-name.xlong { font-size: 13px; letter-spacing: -0.02em; }
+.compact .unit .u-name.xlong { font-size: 19px; }
+/* 턴 종료 아래 안내 글이 덱 상자와 겹치지 않게 한 줄로 */
+.end-turn .phase-label { white-space: nowrap; max-width: none; }
+/* 휴대폰: 고른 손패 크게 보기, 설정 버튼·덱 목록 글자 */
+.sel-preview { position: absolute; left: calc(130px + var(--ox, 0px)); top: calc(150px + var(--oy, 0px)); z-index: 30; pointer-events: none; animation: spawnAnim 0.2s; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8)); }
+.compact .seg button { font-size: 30px; padding: 16px 26px; }
+.compact .deck-row { font-size: 28px; height: 64px; }
+/* 원정: 고른 카드 요약 (비용 곡선) */
+.dp-sum { display: flex; align-items: flex-end; gap: 24px; margin: 6px 0 10px; font-size: 17px; color: #cfcfd2; }
+.dp-sum b { color: #fff; }
+.dp-curve { display: flex; gap: 6px; height: 64px; align-items: flex-end; }
+.dp-curve div { width: 26px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+.dp-curve i { display: block; width: 100%; background: var(--lo-yellow); min-height: 2px; }
+.dp-curve b { position: absolute; top: -2px; font-size: 13px; }
+.dp-curve small { font-size: 12px; color: var(--muted); }
+.compact .dp-sum { font-size: 24px; }
+/* 시간 초과: 화면 가장자리가 붉게 맥박친다 */
+#scr-battle.overtime::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 9; box-shadow: inset 0 0 120px rgba(255,40,50,0.45); animation: otPulse 1.6s ease-in-out infinite; }
+@keyframes otPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }

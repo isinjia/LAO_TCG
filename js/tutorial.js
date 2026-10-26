@@ -2,7 +2,7 @@
 // 각 단계: text, spot(선택자 또는 함수), wait(넘어가기 위한 이벤트), cond(이벤트 데이터 조건), trigger(이 이벤트가 와야 표시)
 const TUTORIAL_STEPS = [
   { text: '첫 대국에 온 걸 환영해, 오렌지에이드. 위쪽이 <b>대국 상대</b>야. 상대의 <b>라이프</b>를 0으로 만들면 이기는 거란다.', spot: '#cmd-enemy', box: [490, 170] },
-  { text: '아래 가운데가 네 자리야. 초상화 오른쪽 아래 숫자가 <b>라이프</b>고, 0이 되면 지는 거야.', spot: '#cmd-me', box: [1090, 600] },
+  { text: '아래쪽 초상화가 네 자리야. 초상화 오른쪽 아래 숫자가 <b>라이프</b>고, 0이 되면 지는 거야.', spot: '#cmd-me', box: [1090, 600] },
   { text: '이게 <b>손패</b>야. 카드 왼쪽 위 숫자가 <b>AP 비용</b>, 가운데 두 숫자가 <b>공격력</b>과 <b>체력</b>이지. 카드에 마우스를 올리면 크게 보여 줄게.', spot: '.hand', box: [1380, 140] },
   { trigger: 'myTurn', text: '오른쪽 아래가 <b>AP</b>야. 매 턴 최대 AP가 1씩 늘어나고(최대 10) 가득 채워지지. 첫 턴인 지금은 AP 1이란다.', spot: '#ap-me', box: [1080, 560] },
   { text: 'AP 1로 쓸 수 있는 비용 1짜리 <b>피</b>를 끌어다 <b>레인</b>에 놓아 볼래? (카드를 클릭한 뒤 레인을 클릭해도 돼)', spot: '.hand', box: [1380, 140], wait: 'cardPlayed' },
@@ -117,6 +117,8 @@ const LESSONS = [
   { id: 'keywords', when: b => [...b.me.units(), ...b.ai.units()].some(u => Object.keys(u.kw).some(k => KW_LESSON.includes(k))), spot: '.lanes.enemy',
     text: b => { const ks = [...new Set([...b.me.units(), ...b.ai.units()].flatMap(u => Object.keys(u.kw)).filter(k => KW_LESSON.includes(k)))].slice(0, 3);
       return '전투원 위의 작은 표시는 <b>키워드</b>예요. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와요.'; } },
+  { id: 'replace', when: b => !b.me.emptyLanes().length && b.me.hand.some(c => c.kind === 'unit' && b.me.placeableLanes(b.game.turn, c).length), spot: '.lanes.me',
+    text: () => `레인이 다 찼어요. 그래도 <b>교체 배치</b>를 할 수 있어요. 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 놓으면 AP를 ${RULES.REPLACE_COST} 더 쓰고, 원래 전투원은 철수해요(격파 효과는 없어요).` },
   { id: 'overtime', when: b => b.game.round() >= RULES.OVERTIME_ROUND - 3, spot: '.round-info',
     text: () => `오른쪽 위 라운드를 보세요. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해는 점점 커져요. 그 전에 끝낼 수 있게 몰아붙이세요.` },
 ];

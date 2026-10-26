@@ -188,6 +188,15 @@ function playDialogue(lines, opts = {}) {
     const key = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); next(); } if (e.key === 'Escape') finish(); };
     d.onclick = e => { if (e.target.classList.contains('dl-skip')) { finish(); return; } next(); };
     window.addEventListener('keydown', key);
-    next();
+    // 전신 그림을 미리 받아 글자보다 인물이 늦게 뜨지 않게 하고(최대 0.8초 기다림),
+    // 대화에 나오는 양쪽 첫 인물을 처음부터 함께 세워 둔다 (말하는 쪽만 밝게)
+    const srcs = [...new Set(lines.map(L => CARDS[L.who] && fullOf(CARDS[L.who])).filter(Boolean))];
+    const loads = srcs.map(src => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = src; }));
+    ['left', 'right'].forEach(side => {
+      const L = lines.find(x => speakerSide(x.who) === side && CARDS[x.who]); if (!L) return;
+      const ch = $(`.dl-char.${side}`, d), src = fullOf(CARDS[L.who]);
+      ch.dataset.src = src; ch.style.backgroundImage = `url('${src}')`; ch.classList.add('dim'); retrigger(ch, 'enter');
+    });
+    Promise.race([Promise.all(loads.slice(0, 3)), sleepRaw(800)]).then(next);
   });
 }

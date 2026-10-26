@@ -66,7 +66,7 @@ async function resumeIntro() {
   list.appendChild(h('<div class="sys">— 저장된 지점에서 전투 재개 —</div>')); list.scrollTop = 1e9;
   await sleepRaw(1200); alive(myB);
   renderAll(true);
-  if (B.game.phase === 'main' && B.game.cur === B.me) { B.busy = false; renderAll(true); setPhaseLabel('카드를 사용하거나 턴을 종료하세요'); return; }
+  if (B.game.phase === 'main' && B.game.cur === B.me) { B.busy = false; renderAll(true); setPhaseLabel('카드를 내거나 턴 종료'); return; }
   onTurnBegin();
 }
 
@@ -75,6 +75,7 @@ screenHooks.battle = async el => {
   const { cfg, me, ai } = B;
   Audio2.bgm(cfg.bgm || 'battle1');
   applySpeedVar();
+  el.classList.remove('overtime');
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/${cfg.bg || 'board'}.jpg')"></div><div class="bg-dim"></div>
     <div class="table"><div class="table-scan"></div><div class="table-mid"></div><div class="table-emblem"><span>VS</span></div><div class="table-side enemy">적 진영</div><div class="table-side me">아군 진영</div></div>
@@ -147,7 +148,7 @@ function mulliganPrompt() {
       <div class="mull-hand"></div><div class="modal-actions" style="justify-content:center"><button class="btn primary big" data-a="ok">확인</button></div></div>`);
     const row = $('.mull-hand', box);
     me.hand.forEach(c => {
-      const ce = cardEl(c, { w: 210 });
+      const ce = cardEl(c, { w: document.body.classList.contains('compact') ? 300 : 210 });
       ce.onclick = () => {
         if (!marked.has(c) && marked.size >= MAX) { toast(`최대 ${MAX}장까지 교체할 수 있습니다.`, true); return; }
         marked.has(c) ? marked.delete(c) : marked.add(c);
@@ -172,7 +173,7 @@ async function onTurnBegin() {
   if (game.cur === me) {
     B.busy = false;
     renderAll(true);
-    setPhaseLabel('카드를 사용하거나 턴을 종료하세요');
+    setPhaseLabel('카드를 내거나 턴 종료');
     saveBattleSnapshot();
     tut('myTurn', game.round());
     if (Lessons.cur) Lessons.close();
@@ -273,11 +274,20 @@ function showPile(kind) {
 
 function canAct() { return B && !B.busy && !B.over && B.game.cur === B.me && B.game.phase === 'main'; }
 
+// 휴대폰: 손패에서 고른 카드를 왼쪽에 크게 띄워 효과 글을 읽을 수 있게 한다 (선택을 풀면 사라진다)
+function showSelPreview(card) {
+  $$('.sel-preview').forEach(e => e.remove());
+  if (!document.body.classList.contains('compact') || card === COMMAND_CARD) return;
+  const box = h('<div class="sel-preview"></div>');
+  box.appendChild(cardEl(card, { w: 380, noHover: true }));
+  $('#scr-battle').appendChild(box);
+}
 function clearSelection() {
   if (!B) return;
+  $$('.sel-preview').forEach(e => e.remove());
   B.selected = null; B.pending = null;
   $$('.hand .card.selected').forEach(c => c.classList.remove('selected'));
-  $$('.slot').forEach(s => { s.classList.remove('place', 'target', 'target-ally', 'hover'); const a = $('.adv', s); if (a) a.remove(); });
+  $$('.slot').forEach(s => { s.classList.remove('place', 'replace', 'target', 'target-ally', 'hover'); const a = $('.adv', s); if (a) a.remove(); });
   $$('.cast-btn').forEach(b => b.remove());
   $('#cmd-enemy') && $('#cmd-enemy').classList.remove('targetable');
 }
@@ -306,11 +316,13 @@ function selectCard(card) {
   if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   if (!me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
+  showSelPreview(card);
   if (card.kind === 'unit') {
-    const empties = me.emptyLanes();
-    if (!empties.length) { toast('빈 레인이 없습니다.', true); clearSelection(); return false; }
-    empties.forEach(i => {
+    const lanesOk = me.placeableLanes(B.game.turn, card);
+    if (!lanesOk.length) { toast('낼 수 있는 레인이 없습니다. 이번 턴에 낸 전투원은 교체할 수 없습니다.', true); clearSelection(); return false; }
+    lanesOk.forEach(i => {
       const s = $(`.slot[data-side=me][data-lane="${i}"]`); s.classList.add('place');
+      if (me.lanes[i]) { s.classList.add('replace'); s.appendChild(h(`<div class="adv replace">교체 AP+${RULES.REPLACE_COST || 0} · ${esc(me.lanes[i].card.n)} 철수</div>`)); return; }
       const [cls, txt] = laneAdvice(card, i); s.appendChild(h(`<div class="adv ${cls}">${esc(txt)}</div>`));
     });
   } else {
@@ -462,13 +474,13 @@ function renderCmd(side, p) {
   num.textContent = p.hp;
   el.classList.toggle('low', p.hp <= Math.ceil(p.maxHp * 0.3));
   el.title = `${p.name} — 체력 ${p.hp}/${p.maxHp}`;
-  const ap = $('.hero-ap', el); if (ap) ap.textContent = `AP ${p.ap}/${p.maxAp}`;
+  const ap = $('.hero-ap', el); if (ap) ap.textContent = p.ap > p.maxAp ? `AP ${p.ap} (이월 +${p.ap - p.maxAp})` : `AP ${p.ap}/${p.maxAp}`;
 }
 function renderAp() {
   const { me } = B; const bar = $('#ap-me'); if (!bar) return;
   const cp = $('.cmd-power');
   if (cp) { const can = canAct() && B.game.canCommand(); cp.disabled = !can; cp.classList.toggle('used', me.cmdUsed === B.game.turn); cp.classList.toggle('selected', B.selected === COMMAND_CARD); }
-  $('.ap-num', bar).innerHTML = `${me.ap}<small>/${me.maxAp}</small>`;
+  $('.ap-num', bar).innerHTML = me.ap > me.maxAp ? `${me.ap}<small> 이월 +${me.ap - me.maxAp}</small>` : `${me.ap}<small>/${me.maxAp}</small>`;
   const sig = me.ap + ':' + me.maxAp;
   if (bar.dataset.sig === sig) return; bar.dataset.sig = sig;
   const gems = []; const total = Math.max(RULES.MAX_AP, me.ap);
@@ -523,7 +535,7 @@ function renderHand(force) {
   const { me } = B;
   const hand = $('.hand'); if (!hand) return;
   const myMain = canAct();
-  const sig = me.hand.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.emptyLanes().length;
+  const sig = me.hand.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.placeableLanes(B.game.turn).length;
   if (!force && sig === B.handSig) return;
   B.handSig = sig;
   hand.innerHTML = '';
@@ -541,7 +553,7 @@ function renderHand(force) {
     slot.style.setProperty('--r', (off * 4) + 'deg');
     slot.style.setProperty('--z', 10 + i);
     const afford = me.canAfford(c);
-    const usable = afford && (c.kind === 'skill' || me.emptyLanes().length > 0);
+    const usable = afford && (c.kind === 'skill' || me.placeableLanes(B.game.turn, c).length > 0);
     if (!afford) $('.c-cost', ce).classList.add('short');
     if (myMain && usable) ce.classList.add('playable');
     if (!usable) ce.classList.add('dim');
@@ -559,7 +571,7 @@ function unitEl(u) {
   const el = h(`<div class="unit" style="--fc:${FACTIONS[c.f].color}">
     <div class="u-bg"></div><div class="u-art" style="background-image:url('${artOf(c)}')"></div><div class="u-shade"></div><div class="u-shieldfx"></div>
     <div class="u-frame g-${c.g}"></div><div class="u-grade role-ico" style="background-image:url('${roleIconOf(c)}')" title="${ROLES[c.r]} · ${c.g}등급"></div><div class="u-badges"></div><div class="u-zzz">배치 대기</div>
-    <div class="u-name">${esc(c.n)}</div>
+    <div class="u-name${c.n.length > 9 ? ' xlong' : c.n.length > 6 ? ' long' : ''}">${esc(c.n)}</div>
     <div class="u-tags"><span class="tag type-${c.t}">${TYPES[c.t]}</span><span class="tag role-${c.r}">${ROLES[c.r]}</span></div>
     <div class="u-stat u-atk"></div><div class="u-stat u-hp"></div><div class="u-fc"></div></div>`);
   el._uid = u.uid;
@@ -716,13 +728,13 @@ async function processEvents() {
   const myB = B; if (!B) return;
   const { game } = B;
   const evs = game.events.splice(0);
-  const holdDie = new Set(evs.filter(e => e.type === 'die').map(e => e.unit.uid));
+  const holdDie = new Set(evs.filter(e => e.type === 'die' || e.type === 'withdraw').map(e => e.unit.uid));
   const holdSpawn = new Set(evs.filter(e => e.type === 'summon').map(e => e.unit.uid));
   B.holdDie = holdDie; B.holdSpawn = holdSpawn;
   try { for (const ev of evs) {
     alive(myB);
     if (ev.type === 'summon') holdSpawn.delete(ev.unit.uid);
-    if (ev.type === 'die') holdDie.delete(ev.unit.uid);
+    if (ev.type === 'die' || ev.type === 'withdraw') holdDie.delete(ev.unit.uid);
     switch (ev.type) {
       case 'log': {
         const list = $('.log-list'); if (!list) break;
@@ -741,6 +753,8 @@ async function processEvents() {
         break;
       }
       case 'overtime': {
+        // 시간 초과에 들어서면 음악을 결전 곡으로 바꾸고 화면 가장자리를 붉게 맥박치게 한다 (한 번만)
+        if (!B.overtimeFx) { B.overtimeFx = true; Audio2.bgm(B.cfg.bgm === 'boss2' ? 'boss1' : 'boss2'); $('#scr-battle').classList.add('overtime'); }
         showBanner('시간 초과', `작전 시간 초과 — ${ev.player === B.me ? '오렌지에이드' : esc(B.ai.name)} 피해 ${ev.v}`, 'theirs');
         Audio2.play('warning', 0.8);
         await sleep(900);
@@ -833,6 +847,12 @@ async function processEvents() {
       case 'die': {
         const el = B.unitEls.get(ev.unit.uid);
         if (el) { el._dyingKeep = true; el.classList.add('dying'); Audio2.play('boomSci', 0.6); await sleep(420); el.remove(); }
+        B.unitEls.delete(ev.unit.uid); renderAll();
+        break;
+      }
+      case 'withdraw': {
+        const el = B.unitEls.get(ev.unit.uid);
+        if (el) { floatOn(el, '철수', 'info'); el._dyingKeep = true; el.classList.add('withdrawing'); Audio2.play('trans', 0.6); await sleep(320); el.remove(); }
         B.unitEls.delete(ev.unit.uid); renderAll();
         break;
       }
