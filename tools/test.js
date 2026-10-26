@@ -186,6 +186,14 @@ t('어려움 AI는 상대 손패를 바꿔도 같은 판단 (숨은 정보 미�
     eq(o.hand.length + o.deck.length, g.opp.hand.length + g.opp.deck.length, '카드 수 유지');
   }
 });
+t('AI 판단은 저장·복원 뒤에도 같음 (새로고침으로 다시 굴릴 수 없음)', () => {
+  for (const lv of ['easy', 'normal', 'hard']) for (let i = 0; i < 10; i++) {
+    const { g } = fresh(D0, D1); g.start();
+    const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
+    const key = (x, a) => a ? (a.command ? 'cmd' : a.card.id + ':' + a.lane + ':' + (a.target ? (a.target.cmd ? 'cmd' : a.target.unit.uid) : '')) : 'end';
+    eq(key(r, AI.nextAction(r, r.cur, lv)), key(g, AI.nextAction(g, g.cur, lv)), lv);
+  }
+});
 t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
   const code = src.slice(src.indexOf('const DAILY_TWISTS'), src.indexOf('  doneToday()')) + '}; this.__Daily = Daily; this.__opps = dailyOpponents;';

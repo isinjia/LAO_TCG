@@ -18,7 +18,7 @@ const Store = {
       seenIntro: false,
       unlocked: [],              // 해금한 카드 id
       secretaries: [],           // 해금한 특별 부관 id
-      stats: { wins: 0, kills: 0, factionsWon: [] },          // 업적용 누적 기록
+      stats: { wins: 0, kills: 0, factionsWon: [], fairStreak: 0 }, // 업적용 누적 기록 (쉬움 AI 상대 승리 제외)
       ach: {},                   // 달성한 업적 id → 달성 시각
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국

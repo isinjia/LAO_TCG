@@ -9,10 +9,10 @@ const AI = {
     if (level === 'hard') return this.searchAction(game, p);
     const act = this.heuristicAction(game, p) || this.commandAction(game, p, level);
     if (!act) return null;
-    if (act.command) return level === 'easy' && Math.random() < 0.5 ? null : act;
+    if (act.command) return level === 'easy' && game.random() < 0.5 ? null : act;
     if (level === 'easy') {
-      if (Math.random() < 0.3) return null;
-      if (act.card.kind === 'unit') { const e = p.emptyLanes(); act.lane = e[Math.floor(Math.random() * e.length)]; }
+      if (game.random() < 0.3) return null;
+      if (act.card.kind === 'unit') { const e = p.emptyLanes(); act.lane = e[Math.floor(game.random() * e.length)]; }
     }
     return act;
   },
@@ -176,9 +176,9 @@ const AI = {
   hiddenInfoView(game, p) {
     const g = game.clone();
     const o = g.players[1 - game.players.indexOf(p)];
-    const pool = shuffle([...o.hand, ...o.deck]);
+    g.seed = (g.seed ^ 0x9E3779B9) >>> 0; // 실제 대국의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
+    const pool = shuffle([...o.hand, ...o.deck], () => g.random());
     o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
-    g.seed = Math.floor(Math.random() * 4294967296); // 실제 대국의 난수 결과도 미리 알 수 없게
     return g;
   },
 

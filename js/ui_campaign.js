@@ -114,7 +114,7 @@ async function launchStage(idx, deckId) {
   await playDialogue(s.intro, { bg: s.bg, title: [`MATCH ${s.no}`, s.title] });
   const en = stageEnemy(s);
   startBattle({
-    mode: 'campaign', stageIdx: idx, tutorial: !!s.tutorial, myDeck: deck.cards, myDeckName: deck.name,
+    mode: 'campaign', stageIdx: idx, tutorial: !!s.tutorial, myDeck: deck.cards, myDeckName: deck.name, diff: Store.data.campaign.difficulty,
     enemy: en, first: s.playerFirst ? 'me' : 'random', openingHand: s.openingHand, bg: s.bg, bgm: s.bgm,
   });
 }

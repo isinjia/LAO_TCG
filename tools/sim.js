@@ -1,5 +1,6 @@
 // AI vs AI 자동 대전 시뮬레이션
-// node tools/sim.js [판수] [--verbose] [--cards] [--set=규칙=값] [--eval=JS] [--ai=normal|hard|easy] [--vs=normal|hard|easy]
+// node tools/sim.js [판수] [--verbose] [--cards] [--set=규칙=값] [--eval=JS] [--ai=normal|hard|easy] [--vs=normal|hard|easy] [--random=덱수]
+// --random=N: 프리셋 대신 무작위로 짠 유효 덱 N개(제작사 2~3곳, 지원 카드 0~3장)끼리 대전한다. 판수는 덱 조합당 판수.
 const fs = require('fs'); const vm = require('vm');
 const ctx = { console, Math, Set, Map, process };
 vm.createContext(ctx);
@@ -9,8 +10,22 @@ for (const a of process.argv) if (a.startsWith('--eval=')) vm.runInContext(a.sli
 const arg = (k, d) => { const a = process.argv.find(x => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
 ctx.LV0 = arg('ai', 'normal'); ctx.LV1 = arg('vs', ctx.LV0);
 ctx.N = parseInt(process.argv.find(a => /^\d+$/.test(a)) || '200', 10);
-ctx.VERBOSE = process.argv.includes('--verbose'); ctx.CARDSFLAG = process.argv.includes('--cards');
+ctx.VERBOSE = process.argv.includes('--verbose'); ctx.CARDSFLAG = process.argv.includes('--cards'); ctx.RANDOM = parseInt(arg('random', '0'), 10);
 vm.runInContext(`
+if (RANDOM) {
+  // 플레이어용 카드에서 무작위 덱을 만든다 (해금 여부는 따지지 않는다)
+  const pool = Object.values(CARDS).filter(c => !c.enemy && !c.token && c.id !== COMMAND_CARD.id);
+  const facs = [...new Set(pool.map(c => c.f))];
+  const decks = [];
+  while (decks.length < RANDOM) {
+    const fs = facs.slice().sort(() => Math.random() - 0.5).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0));
+    const units = pool.filter(c => fs.includes(c.f) && c.kind === 'unit').sort(() => Math.random() - 0.5);
+    const skills = pool.filter(c => fs.includes(c.f) && c.kind === 'skill').sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 4));
+    const cards = [...skills, ...units].slice(0, RULES.DECK_SIZE).map(c => c.id);
+    if (!validateDeck(cards)) decks.push({ name: '무작위 ' + (decks.length + 1) + ' (' + fs.join('+') + ')', cards });
+  }
+  PRESET_DECKS.length = 0; PRESET_DECKS.push(...decks);
+}
 const CARDSTAT = {};
 // lv[0]은 덱 a를 쓰는 쪽, lv[1]은 덱 b를 쓰는 쪽. 선후공은 번갈아 배정한다.
 function sim(da, db, lvA, lvB, aFirst) {
@@ -52,7 +67,8 @@ for (let a = 0; a < D; a++) for (let b = 0; b < D; b++) for (let i = 0; i < N; i
 }
 console.log('first-player win %', (firstW / (total - draws) * 100).toFixed(1), ' draws', draws, ' avg rounds', (turns / total).toFixed(1));
 if (LV0 !== LV1) console.log(LV0, 'vs', LV1, ':', LV0, 'win %', (lv0W / (total - draws) * 100).toFixed(1));
-PRESET_DECKS.forEach((d, i) => console.log(('  ' + d.name).padEnd(30), 'win %', (deckW[i] / deckG[i] * 100).toFixed(1)));
-if (CARDSFLAG) { console.log('card win % when played (games played):'); Object.entries(CARDSTAT).sort((a, b) => b[1].w / b[1].p - a[1].w / a[1].p).forEach(([id, c]) => console.log('  ' + CARDS[id].n.padEnd(14), (c.w / c.p * 100).toFixed(0).padStart(3), '(' + c.p + ')')); }
+if (RANDOM) { const r = PRESET_DECKS.map((d, i) => deckW[i] / deckG[i] * 100).sort((a, b) => a - b); console.log('무작위 덱', D, '개 승률 분포: 최저', r[0].toFixed(1), '· 중앙', r[D >> 1].toFixed(1), '· 최고', r[D - 1].toFixed(1)); }
+else PRESET_DECKS.forEach((d, i) => console.log(('  ' + d.name).padEnd(30), 'win %', (deckW[i] / deckG[i] * 100).toFixed(1)));
+if (CARDSFLAG) { console.log('card win % when played (games played):'); Object.entries(CARDSTAT).sort((a, b) => b[1].w / b[1].p - a[1].w / a[1].p).forEach(([id, c]) => console.log('  ' + (CARDS[id] || (id === COMMAND_CARD.id ? COMMAND_CARD : { n: id })).n.padEnd(14), (c.w / c.p * 100).toFixed(0).padStart(3), '(' + c.p + ')')); }
 if (VERBOSE) { console.log('matchup (row beats col, %):'); for (let a = 0; a < D; a++) console.log('  ' + a, mx[a].map((v, b) => a === b ? '  - ' : String(Math.round(v / (2 * N) * 100)).padStart(4)).join('')); }
 `, ctx);

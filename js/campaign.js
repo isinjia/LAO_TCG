@@ -42,7 +42,7 @@ const CAMPAIGN = [
     desc: '스틸 라인 연대장 레드후드의 속공 덱. 보호기와 중장형으로 초반 공세를 버텨 내세요.',
     enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 22, level: 'normal',
       deck: ['BR_RedHood', 'BR_Cheona', 'BR_Harpy', 'BR_Impet', 'BR_PoniesAnger', 'BR_Emily', 'BR_Gremlin', 'BR_BeastHunter', 'BR_Leona', 'BR_Brownie', 'BR_Pixie', 'SK_BR_Snipe'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 10 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 13 }, { type: 'rounds', v: 9 }],
     intro: [
       { who: 'BR_Impet', text: '연대장님, 이번 상대는 신참입니다. 적당히 하시는 게…' },
       { who: 'BR_RedHood', text: '임펫, 전장에 적당히란 없다. 승리! 네가 이번 리그의 신참인가. 스틸 라인 연대장, 레드후드다.' },
@@ -67,7 +67,7 @@ const CAMPAIGN = [
     desc: '끊임없이 회복하는 엘프 덱. 회복량보다 빠르게 피해를 쌓아야 합니다.',
     enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 32, level: 'normal',
       deck: ['PECS_ElvenForestmaker', 'PECS_HighElven', 'PECS_DarkElf', 'PECS_Sekhmet', 'PECS_Hestia', 'PECS_LemonadeBeta', 'PECS_Fortune', 'PECS_Sonia', 'PECS_Cerberus', 'PECS_Muse', 'SK_PECS_Blessing', 'SK_PECS_Repair'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 15 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 13 }],
     intro: [
       { who: '3P_ConstantiaS2', text: '다음 상대는 엘븐 포레스트메이커야. 같은 PECS라서 서로 덱을 잘 알 거란다.' },
       { who: 'PECS_ElvenForestmaker', text: '뭐야, 레드후드를 이긴 신인이 너였어? 생각보다 작네.' },
@@ -89,7 +89,7 @@ const CAMPAIGN = [
     desc: '회피와 암살에 능한 덴세츠 덱. 회피는 한 번만 막아 준다는 점을 이용하세요.',
     enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 23, level: 'normal',
       deck: ['DS_Saraqael', 'DS_Sarena', 'DS_BunnySlayer', 'DS_Ramiel', 'DS_Baekto', 'DS_Faucre', 'DS_KunoichiZero', 'DS_Angel', 'DS_KunoichiShiden', 'DS_KunoichiEnrai', 'SK_DS_Smoke', 'SK_DS_Shuriken'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 15 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'rounds', v: 13 }],
     intro: [
       { who: 'DS_KunoichiZero', text: '오오, 네가 소문의 신인이구나! 쿠노이치 제로다.' },
       { who: 'DS_KunoichiEnrai', text: '제로, 대국 전에는 예를 갖추라고 했지요. …덴세츠의 엔라이입니다. 오늘은 제로의 대국을 지켜보러 왔습니다.' },
@@ -114,7 +114,7 @@ const CAMPAIGN = [
     enemy: { name: '스트롱홀드', portrait: 'AGS_Stronghold', hp: 21, level: 'normal',
       deck: ['AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_RheinRitter', 'AGS_Arachne', 'AGS_Albatross', 'AGS_SpartanB', 'AGS_Roc', 'PECS_Hestia', 'PECS_LemonadeBeta', 'SK_AGS_Barrier', 'SK_AGS_Protocol'] },
     start: [{ lane: 1, id: 'AGS_SpartanA' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 9 }, { type: 'rounds', v: 14 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 13 }],
     intro: [
       { who: 'PECS_Orangeade', text: '콘스탄챠 씨… 연습하느라 어제 거의 못 잤어요. 다음 상대는 벽 같은 덱이라던데요.' },
       { who: '3P_ConstantiaS2', text: '그러니까 오늘은 서두르지 마. 단단한 덱일수록 먼저 조급해지는 쪽이 지는 거란다.' },
@@ -137,7 +137,7 @@ const CAMPAIGN = [
     enemy: { name: '알렉산드라', portrait: '3P_Alexandra', hp: 16, level: 'normal',
       deck: ['IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'IW_RocC', 'IW_MetalGuard', 'IW_Robert', 'AGS_Gigantes', 'AGS_Deathstalker', 'SK_IW_Swarm', 'SK_IW_Corrode'] },
     start: [{ lane: 0, id: 'IW_NightChick' }, { lane: 1, id: 'IW_Stalker' }, { lane: 2, id: 'IW_NightChick' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 9 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'rounds', v: 11 }],
     intro: [
       { who: '3P_Alexandra', text: '후후, 어서 와요, 오렌지에이드 양. 오늘은 철충 연구 자료로 만든 특별한 덱을 준비했어요.' },
       { who: '3P_ConstantiaS2', text: '알렉산드라 언니, 리그 대국에 철충 카드를 쓰는 건 좀…' },
@@ -160,10 +160,10 @@ const CAMPAIGN = [
   {
     id: 's6', no: '6', title: '강철 군단', sub: '리그 6차전 · 신속의 칸', bg: 'sub', bgm: 'battle1',
     desc: '침식된 AGS와 아이언 프린스 카드로 짠 신속의 칸의 덱. 광역 공격에 대비해 유닛을 분산하세요.',
-    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 20, level: 'normal',
+    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 18, level: 'normal',
       deck: ['IW_IronPrince', 'IW_Robert', 'IW_MetalGuard', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Gigantes', 'AGS_Deathstalker', 'AGS_Fortress', 'AGS_Roc', 'SK_IW_Corrode', 'SK_AGS_Barrier'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 15 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'rounds', v: 11 }],
     intro: [
       { who: 'BR_Leona', text: '칸, 상대가 꽤 어리네. 너무 몰아붙이지는 마.' },
       { who: 'BR_Khan', text: '레오나, 실전에 나이는 상관없다. …신속의 칸이다. 침식된 기체로 짠 덱이지.' },
@@ -188,7 +188,7 @@ const CAMPAIGN = [
     desc: '레모네이드 컬렉션 덱. 제타와 오메가 한정 카드가 등장하니 레인을 비워 두지 마세요.',
     enemy: { name: '레모네이드 알파', portrait: 'PECS_LemonadeAlpha', hp: 22, level: 'hard',
       deck: ['PECS_LemonadeAlpha', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'IW_LemonadeZeta', 'IW_LemonadeOmega', 'PECS_Hathor', 'PECS_Ignis', 'PECS_Empress', 'PECS_Draculina', 'PECS_Sekhmet', 'SK_PECS_Blessing', 'SK_IW_Corrode'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 16 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 13 }],
     intro: [
       { who: 'PECS_Orangeade', text: '알파 님…! 정말 알파 님이 준결승 상대세요?' },
       { who: 'PECS_LemonadeAlpha', text: '그래요, 오렌지에이드. 리그에 나갔다는 이야기는 다른 아이들에게 들었어요. 저에게는 한마디도 없었죠.' },
@@ -210,9 +210,9 @@ const CAMPAIGN = [
   {
     id: 's8', no: '8', title: '오르카 카드 마스터', sub: '결승 · 챔피언 라비아타', bg: 'squad', bgm: 'boss2', boss: true,
     desc: '오르카 리그 챔피언 라비아타의 삼안 정예 덱. 광역 공격과 강력한 SS 카드를 넘어서야 합니다.',
-    enemy: { name: '라비아타 프로토타입', portrait: '3P_Labiata', hp: 26, level: 'normal',
+    enemy: { name: '라비아타 프로토타입', portrait: '3P_Labiata', hp: 15, level: 'hard',
       deck: ['3P_Labiata', '3P_Titania', '3P_Ajax', '3P_ConstantiaS2', '3P_Fenrir', '3P_BlackLilith', '3P_Sowan', '3P_Daphne', '3P_CSPerrault', '3P_Aqua', 'SK_3P_Rally', 'SK_3P_Barrage'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 8 }],
     intro: [
       { who: 'PECS_LemonadeAlpha', text: '오렌지에이드. 결승 전에 하나만 말해 둘게요.' },
       { who: 'PECS_LemonadeAlpha', text: '이기든 지든, 오늘은 끝까지 당신답게 해요. …그거면 돼요.' },

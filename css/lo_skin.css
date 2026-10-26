@@ -246,3 +246,9 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .ch-col p, .compact .ach span { font-size: 19px; }
 .compact .modal-box p { font-size: 22px; }
 .compact .howto-body { font-size: 24px; }
+.compact .deck-card .dc-name { font-size: 26px; }
+.compact .deck-card .dc-desc { font-size: 19px; }
+.compact .setup-opts { font-size: 22px; }
+.compact .chip { font-size: 17px; }
+.compact .filters input[type=search], .compact .filters select { font-size: 20px; }
+.compact .deck-row { font-size: 21px; }

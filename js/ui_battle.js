@@ -856,7 +856,7 @@ async function finishBattle(surrendered) {
   if (cfg.mode === 'campaign') {
     stage = CAMPAIGN[cfg.stageIdx];
     stars = evalStars(stage, game, me);
-    const diff = Store.data.campaign.difficulty;
+    const diff = cfg.diff || 'normal'; // 시작할 때의 난이도 (도중에 바꿔도 결과에 영향 없음)
     if (diff === 'easy' && !stage.tutorial) stars[2] = false; // 쉬움 난이도는 별 2개까지
     if (diff === 'hard' && win && !stage.tutorial) { Store.data.campaign.hardCleared[stage.id] = true; }
     Store.setStageResult(stage.id, stars);

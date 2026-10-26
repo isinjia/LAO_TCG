@@ -2,22 +2,23 @@
 
 // ---------- 업적 ----------
 // test(ctx): 대국이 끝날 때마다 호출. ctx = { win, mode, level, round, hp, kills, userDeck, factions }
+// test(ctx): 대국이 끝날 때마다 호출. ctx = { win, fair(쉬움이 아닌 상대에게 승리), mode, level, round, hp, kills, userDeck, factions }
 const ACHIEVEMENTS = [
   { id: 'win1', name: '첫 승리', desc: '대국에서 처음으로 승리한다.', test: c => c.win },
-  { id: 'win10', name: '리그의 신성', desc: '대국에서 10번 승리한다.', test: c => c.stats.wins >= 10 },
-  { id: 'win50', name: '베테랑', desc: '대국에서 50번 승리한다.', test: c => c.stats.wins >= 50 },
-  { id: 'streak5', name: '연승 행진', desc: '5연승을 달성한다.', test: c => c.streak >= 5 },
+  { id: 'win10', name: '리그의 신성', desc: '보통 이상 상대에게 10번 승리한다.', test: c => c.stats.wins >= 10 },
+  { id: 'win50', name: '베테랑', desc: '보통 이상 상대에게 50번 승리한다.', test: c => c.stats.wins >= 50 },
+  { id: 'streak5', name: '연승 행진', desc: '보통 이상 상대에게 5연승한다.', test: c => c.stats.fairStreak >= 5 },
   { id: 'story', name: '오르카 카드 마스터', desc: '스토리 결승에서 승리한다.', test: () => !!Store.data.campaign.cleared.s8 },
   { id: 'stars', name: '완벽주의자', desc: '스토리 별 27개를 모두 모은다.', test: () => Store.totalStars() >= CAMPAIGN.length * 3 },
   { id: 'hardstory', name: '어려움 정복', desc: '스토리 난이도 어려움으로 결승에서 승리한다.', test: () => !!Store.data.campaign.hardCleared.s8 },
   { id: 'hardall', name: '전 리그 제패', desc: '스토리 여덟 대국을 모두 어려움 난이도로 이긴다.', test: () => CAMPAIGN.every(s => s.tutorial || Store.data.campaign.hardCleared[s.id]) },
-  { id: 'flawless', name: '무결점', desc: '라이프를 하나도 잃지 않고 승리한다.', test: c => c.win && c.hp >= c.maxHp },
-  { id: 'comeback', name: '기사회생', desc: '라이프 3 이하로 승리한다.', test: c => c.win && c.hp <= 3 },
-  { id: 'blitz', name: '전격전', desc: '6라운드 안에 승리한다.', test: c => c.win && c.round <= 6 },
-  { id: 'reaper', name: '전장 정리', desc: '한 대국에서 적 전투원을 8기 처치한다.', test: c => c.kills >= 8 },
+  { id: 'flawless', name: '무결점', desc: '보통 이상 상대에게 라이프를 하나도 잃지 않고 승리한다.', test: c => c.fair && c.hp >= c.maxHp },
+  { id: 'comeback', name: '기사회생', desc: '보통 이상 상대에게 라이프 3 이하로 승리한다.', test: c => c.fair && c.hp <= 3 },
+  { id: 'blitz', name: '전격전', desc: '보통 이상 상대에게 6라운드 안에 승리한다.', test: c => c.fair && c.round <= 6 },
+  { id: 'reaper', name: '전장 정리', desc: '보통 이상 상대와의 한 대국에서 적 전투원을 8기 처치한다.', test: c => c.level !== 'easy' && c.kills >= 8 },
   { id: 'hard', name: '정예 격파', desc: '어려움 인공지능을 상대로 승리한다.', test: c => c.win && c.level === 'hard' },
-  { id: 'mydeck', name: '나만의 전술', desc: '직접 만든 덱으로 승리한다.', test: c => c.win && c.userDeck },
-  { id: 'factions', name: '오르카의 모든 제작사', desc: '다섯 제작사를 각각 넣은 덱으로 한 번씩 승리한다.', test: c => c.stats.factionsWon.length >= 5 },
+  { id: 'mydeck', name: '나만의 전술', desc: '직접 만든 덱으로 보통 이상 상대에게 승리한다.', test: c => c.fair && c.userDeck },
+  { id: 'factions', name: '오르카의 모든 제작사', desc: '다섯 제작사를 각각 넣은 덱으로 보통 이상 상대에게 한 번씩 승리한다.', test: c => c.stats.factionsWon.length >= 5 },
   { id: 'gauntlet', name: '순회전 돌파', desc: '리그 순회전 5연전을 끝까지 이긴다.', test: () => Store.data.gauntlet.clears >= 1 },
   { id: 'gauntlet15', name: '여유로운 순회', desc: '라이프 15 이상 남기고 리그 순회전을 돌파한다.', test: () => Store.data.gauntlet.bestClearHp >= 15 },
   { id: 'daily1', name: '오늘의 승자', desc: '오늘의 대국에서 승리한다.', test: () => Store.data.daily.wins >= 1 },
@@ -43,10 +44,11 @@ const Ach = {
   // 대국 결과를 반영하고 새로 달성한 업적 목록을 돌려준다
   record(info) {
     const st = Store.data.stats;
-    if (info.win) {
-      st.wins++;
+    info.fair = info.win && info.level !== 'easy'; // 쉬움 인공지능 상대 승리는 누적 업적에 세지 않는다
+    if (info.fair) {
+      st.wins++; st.fairStreak = (st.fairStreak || 0) + 1;
       info.factions.forEach(f => { if (!st.factionsWon.includes(f)) st.factionsWon.push(f); });
-    }
+    } else if (!info.win) st.fairStreak = 0;
     st.kills += info.kills;
     const ctx = { ...info, stats: st, streak: Store.data.record.streak };
     const got = ACHIEVEMENTS.filter(a => !this.has(a.id) && a.test(ctx));
@@ -73,7 +75,8 @@ const Gauntlet = {
       const opts = pool.filter(id => !picked.includes(id));
       picked.push(opts[Math.floor(Math.random() * opts.length)]);
     });
-    Store.data.gauntlet.run = { deckId, stages: picked, idx: 0, hp: RULES.CMD_HP };
+    const deck = Store.getDeck(deckId);
+    Store.data.gauntlet.run = { deckId, deckName: deck.name, cards: deck.cards.slice(), stages: picked, idx: 0, hp: RULES.CMD_HP }; // 덱은 시작 시점으로 고정
     Store.data.gauntlet.runs++;
     Store.save();
     this.play();
@@ -86,11 +89,11 @@ const Gauntlet = {
     if (!await confirmAbandon()) return;
     abandonSavedBattle();
     if (!this.run) return;
-    const deck = Store.getDeck(r.deckId);
+    const deck = r.cards ? { cards: r.cards, name: r.deckName, preset: false } : Store.getDeck(r.deckId);
     if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
     const st = CAMPAIGN.find(s => s.id === r.stages[r.idx]);
     startBattle({
-      mode: 'gauntlet', myDeck: deck.cards, myDeckName: deck.name, myHp: r.hp, userDeck: !deck.preset,
+      mode: 'gauntlet', myDeck: deck.cards, myDeckName: deck.name, myHp: r.hp, userDeck: !String(r.deckId).startsWith('preset:'),
       enemy: { ...st.enemy, hp: GAUNTLET.ENEMY_HP, level: GAUNTLET.LEVELS[r.idx] },
       first: 'random', bg: st.bg, bgm: r.idx === GAUNTLET.MATCHES - 1 ? 'boss2' : st.bgm,
       gauntlet: { idx: r.idx, total: GAUNTLET.MATCHES },
@@ -223,7 +226,7 @@ screenHooks.challenge = el => {
           return `<div class="ch-node ${state}"><div class="cn-face" style="${st ? `background-image:url('${artOf(CARDS[st.enemy.portrait])}')` : ''}">${st ? '' : '?'}</div><span>${i + 1}</span></div>`;
         }).join('<i></i>')}</div>
         <div class="ch-stats"><div><span>최고 기록</span><b>${g.best}/${GAUNTLET.MATCHES}</b></div><div><span>돌파 횟수</span><b>${g.clears}</b></div><div><span>최고 남은 라이프</span><b>${g.bestClearHp || '-'}</b></div></div>
-        ${run ? `<div class="ch-now">진행 중: ${run.idx + 1}번째 대국 · ${esc(runStage.enemy.name)} · 내 라이프 ${run.hp}</div>` : ''}
+        ${run ? `<div class="ch-now">진행 중: ${run.idx + 1}번째 대국 · ${esc(runStage.enemy.name)} · 내 라이프 ${run.hp}${run.deckName ? ` · 덱 「${esc(run.deckName)}」 고정` : ""}</div>` : ''}
         <div class="ch-actions">${run ? '<button class="btn" data-a="g-quit">포기</button><button class="btn primary big" data-a="g-go">이어서 대국</button>' : '<button class="btn primary big" data-a="g-new">순회전 시작</button>'}</div>
       </div>
       <div class="panel ch-col">
