@@ -252,3 +252,24 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .chip { font-size: 17px; }
 .compact .filters input[type=search], .compact .filters select { font-size: 20px; }
 .compact .deck-row { font-size: 21px; }
+.camp-tabs button.locked { opacity: 0.5; }
+.camp-map.ex { background: radial-gradient(ellipse at 20% 85%, rgba(255,60,80,0.14), transparent 45%), radial-gradient(ellipse at 85% 15%, rgba(255,40,60,0.22), transparent 50%); border-color: rgba(255,80,90,0.25); }
+
+/* ---------- 대화 연출 ---------- */
+.dialogue .dl-char { animation: dlBreath 5s ease-in-out infinite; transform-origin: 50% 100%; }
+.dialogue .dl-char.left.enter { animation: dlEnterL 0.45s ease-out, dlBreath 5s ease-in-out 0.45s infinite; }
+.dialogue .dl-char.right.enter { animation: dlEnterR 0.45s ease-out, dlBreath 5s ease-in-out 0.45s infinite; }
+.dialogue .dl-char.talk { animation: dlTalk 0.35s ease-out, dlBreath 5s ease-in-out 0.35s infinite; }
+@keyframes dlBreath { 50% { transform: translateY(-5px) scale(1.004); } }
+@keyframes dlEnterL { from { opacity: 0; transform: translateX(-80px); } }
+@keyframes dlEnterR { from { opacity: 0; transform: translateX(80px); } }
+@keyframes dlTalk { 40% { transform: translateY(-14px); } }
+.dialogue .dl-name.pop { animation: dlPop 0.3s ease-out; }
+@keyframes dlPop { from { opacity: 0; transform: translateX(-16px); } }
+.dialogue .dl-box.excite { animation: dlExcite 0.35s; }
+@keyframes dlExcite { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+.dialogue.glitch .dl-char:not(.dim) { animation: dlGlitch 1.6s steps(1) infinite; filter: drop-shadow(0 0 24px rgba(255,40,60,0.6)) saturate(1.3); }
+.dialogue.glitch .dl-box { border-image-source: url("../assets/ui/dlg_box.png"); filter: hue-rotate(-40deg) saturate(1.6); }
+.dialogue.glitch .dl-text { color: #ffb3b8; font-family: "Exo 2", "Godo", monospace; letter-spacing: 0.02em; }
+.dialogue.glitch .dl-dim { background: linear-gradient(180deg, rgba(60,0,10,0.35), rgba(20,0,5,0.8)), repeating-linear-gradient(0deg, rgba(255,0,40,0.05) 0 2px, transparent 2px 5px); }
+@keyframes dlGlitch { 0%, 100% { transform: none; clip-path: none; } 8% { transform: translateX(-6px); clip-path: inset(10% 0 60% 0); } 9% { transform: translateX(5px); clip-path: inset(50% 0 20% 0); } 10% { transform: none; clip-path: none; } 55% { transform: translateX(4px) skewX(-2deg); } 56% { transform: none; } }

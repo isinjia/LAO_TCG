@@ -1,5 +1,9 @@
 // ===== 캠페인 지도 / 대화 =====
 const NODE_POS = [[120, 800], [330, 660], [210, 460], [430, 300], [640, 460], [820, 660], [1000, 480], [860, 250], [1080, 110]];
+const NODE_POS_EX = [[170, 760], [450, 560], [760, 400], [1020, 190]]; // 외전 지도 (본편과 같은 지도 칸에 따로 그린다)
+const CHAPTERS = { main: { name: '본편 · 오르카 카드 리그', short: '본편 리그' }, ex: { name: '외전 · 붉은 시뮬레이션', short: '외전: 붉은 시뮬레이션' } };
+const chapterOf = s => s.chapter || 'main';
+let campChapter = 'main';
 const DIFF = {
   easy: { label: '쉬움', hp: 0.8, shift: -1, desc: '적 체력 -20%, AI 한 단계 약화 · 별은 2개까지만 얻을 수 있음' },
   normal: { label: '보통', hp: 1.0, shift: 0, desc: '기본 난이도' },
@@ -21,9 +25,12 @@ screenHooks.campaign = el => {
     const next = CAMPAIGN.findIndex((s, i) => Store.stageUnlocked(i) && !Store.data.campaign.cleared[s.id]);
     selStage = next >= 0 ? next : CAMPAIGN.length - 1;
   }
+  campChapter = chapterOf(CAMPAIGN[selStage]);
+  const exOpen = !!Store.data.campaign.cleared.s8;
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/vr2.jpg')"></div><div class="bg-dim"></div>
-    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>스토리 — 오렌지에이드의 카드 마스터 리그</h2><span class="sub">★ ${Store.totalStars()} / ${CAMPAIGN.length * 3}</span></div>
+    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>스토리 — 오렌지에이드의 카드 마스터 리그</h2><span class="sub">★ ${Store.totalStars()} / ${CAMPAIGN.length * 3}</span>
+      <span class="spacer"></span><div class="seg camp-tabs">${Object.entries(CHAPTERS).map(([k, v]) => `<button data-ch="${k}" class="${k === campChapter ? 'on' : ''} ${k === 'ex' && !exOpen ? 'locked' : ''}">${k === 'ex' && !exOpen ? '🔒 ' : ''}${v.short}</button>`).join('')}</div></div>
     <div class="camp-map"><svg width="1180" height="940"></svg></div>
     <div class="camp-diff">난이도 <div class="seg">${Object.entries(DIFF).map(([k, v]) => `<button data-d="${k}" class="${Store.data.campaign.difficulty === k ? 'on' : ''}">${v.label}</button>`).join('')}</div><span data-v="ddesc"></span></div>
     <div class="panel stage-panel"></div>`;
@@ -35,27 +42,46 @@ screenHooks.campaign = el => {
     $('[data-v=ddesc]', el).textContent = DIFF[b.dataset.d].desc;
     renderStagePanel(el); Audio2.play('click');
   });
+  $$('[data-ch]', el).forEach(b => b.onclick = () => {
+    if (b.dataset.ch === 'ex' && !exOpen) { toast('본편 결승에서 이기면 외전이 열립니다.', true); return; }
+    campChapter = b.dataset.ch;
+    const first = CAMPAIGN.findIndex((s, i) => chapterOf(s) === campChapter && Store.stageUnlocked(i) && !Store.data.campaign.cleared[s.id]);
+    selStage = first >= 0 ? first : CAMPAIGN.map(chapterOf).lastIndexOf(campChapter);
+    $$('[data-ch]', el).forEach(x => x.classList.toggle('on', x === b));
+    Audio2.play('click'); renderMap(el); renderStagePanel(el);
+  });
   renderMap(el); renderStagePanel(el);
 };
 
 function renderMap(el) {
   const map = $('.camp-map', el);
   $$('.node', map).forEach(n => n.remove());
-  if (!$('.map-boss', map)) {
-    map.insertAdjacentHTML('afterbegin', `<img class="map-boss" src="${fullOf(CARDS['3P_Labiata'])}" alt=""><img class="map-orca" src="${fullOf(CARDS['PECS_Orangeade'])}" alt="">
-      <div class="zone" style="left:330px;top:780px">STAGE A · 예선</div><div class="zone" style="left:520px;top:130px">STAGE B · 본선</div><div class="zone" style="left:760px;top:760px">STAGE C · 상위 리그</div>`);
+  // 지도 장식은 장(본편/외전)마다 다르다
+  if (map.dataset.ch !== campChapter) {
+    map.dataset.ch = campChapter;
+    $$('.map-deco', map).forEach(n => n.remove());
+    map.classList.toggle('ex', campChapter === 'ex');
+    map.insertAdjacentHTML('afterbegin', campChapter === 'ex'
+      ? `<img class="map-boss map-deco" src="${fullOf(CARDS['IW_LemonadeOmega'])}" alt=""><img class="map-orca map-deco" src="${fullOf(CARDS['PECS_LemonadeAlpha'])}" alt="">
+        <div class="zone map-deco" style="left:120px;top:850px">SECTOR 1 · VR 훈련실</div><div class="zone map-deco" style="left:560px;top:640px">SECTOR 2 · 오프라인 구역</div><div class="zone map-deco" style="left:700px;top:90px">SECTOR 3 · 서버 심층부</div>`
+      : `<img class="map-boss map-deco" src="${fullOf(CARDS['3P_Labiata'])}" alt=""><img class="map-orca map-deco" src="${fullOf(CARDS['PECS_Orangeade'])}" alt="">
+        <div class="zone map-deco" style="left:330px;top:780px">STAGE A · 예선</div><div class="zone map-deco" style="left:520px;top:130px">STAGE B · 본선</div><div class="zone map-deco" style="left:760px;top:760px">STAGE C · 상위 리그</div>`);
   }
+  const idxs = CAMPAIGN.map((s, i) => i).filter(i => chapterOf(CAMPAIGN[i]) === campChapter);
+  const posOf = i => (campChapter === 'ex' ? NODE_POS_EX : NODE_POS)[idxs.indexOf(i)];
   const svg = $('svg', map);
   let paths = '';
-  for (let i = 1; i < CAMPAIGN.length; i++) {
-    const [x1, y1] = NODE_POS[i - 1], [x2, y2] = NODE_POS[i];
+  for (let k = 1; k < idxs.length; k++) {
+    const i = idxs[k];
+    const [x1, y1] = posOf(idxs[k - 1]), [x2, y2] = posOf(i);
     const open = Store.stageUnlocked(i);
     paths += `<line class="${open ? 'open' : ''}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${open ? 'rgba(255,177,59,0.75)' : 'rgba(120,160,200,0.25)'}" stroke-width="${open ? 5 : 3}" stroke-dasharray="${open ? '14 10' : '10 10'}"/>`;
   }
   svg.innerHTML = paths;
   const nextIdx = CAMPAIGN.findIndex((s, i) => Store.stageUnlocked(i) && !Store.data.campaign.cleared[s.id]);
-  CAMPAIGN.forEach((s, i) => {
-    const [x, y] = NODE_POS[i];
+  idxs.forEach(i => {
+    const s = CAMPAIGN[i];
+    const [x, y] = posOf(i);
     const unlocked = Store.stageUnlocked(i);
     const stars = Store.stageStars(s.id);
     const n = h(`<div class="node ${s.boss ? 'boss' : ''} ${i === selStage ? 'sel' : ''} ${unlocked ? '' : 'locked'} ${i === nextIdx ? 'next' : ''}" style="left:${x}px;top:${y}px">
@@ -144,10 +170,19 @@ function playDialogue(lines, opts = {}) {
       const L = lines[i], c = CARDS[L.who];
       const side = speakerSide(L.who);
       const ch = $(`.dl-char.${side}`, d), other = $(`.dl-char.${side === 'left' ? 'right' : 'left'}`, d);
-      ch.style.backgroundImage = `url('${fullOf(c)}')`; ch.classList.remove('dim'); other.classList.add('dim');
+      // 등장인물이 바뀌면 옆에서 미끄러져 들어오고, 같은 인물이 이어 말하면 살짝 들썩인다
+      const src = fullOf(c);
+      if (ch.dataset.src !== src) { ch.dataset.src = src; ch.style.backgroundImage = `url('${src}')`; retrigger(ch, 'enter'); }
+      else retrigger(ch, 'talk');
+      ch.classList.remove('dim'); other.classList.add('dim');
       $('.dl-name', d).textContent = c ? c.n : L.who;
+      retrigger($('.dl-name', d), 'pop');
+      // 외전의 모의 개체 대사는 화면이 깨지는 연출, 감탄문은 대화창이 흔들린다
+      const glitch = L.text.startsWith('[모의 개체');
+      d.classList.toggle('glitch', glitch);
+      if (/[!！]$/.test(L.text.trim()) && !glitch) retrigger($('.dl-box', d), 'excite');
       full = L.text; let k = 0; textEl.textContent = '';
-      Audio2.play('card', 0.4);
+      Audio2.play(glitch ? 'zap' : 'card', glitch ? 0.35 : 0.4);
       typing = setInterval(() => { k += 2; textEl.textContent = full.slice(0, k); if (k >= full.length) { clearInterval(typing); typing = null; } }, 22);
     };
     const key = e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); next(); } if (e.key === 'Escape') finish(); };

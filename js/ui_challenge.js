@@ -10,6 +10,7 @@ const ACHIEVEMENTS = [
   { id: 'streak5', name: '연승 행진', desc: '보통 이상 상대에게 5연승한다.', test: c => c.stats.fairStreak >= 5 },
   { id: 'story', name: '오르카 카드 마스터', desc: '스토리 결승에서 승리한다.', test: () => !!Store.data.campaign.cleared.s8 },
   { id: 'stars', name: '완벽주의자', desc: '스토리 별 27개를 모두 모은다.', test: () => Store.totalStars() >= CAMPAIGN.length * 3 },
+  { id: 'exstory', name: '붉은 시뮬레이션 종결', desc: '외전 결전 「오메가」에서 승리한다.', test: () => !!Store.data.campaign.cleared.ex4 },
   { id: 'hardstory', name: '어려움 정복', desc: '스토리 난이도 어려움으로 결승에서 승리한다.', test: () => !!Store.data.campaign.hardCleared.s8 },
   { id: 'hardall', name: '전 리그 제패', desc: '스토리 여덟 대국을 모두 어려움 난이도로 이긴다.', test: () => CAMPAIGN.every(s => s.tutorial || Store.data.campaign.hardCleared[s.id]) },
   { id: 'flawless', name: '무결점', desc: '보통 이상 상대에게 라이프를 하나도 잃지 않고 승리한다.', test: c => c.fair && c.hp >= c.maxHp },
@@ -35,6 +36,7 @@ const LOBBY_BGS = [
   { id: 'snow_night', name: '설산의 밤', ach: 'daily7' },
   { id: 'camp_night', name: '야영지의 밤', ach: 'stars' },
   { id: 'blacksun', name: '검은 태양', ach: 'hardstory' },
+  { id: 'red_boss', name: '붉은 서버', ach: 'exstory' },
 ];
 function lobbyBgUnlocked(bg) { return !bg.ach || !!Store.data.ach[bg.ach]; }
 

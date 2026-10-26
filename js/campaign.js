@@ -2,6 +2,7 @@
 // enemy.deck: 12장 (최대 3제작사), enemy.hp: 상대 라이프, enemy.level: AI 난이도
 // enemy.start: 전투 시작 시 미리 배치된 적 유닛, stars: 별 조건 (win / hp / rounds)
 // intro/outro: 대사. who는 초상화로 쓸 카드 id
+// chapter: 'ex'면 외전(본편 결승을 이기면 열림). 외전 상대는 VR 철충 모의 데이터라 원작 말투 자료 대신 [모의 개체] 시스템 말투를 쓴다.
 // mid: 전투 중 대사 (half: 상대 라이프 절반 이하, low: 내 라이프 8 이하일 때 한 번), lose: 패배 시 상대의 한마디, epilogue: 결승 승리 뒤 마무리 대사
 // 말투·호칭은 원작 대본 분석 자료(7_LAO_3Kingdom/자료/캐릭터_말투.md, 캐릭터_관계도.md)를 따른다.
 // 오렌지에이드는 해요체에 남을 「○○ 씨」로 부르고, 같은 부대 상관인 레모네이드 알파는 「알파 님」으로 모신다.
@@ -243,6 +244,96 @@ const CAMPAIGN = [
       { who: 'PECS_LemonadeAlpha', text: '저도 가끔 그 대국표를 보러 갈 거예요. 기록이 떨어지면 바로 알 수 있게.' },
       { who: 'PECS_Orangeade', text: '헤헤… 알파 님께 보여 드릴 기록, 계속 늘려 갈게요!' },
     ],
+  },
+  {
+    id: 'ex1', no: 'EX1', chapter: 'ex', title: 'VR 훈련실의 이상', sub: '외전 1 · 모의 개체 레모네이드 제타', bg: 'vr', bgm: 'battle3',
+    desc: '알렉산드라의 철충 모의 카드 데이터가 폭주해 VR 리그를 점거했습니다. 회복과 철충 무리를 섞은 덱입니다.',
+    enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 36, level: 'normal',
+      deck: ['IW_LemonadeZeta', 'IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'PECS_Sekhmet', 'PECS_Ignis', 'SK_IW_Swarm', 'SK_PECS_Blessing'] },
+    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 13 }],
+    intro: [
+      { who: 'PECS_Orangeade', text: '시즌이 끝났는데 VR 훈련실에서 대국 신청이 계속 들어와요. 보낸 사람이… 없대요.' },
+      { who: '3P_Alexandra', text: '후후, 미안해요. 제 철충 모의 카드 데이터가 멋대로 대국 상대를 만들어 내고 있군요.' },
+      { who: '3P_ConstantiaS2', text: '모의 개체들이 VR 리그 서버를 점거했어. 이기면 데이터가 하나씩 정리된다는구나.' },
+      { who: 'PECS_LemonadeAlpha', text: '제가 같이 들어가겠어요. 레모네이드의 얼굴을 한 데이터라면 더더욱요.' },
+      { who: 'PECS_Orangeade', text: '알파 님이랑 같이요? 헤헤… 든든해요!' },
+      { who: 'IW_LemonadeZeta', text: '[모의 개체 제타] 대국 상대 확인. 오렌지에이드. 승률 기록 갱신을 개시합니다.' },
+    ],
+    outro: [
+      { who: 'IW_LemonadeZeta', text: '[모의 개체 제타] 기록… 손상. 데이터를… 반납합니다.' },
+      { who: '3P_Alexandra', text: '첫 번째 데이터는 정리됐어요. 하지만 서버 깊은 곳에 더 큰 반응이 있군요.' },
+      { who: 'PECS_LemonadeAlpha', text: '레모네이드 제타의 모습이었어요. 그렇다면 그 끝에 있을 것도 짐작이 가네요.' },
+      { who: 'PECS_Orangeade', text: '알파 님…?' },
+    ],
+    mid: { half: { who: 'IW_LemonadeZeta', text: '[모의 개체 제타] 손상률 50퍼센트. 회복 절차를 실행합니다.' }, low: { who: 'IW_LemonadeZeta', text: '[모의 개체 제타] 상대 라이프 위험 구간. 마무리 절차로 전환합니다.' } },
+    lose: { who: 'IW_LemonadeZeta', text: '[모의 개체 제타] 승리 기록 저장. 다음 도전자를 기다립니다.' },
+  },
+  {
+    id: 'ex2', no: 'EX2', chapter: 'ex', title: '강철 왕자의 성', sub: '외전 2 · 모의 개체 아이언 프린스', bg: 'offline', bgm: 'battle2',
+    desc: '두꺼운 중장 철충과 AGS로 짠 방어 덱입니다. 작전 지시로 벽 너머 라이프를 노리세요.',
+    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 18, level: 'normal',
+      deck: ['IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_Gigantes', 'SK_AGS_Barrier', 'SK_IW_Corrode'] },
+    start: [{ lane: 1, id: 'IW_Stalker' }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 13 }],
+    intro: [
+      { who: '3P_ConstantiaS2', text: '두 번째 구역은 방어 데이터가 몰려 있어. 철충 중장 기체를 본뜬 모의 개체란다.' },
+      { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 이 성은 무너지지 않는다. 침입자는 돌아가라.' },
+      { who: 'PECS_Orangeade', text: '벽이 두꺼우면 포격 지원으로 넘기면 되죠! 스트롱홀드 씨한테 배운 거예요.' },
+      { who: 'PECS_LemonadeAlpha', text: '서두르지 말아요, 오렌지에이드. 벽은 먼저 지치는 쪽이 지는 거예요.' },
+    ],
+    outro: [
+      { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 성벽… 붕괴. 데이터 반납.' },
+      { who: '3P_Alexandra', text: '두 번째 데이터도 정리됐어요. 그런데 다음 구역에서 이상한 신호가 잡히는군요. 덴세츠 쪽 기록이에요.' },
+      { who: 'PECS_LemonadeBeta', text: '덴세츠라면… 아자젤 님 쪽이요? 아자젤 님께도 연락해 둘게요.' },
+    ],
+    mid: { half: { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 외벽 손상. 내벽으로 후퇴한다.' }, low: { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 침입자의 전력이 바닥났다. 성문을 닫는다.' } },
+    lose: { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 침입자 격퇴. 성은 그대로다.' },
+  },
+  {
+    id: 'ex3', no: 'EX3', chapter: 'ex', title: '타락한 천사의 그림자', sub: '외전 3 · 모의 개체 타락한 아자젤', bg: 'red_boss2', bgm: 'boss1', boss: true,
+    desc: '회피와 처치 효과로 무장한 덴세츠·철충 덱입니다. 상대는 어려움 인공지능입니다.',
+    enemy: { name: '모의 개체: 타락한 아자젤', portrait: 'IW_AzazelAlter', hp: 15, level: 'hard',
+      deck: ['IW_AzazelAlter', 'IW_Kidnapper', 'IW_Speaker', 'IW_NightChick', 'IW_RocC', 'DS_Saraqael', 'DS_Sarena', 'DS_Ramiel', 'DS_BunnySlayer', 'DS_Angel', 'SK_DS_Smoke', 'SK_IW_Swarm'] },
+    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 11 }],
+    intro: [
+      { who: 'DS_Azazel', text: '이게 무슨 재앙인가요. 제 모습을 한 데이터가 대국을 하고 있다니요.' },
+      { who: 'PECS_Orangeade', text: '아자젤 씨! 와 주셨군요!' },
+      { who: 'DS_Azazel', text: '제 모습으로 소란을 피우는 건 그냥 둘 수 없으니까요. 그런데… 저 덱, 제 전술을 그대로 따라 했군요.' },
+      { who: 'IW_AzazelAlter', text: '[모의 개체 타락한 아자젤] 원본 확인. 원본보다 효율적인 전술을 증명한다.' },
+      { who: 'DS_Azazel', text: '후후, 그런가요? 오렌지에이드 씨, 회피는 한 번만 막아 준다는 것, 잊지 마세요.' },
+    ],
+    outro: [
+      { who: 'IW_AzazelAlter', text: '[모의 개체 타락한 아자젤] 증명… 실패. 원본의 전술이… 우위.' },
+      { who: 'DS_Azazel', text: '수고했어요, 오렌지에이드 씨. 덕분에 제 이름에 먹칠하지 않게 됐네요.' },
+      { who: '3P_Alexandra', text: '마지막 구역의 반응이 커지고 있어요. 레모네이드 시리즈의 가장 깊은 기록… 오메가예요.' },
+      { who: 'PECS_LemonadeAlpha', text: '…역시 그랬군요. 오렌지에이드, 마지막은 제 싸움이기도 해요. 같이 가요.' },
+    ],
+    mid: { half: { who: 'IW_AzazelAlter', text: '[모의 개체 타락한 아자젤] 예상 외 손상. 전술을 다시 계산한다.' }, low: { who: 'IW_AzazelAlter', text: '[모의 개체 타락한 아자젤] 원본의 제자, 여기서 탈락한다.' } },
+    lose: { who: 'IW_AzazelAlter', text: '[모의 개체 타락한 아자젤] 원본보다 우월함을 증명했다.' },
+  },
+  {
+    id: 'ex4', no: 'EX4', chapter: 'ex', title: '오메가', sub: '외전 결전 · 모의 개체 레모네이드 오메가', bg: 'red_boss', bgm: 'boss2', boss: true,
+    desc: '외전의 마지막 상대. 비용 8의 오메가와 철충 보스를 모은 덱입니다. 어려움 인공지능이 상대합니다.',
+    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 16, level: 'hard',
+      deck: ['IW_LemonadeOmega', 'IW_LemonadeZeta', 'IW_AzazelAlter', 'IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_Stalker', 'PECS_LemonadeGamma', 'PECS_Empress', 'PECS_Hathor', 'SK_IW_Corrode', 'SK_IW_Swarm'] },
+    stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'rounds', v: 12 }],
+    intro: [
+      { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 레모네이드 알파. 그리고 알파의 부하. 기다리고 있었다.' },
+      { who: 'PECS_LemonadeAlpha', text: '제 얼굴을 닮은 데이터가 제 부하에게 말을 걸다니, 기분이 좋지 않네요.' },
+      { who: 'PECS_Orangeade', text: '알파 님, 제가 할게요. 알파 님께 보여 드리고 싶었던 거, 여기서 전부 보여 드릴게요.' },
+      { who: 'PECS_LemonadeAlpha', text: '…좋아요. 뒤는 제가 지켜보고 있을게요. 망설이지 마요.' },
+      { who: '3P_Labiata', text: '오렌지에이드 양, 챔피언의 대국을 보여 주렴. 우리 모두 보고 있단다.' },
+    ],
+    outro: [
+      { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 계산… 불일치. 이 부하는… 알파의 예측을 넘었다.' },
+      { who: 'PECS_LemonadeAlpha', text: '맞아요. 그 아이는 제 예측 따위는 훨씬 넘어섰어요.' },
+      { who: '3P_Alexandra', text: '모든 모의 데이터가 정리됐어요. VR 리그 서버도 정상으로 돌아왔군요. 수고했어요, 두 사람.' },
+      { who: '3P_ConstantiaS2', text: '외전까지 완주라니, 정말 대단하구나. 이번 기록은 리그 명예의 전당에 올려 둘게.' },
+      { who: 'PECS_Orangeade', text: '헤헤… 알파 님, 저 잘했죠?' },
+      { who: 'PECS_LemonadeAlpha', text: '…네. 아주 잘했어요, 오렌지에이드.' },
+    ],
+    mid: { half: { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 손상 확인. 그러나 오메가는 쓰러지지 않는다.' }, low: { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 알파의 부하는 여기까지다.' } },
+    lose: { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 결과는 계산대로다. 다시 오너라, 알파의 부하.' },
   },
 ];
 
