@@ -1,16 +1,18 @@
 // ===== AI =====
-// easy   : 휴리스틱 상위 3개 후보 중 하나를 고른다 (최선이 아닌 수를 자연스럽게 섞음). 가끔 카드를 아끼고 턴을 넘긴다
+// easy   : 일부는 보통처럼 두고, 나머지는 휴리스틱 상위 3개 후보 중 하나를 고른다 (최선이 아닌 수를 섞음). 가끔 카드를 아끼고 턴을 넘긴다
 // normal : 휴리스틱 상위 5개 후보를 실제로 두어 보고(내 전투까지) 평가가 가장 좋은 것을 고른다. 교환·처치·상대 위협을 따진다
 // hard   : 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
 const AI = {
+  EASY_SMART: 0.75, // 쉬움이 보통과 같은 수를 두는 비율 (보통 상대 승률 약 30%를 목표로 맞춘 값)
   // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
   nextAction(game, p, level = 'normal') {
     if (level === 'hard') return this.searchAction(game, p);
     if (level === 'easy') {
       const opts = this.heuristicOptions(game, p).slice(0, 3);
       if (!opts.length) return game.random() < 0.5 ? this.commandAction(game, p) : null;
-      if (game.random() < 0.15) return null; // 카드를 아껴 둔다
+      if (game.random() < this.EASY_SMART) return this.lookaheadAction(game, p); // 절반 이상은 보통처럼 둔다
+      if (game.random() < 0.08) return null; // 카드를 아껴 둔다
       return opts[Math.floor(game.random() * opts.length)];
     }
     return this.lookaheadAction(game, p);

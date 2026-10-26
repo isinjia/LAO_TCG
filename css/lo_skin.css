@@ -342,3 +342,14 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .rs-bp { font-size: 18px; color: #e8e8ea; }
 .rs-bp b { color: var(--lo-yellow); font-family: "Exo 2", sans-serif; font-size: 22px; margin-right: 10px; }
 .rs-bp span { font-size: 14px; color: var(--muted); }
+/* 휴대폰 전투: 손가락으로 누르기 쉽게 버튼을 키운다 (화면에서 약 40px 이상) */
+.compact .b-top-right { gap: 14px; }
+.compact .b-top-right .icon-btn { width: 124px; height: 124px; font-size: 48px; }
+.compact .end-btn { width: 300px; height: 124px; border-radius: 62px; font-size: 40px; }
+.compact .end-btn small { font-size: 18px; }
+.compact .end-turn { width: 310px; }
+.compact .cmd-power { min-width: 360px; min-height: 128px; padding: 14px 18px 14px 14px; gap: 14px; }
+.compact .cmd-power .cp-icon { width: 64px; height: 64px; }
+.compact .cmd-power .cp-name { font-size: 28px; }
+.compact .cmd-power .cp-cost { width: 58px; height: 58px; font-size: 32px; }
+.compact #scr-battle .round-info { right: 24px; top: 160px; }

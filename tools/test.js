@@ -206,6 +206,11 @@ t('교체 단계 저장·복원: 같은 손패, 교체 권한 유지', () => {
   eq(r.phase, 'mulligan'); eq(r.players[0].hand.map(c => c.id).join(), a.hand.map(c => c.id).join(), '같은 손패');
   ok(!r.players[0].mulliganDone, '플레이어는 아직 교체 가능'); ok(r.players[1].mulliganDone, 'AI는 교체 끝');
 });
+t('승패가 정해진 대국 저장·복원: 승자 유지', () => {
+  const { a, b, g } = fresh(D0, D1); g.start(); b.hp = 0; g.phase = 'over'; g.winner = a;
+  const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
+  eq(r.phase, 'over'); eq(r.winner, r.players[g.players.indexOf(a)], '승자 유지');
+});
 t('특수 임무 별 판정', () => {
   const { a, b, g } = fresh(D0, D1); g.start(); g.winner = a;
   a.stats.kills = 5; a.stats.commands = 2; a.stats.skillsUsed = 0; a.stats.guards = 1; a.stats.unitsPlayed = 7;

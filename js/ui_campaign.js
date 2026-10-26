@@ -65,7 +65,7 @@ function renderMap(el) {
       ? `<img class="map-boss map-deco" src="${fullOf(CARDS['IW_LemonadeOmega'])}" alt=""><img class="map-orca map-deco" src="${fullOf(CARDS['PECS_LemonadeAlpha'])}" alt="">
         <div class="zone map-deco" style="left:120px;top:850px">SECTOR 1 · VR 훈련실</div><div class="zone map-deco" style="left:560px;top:640px">SECTOR 2 · 오프라인 구역</div><div class="zone map-deco" style="left:700px;top:90px">SECTOR 3 · 서버 심층부</div>`
       : `<img class="map-boss map-deco" src="${fullOf(CARDS['3P_Labiata'])}" alt=""><img class="map-orca map-deco" src="${fullOf(CARDS['PECS_Orangeade'])}" alt="">
-        <div class="zone map-deco" style="left:330px;top:780px">STAGE A · 예선</div><div class="zone map-deco" style="left:520px;top:130px">STAGE B · 본선</div><div class="zone map-deco" style="left:760px;top:760px">STAGE C · 상위 리그</div>`);
+        <div class="zone map-deco" style="left:330px;top:780px">예선 구역</div><div class="zone map-deco" style="left:520px;top:130px">본선 구역</div><div class="zone map-deco" style="left:760px;top:760px">상위 리그 구역</div>`);
   }
   const idxs = CAMPAIGN.map((s, i) => i).filter(i => chapterOf(CAMPAIGN[i]) === campChapter);
   const posOf = i => (campChapter === 'ex' ? NODE_POS_EX : NODE_POS)[idxs.indexOf(i)];
@@ -106,7 +106,7 @@ function renderStagePanel(el) {
   panel.innerHTML = `
     <div class="stage-hero" style="background-image:url('assets/bg/${s.bg}.jpg')">
       <img src="${fullOf(CARDS[en.portrait])}" alt="">
-      <div class="sh-text"><div class="sh-no">STAGE ${s.no}${s.boss ? ' · BOSS' : ''}</div><h3>${esc(s.title)}</h3><div class="sh-sub">${esc(s.sub)}</div></div>
+      <div class="sh-text"><div class="sh-no">${stageLabel(s)}${s.boss ? ' · 보스' : ''}</div><h3>${esc(s.title)}</h3><div class="sh-sub">${esc(s.sub)}</div></div>
     </div>
     <div class="stage-body">
       <p>${esc(s.desc)}</p>
@@ -137,7 +137,7 @@ async function launchStage(idx, deckId) {
   if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
   if (!await confirmAbandon()) return;
   Audio2.play('start');
-  await playDialogue(s.intro, { bg: s.bg, title: [`MATCH ${s.no}`, s.title] });
+  await playDialogue(s.intro, { bg: s.bg, title: [stageLabel(s), s.title] });
   const en = stageEnemy(s);
   startBattle({
     mode: 'campaign', stageIdx: idx, tutorial: !!s.tutorial, myDeck: deck.cards, myDeckName: deck.name, diff: Store.data.campaign.difficulty,

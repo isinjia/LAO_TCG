@@ -52,13 +52,14 @@ function resumeBattle(snap) {
 }
 function saveBattleSnapshot() {
   // 교체 단계도 저장한다 (첫 손패를 본 뒤 새로고침으로 다시 굴리지 못하게)
-  if (!B || B.cfg.tutorial || B.over || B.game.phase === 'over' || B.game.phase === 'combat') return;
+  // 승패가 정해진 상태도 저장한다: 결과 연출 중에 새로고침하면 그 결과로 바로 마무리한다 (마지막 턴 되감기 방지)
+  if (!B || B.cfg.tutorial || B.over || B.game.phase === 'combat') return;
   const { game, me } = B;
   Store.saveBattle({ game: serializeGame(game), cfg: B.cfg, meIdx: game.players.indexOf(me), meFirst: B.meFirst, round: game.round(), savedAt: Date.now() });
 }
 async function resumeIntro() {
   const myB = B;
-  showBanner('BATTLE RESUME', `라운드 ${B.game.round()}부터 이어서 진행합니다`, 'mine');
+  showBanner('전투 재개', `라운드 ${B.game.round()}부터 이어서 진행합니다`, 'mine');
   const list = $('.log-list');
   B.game.logs.forEach(l => list.appendChild(h(`<div class="${l.kind}">${esc(l.msg)}</div>`)));
   list.appendChild(h('<div class="sys">— 저장된 지점에서 전투 재개 —</div>')); list.scrollTop = 1e9;
@@ -75,7 +76,7 @@ screenHooks.battle = async el => {
   applySpeedVar();
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/${cfg.bg || 'board'}.jpg')"></div><div class="bg-dim"></div>
-    <div class="table"><div class="table-scan"></div><div class="table-mid"></div><div class="table-emblem"><span>VS</span></div><div class="table-side enemy">ENEMY FIELD</div><div class="table-side me">ALLY FIELD</div></div>
+    <div class="table"><div class="table-scan"></div><div class="table-mid"></div><div class="table-emblem"><span>VS</span></div><div class="table-side enemy">적 진영</div><div class="table-side me">아군 진영</div></div>
     ${cmdHtml('enemy', ai)}
     <div class="enemy-hand"></div>
     <div class="stack enemy"><div class="st-deck" data-pile="edeck" title="적 덱"><b data-v="edeck">0</b></div><div class="st-grave" data-pile="egrave" title="적 묘지">묘지 <b data-v="egrave">0</b></div></div>
@@ -726,7 +727,7 @@ async function processEvents() {
       case 'turnStart': {
         const mine = ev.player === B.me;
         renderAll(true);
-        showBanner(mine ? 'YOUR TURN' : 'ENEMY TURN', mine ? `오렌지에이드의 턴 ${game.round()}` : `${B.ai.name}의 턴`, mine ? 'mine' : 'theirs');
+        showBanner(mine ? '내 턴' : '적 턴', mine ? `오렌지에이드의 턴 ${game.round()}` : `${B.ai.name}의 턴`, mine ? 'mine' : 'theirs');
         Audio2.play('round', 0.7);
         // 작전 시간 초과 예고: 시작 2라운드 전부터 내 턴에 알린다
         const left = RULES.OVERTIME_ROUND ? RULES.OVERTIME_ROUND - game.round() : 0;
@@ -735,7 +736,7 @@ async function processEvents() {
         break;
       }
       case 'overtime': {
-        showBanner('OVERTIME', `작전 시간 초과 — ${ev.player === B.me ? '오렌지에이드' : esc(B.ai.name)} 피해 ${ev.v}`, 'theirs');
+        showBanner('시간 초과', `작전 시간 초과 — ${ev.player === B.me ? '오렌지에이드' : esc(B.ai.name)} 피해 ${ev.v}`, 'theirs');
         Audio2.play('warning', 0.8);
         await sleep(900);
         break;
@@ -842,6 +843,7 @@ async function processEvents() {
 async function finishBattle(surrendered) {
   if (!B || B.resultShown) return;
   const myB = B;
+  saveBattleSnapshot(); // 인공지능 턴에 끝난 경우에도 결과 상태를 먼저 남긴다
   B.resultShown = true; B.over = true; B.busy = true;
   clearSelection(); renderAll();
   Tutorial.stop();
@@ -849,10 +851,7 @@ async function finishBattle(surrendered) {
   $$('#modal-root .modal').forEach(m => closeModal(m));
   const { game, me, cfg } = B;
   const win = game.winner === me;
-  Store.clearBattle();
-  await sleepRaw(700); alive(myB);
-  if (win) Audio2.play('win'); else Audio2.play('warning');
-  // 전적
+  // 전적 (결과를 먼저 저장하고 나서 진행 중 전투 기록을 지운다. 그 사이에 새로고침해도 패배가 빠지지 않게)
   const rec = Store.data.record;
   if (win) { rec.w++; rec.streak++; } else { rec.l++; rec.streak = 0; }
   let stars = null, stage = null, got = { cards: [], secretaries: [] }, campaignBp = 0;
@@ -871,6 +870,9 @@ async function finishBattle(surrendered) {
   }
   Store.save();
   const ch = recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp });
+  Store.clearBattle();
+  await sleepRaw(700); alive(myB);
+  if (win) Audio2.play('win'); else Audio2.play('warning');
   // MVP: 가장 많은 피해를 준 카드
   const dmg = Object.entries(me.stats.cardDmg).sort((a, b) => b[1] - a[1]);
   const mvp = dmg.length ? CARDS[dmg[0][0]] : CARDS['PECS_Orangeade'];
@@ -878,7 +880,7 @@ async function finishBattle(surrendered) {
   const box = h(`<div class="modal-box result">
     <div class="rs-art"><div class="mvp">MVP<small>${esc(mvp.n)}${dmg.length ? ` — 피해 ${dmg[0][1]}` : ''}</small></div><img src="${fullOf(mvp.kind === 'unit' ? mvp : CARDS[mvp.art] || mvp)}" alt=""></div>
     <div class="rs-body">
-      <h2 class="${win ? 'win' : 'lose'}">${win ? 'VICTORY' : 'DEFEAT'}</h2>
+      <h2 class="${win ? 'win' : 'lose'}">${win ? '승리' : '패배'}</h2>
       <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : '아깝다! 덱을 다듬어서 다시 도전해 봐요.'}</div>
       ${stage && !win && stage.lose ? `<div class="rs-lose"><b>${esc(CARDS[stage.lose.who].n)}</b>“${esc(stage.lose.text)}”</div>` : ''}
       <div class="rs-stats">
@@ -913,7 +915,7 @@ async function finishBattle(surrendered) {
   const leave = async target => {
     closeModal(m);
     if (cfg.mode === 'campaign' && win && stage.outro) await playDialogue(stage.outro, { bg: stage.bg });
-    if (cfg.mode === 'campaign' && win && stage.epilogue) await playDialogue(stage.epilogue, { bg: 'barracks', title: ['EPILOGUE', '다음 시즌을 기다리며'] });
+    if (cfg.mode === 'campaign' && win && stage.epilogue) await playDialogue(stage.epilogue, { bg: 'barracks', title: ['에필로그', '다음 시즌을 기다리며'] });
     if (cfg.mode === 'campaign' && win && cfg.stageIdx < CAMPAIGN.length - 1) selStage = cfg.stageIdx + 1;
     B = null;
     showScreen(target);

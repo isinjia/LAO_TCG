@@ -41,7 +41,7 @@ const CAMPAIGN = [
   {
     id: 's1', no: '1', title: '첫 도전', sub: '리그 1차전 · 레드후드', bg: 'barracks', bgm: 'battle1',
     desc: '스틸 라인 연대장 레드후드의 속공 덱. 보호기와 중장형으로 초반 공세를 버텨 내세요.',
-    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 20, level: 'normal', style: 'aggro',
+    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 16, level: 'normal', style: 'aggro',
       deck: ['BR_RedHood', 'BR_Cheona', 'BR_Harpy', 'BR_Impet', 'BR_PoniesAnger', 'BR_Emily', 'BR_Gremlin', 'BR_BeastHunter', 'BR_Leona', 'BR_Brownie', 'BR_Pixie', 'SK_BR_Snipe'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'guards', v: 1 }],
     intro: [
@@ -348,6 +348,8 @@ const CAMPAIGN = [
 
 // 별 조건: win(승리), hp(남은 라이프), rounds(라운드 이내) 와 스테이지별 특수 임무
 //   kills(적 전투원 처치 수), commands(작전 지시 사용 수), noSkill(지원 카드 없이), guards(보호기가 막아 낸 공격 수), units(배치한 전투원 수 이하)
+// 스테이지 번호 표시: 0은 튜토리얼, EX는 외전
+function stageLabel(s) { return s.no === '0' ? '튜토리얼' : s.no.startsWith('EX') ? `외전 ${s.no.slice(2)}장` : s.no === '7' ? '준결승' : s.no === '8' ? '결승' : `${s.no}장`; }
 function starLabel(s) {
   if (s.type === 'win') return '승리';
   if (s.type === 'hp') return `라이프 ${s.v} 이상 남기고 승리`;

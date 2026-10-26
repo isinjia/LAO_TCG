@@ -502,7 +502,7 @@ class Game {
 function serializeGame(g) {
   const ids = arr => arr.map(c => c.id);
   return {
-    v: 2, turn: g.turn, current: g.current, phase: g.phase, seed: g.seed, logs: g.logs.slice(-60),
+    v: 2, turn: g.turn, current: g.current, phase: g.phase, seed: g.seed, logs: g.logs.slice(-60), winner: g.winner ? g.players.indexOf(g.winner) : -1,
     players: g.players.map(p => ({
       name: p.name, isAI: p.isAI, portrait: p.portrait, style: p.style, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
@@ -528,6 +528,7 @@ function restoreGame(snap) {
     });
     return p;
   });
+  if (snap.phase === 'over' && snap.winner >= 0) g.winner = g.players[snap.winner];
   return g;
 }
 
