@@ -20,10 +20,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: 규칙 테스트 (실패하면 배포하지 않는다)
+        run: node tools/test.js
       - name: 배포할 파일 모으기
         run: |
           mkdir _site
           cp -r index.html manifest.webmanifest sw.js favicon.ico .nojekyll css js assets _site/
+          # 오프라인 미리 받기 목록: 코드·글꼴·화면 조각·효과음·카드 그림·배경 (전신 그림·배경음·음성은 볼 때 받는다)
+          (cd _site && { echo index.html; echo manifest.webmanifest; find css js assets/font assets/ui assets/sfx assets/skill assets/art assets/bg -type f; } > precache.txt)
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

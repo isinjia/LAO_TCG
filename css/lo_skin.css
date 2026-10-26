@@ -127,7 +127,7 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 
 /* ---------- 결과 ---------- */
 .result h2.win { color: var(--lo-yellow); text-shadow: 0 0 40px rgba(255,198,0,0.5); }
-.result .rs-art .mvp { color: var(--lo-yellow); }
+.result .rs-art .mvp { color: var(--lo-yellow); background: linear-gradient(90deg, rgba(10,11,13,0.88), rgba(10,11,13,0.6) 70%, transparent); padding: 10px 40px 10px 14px; left: 0; top: 16px; }
 
 /* ---------- 전투 중 대사 ---------- */
 .bark { position: absolute; top: calc(150px + var(--oy)); z-index: 470; display: flex; align-items: flex-end; gap: 0; width: 520px; pointer-events: none; animation: barkIn 0.3s ease-out; transition: opacity 0.4s, transform 0.4s; }
@@ -152,7 +152,7 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 
 /* ---------- 도전 모드 화면 ---------- */
 .ch-deck { background: #1d1e22; color: var(--text); border: 1px solid var(--lo-edge); padding: 8px 10px; font-size: 17px; min-width: 260px; }
-.ch-wrap { position: absolute; left: 0; right: 0; top: 84px; bottom: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; padding: 30px 36px; }
+.ch-wrap { position: absolute; left: 0; right: 0; top: 84px; bottom: 0; display: grid; grid-template-columns: 1fr 1fr 1fr 0.9fr; gap: 20px; padding: 26px 28px; }
 .ch-col { padding: 26px 30px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 .ch-col h3 { margin: 0; font-size: 32px; font-weight: 900; }
 .ch-col h3 small { font-size: 18px; color: var(--muted); font-family: "Exo 2", sans-serif; }
@@ -361,3 +361,38 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .reveal.ss .rv-who { color: #ffd65a; font-size: 26px; }
 .reveal.ss .rv-who::after { content: " · SS"; font-family: "Exo 2", sans-serif; }
 @keyframes ssBeam { 0% { opacity: 0; width: 200px; } 25% { opacity: 1; } 100% { opacity: 0; width: 1900px; } }
+/* 예상 피해 표시는 그림 가운데를 가리지 않게 카드 위쪽 띠에 둔다 */
+.unit .u-fc { top: 6px; transform: translateX(-50%); font-size: 24px; padding: 2px 12px; }
+.unit .u-fc.miss { font-size: 18px; }
+/* 휴대폰 전투: 작은 표시 글자를 화면에서 약 9~11px 이상이 되게 키운다 (전장 배율 약 0.35 기준) */
+.compact .slot::before { font-size: 34px; letter-spacing: 0.15em; }
+.compact .table-side { font-size: 26px; letter-spacing: 0.3em; }
+.compact .st-grave, .compact .hs-title { font-size: 30px; padding: 6px 14px; }
+.compact .hs-item span { width: 40px; height: 40px; font-size: 26px; }
+.compact .round-info span { font-size: 28px; }
+.compact .round-info b { font-size: 36px; }
+.compact .phase-label { font-size: 30px; }
+.compact .hero-name { font-size: 34px; }
+.compact .hero-name small { font-size: 26px; }
+.compact .unit .u-name { font-size: 28px; bottom: 52px; }
+.compact .unit .u-tags { font-size: 23px; }
+.compact .end-btn small { font-size: 24px; }
+.compact .cmd-power .cp-name small { font-size: 22px; }
+.compact .hero-ap { font-size: 32px; }
+/* 보급 원정 선택 창 */
+.draft-pick { width: 1100px; max-width: 94%; }
+.draft-pick h3 small { font-family: "Exo 2", sans-serif; color: var(--lo-yellow); margin-left: 10px; }
+.dp-row { display: flex; gap: 26px; justify-content: center; margin: 18px 0; }
+.dp-cards .card { cursor: pointer; transition: transform 0.15s; }
+.dp-cards .card:hover { transform: translateY(-10px) scale(1.04); }
+.dp-fac { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 22px; background: linear-gradient(180deg, #2c2e33, #1b1c20); border: 1px solid var(--lo-edge); color: #fff; font-family: inherit; font-size: 24px; font-weight: 900; cursor: pointer; }
+.dp-fac:hover { border-color: var(--lo-yellow); filter: brightness(1.15); }
+.dp-fac span { display: flex; align-items: center; gap: 10px; }
+.dp-fac span i { width: 18px; height: 18px; background: var(--fc); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.dp-fac small { font-size: 16px; color: var(--muted); font-weight: 600; }
+.dp-picked { display: flex; flex-wrap: wrap; gap: 6px; min-height: 34px; }
+.dp-chip { font-size: 15px; padding: 4px 10px; background: rgba(255,255,255,0.06); border-left: 3px solid #888; }
+.dp-chip.g-A { border-color: #5fb0ff; } .dp-chip.g-S { border-color: #c77dff; } .dp-chip.g-SS { border-color: #ffc600; }
+.dp-empty { color: var(--muted); font-size: 15px; }
+.compact .dp-chip, .compact .dp-fac small, .compact .dp-empty { font-size: 22px; }
+.compact .dp-fac { font-size: 30px; }

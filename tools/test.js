@@ -89,7 +89,7 @@ t('반격', () => {
 t('관통: 초과 피해가 사령관에게', () => {
   const { a, b, g } = fresh(D0, D1); g.start();
   const p = makeUnit(CARDS['BR_RedHood'], a); p.summonedTurn = -5; a.lanes[0] = p; // 3 관통, 경장
-  const v = makeUnit(CARDS['PECS_MissSafety'], b); v.summonedTurn = -5; b.lanes[0] = v; // 경장 1/2
+  const v = makeUnit(CARDS['PECS_MissSafety'], b); v.summonedTurn = -5; v.hp = v.maxHp = 2; b.lanes[0] = v; // 경장, 체력 2로 고정
   const hp = b.hp; g.endTurn(); eq(b.hp, hp - 1);
 });
 t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); const g = new Game(a, new Player('X', D1)); const s = makeUnit(CARDS['3P_Vanilla'], a); const u = makeUnit(CARDS['3P_Alice'], a); a.lanes = [u, s, null]; eq(g.effectiveAtk(u), CARDS['3P_Alice'].a + 1); });

@@ -72,7 +72,7 @@ function touchText(s) { return IS_TOUCH ? String(s).replace(/마우스를 올리
 // ---------- 카드 텍스트 ----------
 function kwText(card) {
   const parts = (card.kw || []).map(k => { const [n, v] = k.split(':'); return `<span class="kw">${n}${v ? ' ' + v : ''}</span>`; });
-  if (card.text) parts.push(esc(card.text).replace(/^(전개|격파):/, '<span class="kw">$1</span>:'));
+  if (card.text) parts.push(esc(card.text).replace(/^(전개|격파|공격 후):/, '<span class="kw">$1</span>:'));
   return parts.join(' · ');
 }
 function kwHelpList(card) {
@@ -84,6 +84,7 @@ function kwHelpList(card) {
   }
   (card.kw || []).forEach(k => { const [n, v] = k.split(':'); out.push([`${n}${v ? ' ' + v : ''}`, (KEYWORD_HELP[n] || '').replace('N', v || 'N')]); });
   if (card.deploy) out.push(['전개', '배치되는 즉시 효과가 발동한다.']);
+  if (card.strike) out.push(['공격 후', '이 유닛이 공격한 뒤 살아 있으면 효과가 발동한다.']);
   if (card.death) out.push(['격파', '파괴될 때 효과가 발동한다.']);
   return out;
 }
@@ -327,7 +328,7 @@ const HOWTO = [
     <tr><th><span class="tag role-DEF">보호기</span></th><td>양옆 레인을 노리는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어듭니다 (최소 1).</td></tr>
     <tr><th><span class="tag role-SUP">지원기</span></th><td>양옆 레인 아군의 공격력을 +1 올립니다.</td></tr></table>`],
   ['키워드', `<table>${Object.entries(KEYWORD_HELP).filter(([k]) => !['공격기', '보호', '지원'].includes(k)).map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('')}
-    <tr><th>전개</th><td>배치되는 즉시 효과가 발동합니다.</td></tr><tr><th>격파</th><td>파괴될 때 효과가 발동합니다.</td></tr></table>`],
+    <tr><th>전개</th><td>배치되는 즉시 효과가 발동합니다.</td></tr><tr><th>격파</th><td>파괴될 때 효과가 발동합니다.</td></tr><tr><th>공격 후</th><td>그 유닛이 공격한 뒤 살아 있으면 효과가 발동합니다.</td></tr></table>`],
   ['제작사', `<table>${PLAYER_FACTIONS.map(f => `<tr><th style="color:${FACTIONS[f].color}">${FACTIONS[f].name}</th><td>${{ '3P': '균형형. 오르카호의 정예 전투원과 함포 지원.', PECS: '회복·버프·AP 가속. 장기전에 강합니다.', BR: '고화력 공격과 직접 피해. 돌격 전투원이 많습니다.', DS: '회피와 암살. 적 전투원을 제거하며 파고듭니다.', AGS: '중장 로봇과 방어막. 단단하게 버티며 반격합니다.' }[f]}</td></tr>`).join('')}
     <tr><th style="color:${FACTIONS.IW.color}">철충</th><td>철충 연구 자료로 만든 특수 카드입니다. 스토리의 일부 상대가 사용하며, 무리 소환과 부식 공격이 특징입니다.</td></tr></table>`],
   ['조작', `<table>

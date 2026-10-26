@@ -61,7 +61,8 @@ const AI = {
   evalSkill(game, p, o, c) {
     const kind = skillTargetKind(c);
     const eu = o.units(), au = p.units();
-    const e = c.fx[0];
+    // 대상을 고르는 효과가 있으면 그것을 주 효과로, 나머지 효과는 덤으로 더한다 (예: 피해+둔화, 드로우+AP)
+    const e = c.fx.find(x => /^pick/.test(x.tgt || '')) || c.fx[0];
     let value = 0, target = null;
     switch (e.op) {
       case 'dmg':
@@ -85,7 +86,20 @@ const AI = {
       case 'sacrificeBlast': au.forEach(u => { const v = u.atk * eu.length - u.card.c - c.c + 2; if (v > value) { value = v; target = { unit: u }; } }); break;
     }
     if (kind !== 'none' && !target) value = 0;
+    else value += this.extraFxValue(c.fx.filter(x => x !== e), p, o);
     return { value, target };
+  },
+  // 주 효과 외 효과의 대략적인 가치 (비용은 주 효과 쪽에서 이미 뺐다)
+  extraFxValue(fxs, p, o) {
+    const eu = o.units(), au = p.units();
+    return fxs.reduce((s, x) => s + ({
+      dmg: x.tgt === 'allEnemyUnits' ? eu.reduce((t, u) => t + Math.min(u.hp, x.v), 0) : x.tgt === 'enemyCmd' ? x.v : x.v * 0.6,
+      draw: (x.v || 1) * 1.5, res: (x.v || 1) * (p.hand.some(h => !p.canAfford(h)) ? 1 : 0.3),
+      slow: eu.length ? 1.5 : 0, debuff: eu.length ? (x.a || 1) : 0,
+      shield: (x.tgt === 'allAllies' ? au.length : 1) * (x.v || 1) * 0.8, evade: x.tgt === 'allAllies' ? au.length * 1.2 : 1,
+      buffAll: au.length * ((x.a || 0) + (x.h || 0)) * 0.9, buff: ((x.a || 0) + (x.h || 0)) * 0.9,
+      heal: Math.min(p.maxHp - p.hp, x.v || 0), healAll: au.reduce((t, u) => t + Math.min(u.maxHp - u.hp, x.v), 0),
+    }[x.op] || 0), 0);
   },
 
   // ---- hard: 탐색 ----

@@ -30,7 +30,7 @@ const CAMPAIGN = [
     outro: [
       { who: 'AGS_SpartanA', text: '훈련 종료. 귀 유닛의 기본기는 합격이다.' },
       { who: '3P_ConstantiaS2', text: '잘했어. 이 정도면 정식 참가 자격은 충분하잖니.' },
-      { who: '3P_ConstantiaS2', text: '리그는 여덟 번의 대국으로 치러져요. 첫 상대는 스틸 라인의 레드후드야.' },
+      { who: '3P_ConstantiaS2', text: '리그는 여덟 번의 대국으로 치러진단다. 첫 상대는 스틸 라인의 레드후드야.' },
       { who: 'PECS_Orangeade', text: '레드후드 씨요…? 연대장님이시잖아요! 그, 그래도 해 볼게요!' },
       { who: '3P_ConstantiaS2', text: '참, 알파 씨한테는 말했니?' },
       { who: 'PECS_Orangeade', text: '아직이요… 우승하고 나서 깜짝 놀라게 해 드릴 거거든요!' },
@@ -41,7 +41,7 @@ const CAMPAIGN = [
   {
     id: 's1', no: '1', title: '첫 도전', sub: '리그 1차전 · 레드후드', bg: 'barracks', bgm: 'battle1',
     desc: '스틸 라인 연대장 레드후드의 속공 덱. 보호기와 중장형으로 초반 공세를 버텨 내세요.',
-    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 16, level: 'normal', style: 'aggro',
+    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 16, level: 'easy', style: 'aggro',
       deck: ['BR_RedHood', 'BR_Cheona', 'BR_Harpy', 'BR_Impet', 'BR_PoniesAnger', 'BR_Emily', 'BR_Gremlin', 'BR_BeastHunter', 'BR_Leona', 'BR_Brownie', 'BR_Pixie', 'SK_BR_Snipe'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'guards', v: 1 }],
     intro: [
@@ -68,7 +68,7 @@ const CAMPAIGN = [
   {
     id: 's2', no: '2', title: '회복의 숲', sub: '리그 2차전 · 엘븐 포레스트메이커', bg: 'mansion', bgm: 'battle2',
     desc: '끊임없이 회복하는 엘프 덱. 회복량보다 빠르게 피해를 쌓아야 합니다.',
-    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 32, level: 'normal', style: 'control',
+    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 27, level: 'normal', style: 'control',
       deck: ['PECS_ElvenForestmaker', 'PECS_HighElven', 'PECS_DarkElf', 'PECS_Sekhmet', 'PECS_Hestia', 'PECS_LemonadeBeta', 'PECS_Fortune', 'PECS_Sonia', 'PECS_Cerberus', 'PECS_Muse', 'SK_PECS_Blessing', 'SK_PECS_Repair'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'kills', v: 15 }],
     intro: [
@@ -169,7 +169,7 @@ const CAMPAIGN = [
   {
     id: 's6', no: '6', title: '강철 군단', sub: '리그 6차전 · 신속의 칸', bg: 'sub', bgm: 'battle1',
     desc: '침식된 AGS와 아이언 프린스 카드로 짠 신속의 칸의 덱. 광역 공격에 대비해 유닛을 분산하세요.',
-    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 18, level: 'normal', style: 'balanced',
+    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 15, level: 'normal', style: 'balanced',
       deck: ['IW_IronPrince', 'IW_Robert', 'IW_MetalGuard', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Gigantes', 'AGS_Deathstalker', 'AGS_Fortress', 'AGS_Roc', 'SK_IW_Corrode', 'SK_AGS_Barrier'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'units', v: 9 }],
@@ -233,7 +233,7 @@ const CAMPAIGN = [
       { who: 'PECS_LemonadeAlpha', text: '오렌지에이드. 결승 전에 하나만 말해 둘게요.' },
       { who: 'PECS_LemonadeAlpha', text: '이기든 지든, 오늘은 끝까지 당신답게 해요. …그거면 돼요.' },
       { who: 'PECS_Orangeade', text: '…네! 알파 님!' },
-      { who: '3P_ConstantiaS2', text: '드디어 결승이에요. 오르카 카드 리그 결승전, 챔피언 라비아타 대 도전자 오렌지에이드!' },
+      { who: '3P_ConstantiaS2', text: '드디어 결승이란다. 오르카 카드 리그 결승전, 챔피언 라비아타 대 도전자 오렌지에이드!' },
       { who: '3P_Labiata', text: '어서 오렴, 오렌지에이드 양. 여기까지 올라온 걸 보니 정말 많이 노력했구나.' },
       { who: 'PECS_Orangeade', text: '라비아타 씨…! 오늘은 챔피언 자리를 받으러 왔어요!' },
       { who: '3P_Labiata', text: '후후, 그 기세 좋구나. 알파 양도 보고 있으니 나도 봐주지 않겠단다.' },

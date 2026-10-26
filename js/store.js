@@ -24,6 +24,7 @@ const Store = {
       supplyV: 1,                // 보급소 도입 표시 (도입 전 저장은 보급 카드를 모두 가진 것으로 친다)
       mastery: {},               // 카드 숙련도: 카드 id → 그 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
+      draft: { run: null, best: 0, clears: 0, runs: 0 },          // 보급 원정 (드래프트)
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
       lessons: {},               // 튜토리얼 뒤 실전에서 한 번씩 보여 주는 규칙 안내 (id → true)
     };
@@ -49,6 +50,7 @@ const Store = {
     d.record = { ...def.record, ...(d.record || {}) };
     d.stats = { ...def.stats, ...(d.stats || {}) };
     d.gauntlet = { ...def.gauntlet, ...(d.gauntlet || {}) };
+    d.draft = { ...def.draft, ...(d.draft || {}) };
     d.daily = { ...def.daily, ...(d.daily || {}) };
     if (!d.ach || typeof d.ach !== 'object') d.ach = {};
     if (!d.mastery || typeof d.mastery !== 'object') d.mastery = {};

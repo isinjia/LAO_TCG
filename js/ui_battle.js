@@ -14,6 +14,7 @@ function abandonSavedBattle() {
   Store.clearBattle();
   const rec = Store.data.record; rec.l++; rec.streak = 0;
   if (snap.cfg.mode === 'gauntlet') Gauntlet.finish(false, 0);
+  if (snap.cfg.mode === 'draft') Draft.finish(false);
   Store.save();
   toast(`이어하지 않은 ${snap.cfg.enemy.name} 전은 패배로 기록되었습니다.`, true);
   return true;
@@ -809,6 +810,7 @@ async function processEvents() {
       case 'evade': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing'); renderAll(); await sleep(280); break; }
       case 'counter': { const el = B.unitEls.get(ev.unit.uid), t = B.unitEls.get(ev.target.uid); floatOn(el, '반격!', 'info'); if (el && t) await boltTo(centerOf(el), centerOf(t), '#ff9a3b', 160); break; }
       case 'guard': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호!', 'shield'); Audio2.play('shield'); await sleep(200); break; }
+      case 'strike': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '공격 후', 'buff'); await sleep(140); break; }
       case 'pierce': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '관통!', 'buff'); await sleep(150); break; }
       case 'dmgCmd': {
         const el = cmdElOf(ev.player);
@@ -906,6 +908,7 @@ async function finishBattle(surrendered) {
         <button class="btn" data-a="lobby">로비</button>
         ${cfg.mode === 'campaign' ? '<button class="btn" data-a="retry">재도전</button><button class="btn primary" data-a="camp">스토리로</button>'
           : cfg.mode === 'gauntlet' ? (Store.data.gauntlet.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="gnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
+          : cfg.mode === 'draft' ? (Store.data.draft.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="dnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
           : cfg.mode === 'daily' ? '<button class="btn" data-a="retry">다시 도전</button><button class="btn primary" data-a="chal">도전 모드로</button>'
           : '<button class="btn" data-a="deck">덱 편성</button><button class="btn primary" data-a="retry">다시 하기</button>'}
       </div>
@@ -931,6 +934,7 @@ async function finishBattle(surrendered) {
   const deck = $('[data-a=deck]', box); if (deck) deck.onclick = () => leave('deck');
   const chal = $('[data-a=chal]', box); if (chal) chal.onclick = () => leave('challenge');
   const gnext = $('[data-a=gnext]', box); if (gnext) gnext.onclick = () => { closeModal(m); B = null; Gauntlet.play(); };
+  const dnext = $('[data-a=dnext]', box); if (dnext) dnext.onclick = () => { closeModal(m); B = null; Draft.play(); };
   const retry = $('[data-a=retry]', box); if (retry) retry.onclick = () => { closeModal(m); const c = B.cfg; B = null; startBattle(c); };
 }
 

@@ -139,6 +139,74 @@ const Gauntlet = {
   },
 };
 
+// ---------- 보급 원정 (드래프트) ----------
+// 규칙과 제시 카드는 draft.js. 고른 카드는 해금 여부와 상관없이 이번 원정에서만 쓴다.
+const Draft = {
+  get run() { return Store.data.draft.run; },
+  async start() {
+    if (!await confirmAbandon()) return;
+    abandonSavedBattle();
+    Store.data.draft.run = { stage: 'faction', choices: draftFactionChoices(Math.random), factions: null, picks: [], offer: null, opps: draftOpponents(Math.random), idx: 0, wins: 0, losses: 0 };
+    Store.data.draft.runs++;
+    Store.save();
+    this.openPicker();
+  },
+  // 제작사 → 카드 12장을 차례로 고르는 창. 닫아도 진행 상황은 저장되어 다시 열 수 있다
+  openPicker() {
+    const r = this.run; if (!r || r.stage === 'battle') return;
+    let box;
+    if (r.stage === 'faction') {
+      box = h(`<div class="modal-box draft-pick"><h3>보급 원정 · 제작사 선택</h3><p>이번 원정에서 쓸 제작사 두 곳을 고르세요. 그 두 곳의 카드 중에서 세 장씩 제시됩니다.</p>
+        <div class="dp-row">${r.choices.map((pair, i) => `<button class="dp-fac" data-i="${i}">${pair.map(f => `<span style="--fc:${FACTIONS[f].color}"><i></i>${esc(FACTIONS[f].name)}</span>`).join('')}<small>${draftPool(pair).filter(c => c.kind === 'unit').length}장의 전투원</small></button>`).join('')}</div>
+        <div class="modal-actions"><button class="btn" data-a="later">나중에</button></div></div>`);
+    } else {
+      if (!r.offer) { r.offer = draftOffer(r.factions, r.picks, Math.random); Store.save(); }
+      box = h(`<div class="modal-box draft-pick"><h3>보급 원정 · 카드 선택 <small>${r.picks.length + 1} / ${RULES.DECK_SIZE}</small></h3><p>세 장 중 한 장을 덱에 넣습니다. 비용이 낮은 카드도 섞어야 초반을 버틸 수 있습니다.</p>
+        <div class="dp-row dp-cards"></div>
+        <div class="dp-picked">${r.picks.map(id => `<span class="dp-chip g-${CARDS[id].g}">${CARDS[id].c} · ${esc(CARDS[id].n)}</span>`).join('') || '<span class="dp-empty">아직 고른 카드가 없습니다</span>'}</div>
+        <div class="modal-actions"><button class="btn" data-a="later">나중에</button></div></div>`);
+      const row = $('.dp-cards', box);
+      r.offer.forEach(id => { const ce = cardEl(CARDS[id], { w: 250 }); ce.onclick = () => { Audio2.play(CARDS[id].g === 'SS' ? 'pickSS' : 'pick'); closeModal(m); this.pick(id); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(CARDS[id]); }; row.appendChild(ce); });
+    }
+    const m = openModal(box);
+    $$('.dp-fac', box).forEach(b => b.onclick = () => { Audio2.play('click'); r.factions = r.choices[+b.dataset.i]; r.stage = 'cards'; Store.save(); closeModal(m); this.openPicker(); });
+    $('[data-a=later]', box).onclick = () => { closeModal(m); showScreen('challenge', { instant: true }); };
+  },
+  pick(id) {
+    const r = this.run; if (!r) return;
+    r.picks.push(id); r.offer = null;
+    if (r.picks.length >= RULES.DECK_SIZE) { r.stage = 'battle'; Store.save(); toast('덱 완성! 원정 대국을 시작합니다.'); showScreen('challenge', { instant: true }); return; }
+    Store.save(); this.openPicker();
+  },
+  async play() {
+    const r = this.run; if (!r) return;
+    if (r.stage !== 'battle') { this.openPicker(); return; }
+    const saved = Store.loadBattle();
+    if (saved && saved.cfg.mode === 'draft' && saved.cfg.draft.idx === r.idx) { resumeBattle(saved); return; }
+    if (!await confirmAbandon()) return;
+    abandonSavedBattle();
+    if (!this.run) return;
+    const st = CAMPAIGN.find(s => s.id === r.opps[r.idx]);
+    startBattle({
+      mode: 'draft', myDeck: r.picks.slice(), myDeckName: '원정 덱', userDeck: false,
+      enemy: { ...st.enemy, hp: DRAFT.ENEMY_HP, level: DRAFT.LEVELS[r.idx] },
+      first: 'random', bg: st.bg, bgm: r.idx === DRAFT.MATCHES - 1 ? 'boss2' : st.bgm,
+      draft: { idx: r.idx, total: DRAFT.MATCHES },
+    });
+  },
+  finish(win) {
+    const d = Store.data.draft, r = d.run; if (!r) return '';
+    let note;
+    if (win) { r.wins++; r.idx++; }
+    else r.losses++;
+    if (r.wins >= DRAFT.MATCHES) { d.clears++; d.best = DRAFT.MATCHES; d.run = null; note = `보급 원정 돌파! ${DRAFT.MATCHES}승 ${r.losses}패`; }
+    else if (r.losses >= DRAFT.LOSSES) { d.best = Math.max(d.best, r.wins); d.run = null; note = `보급 원정 종료 — ${r.wins}승 ${r.losses}패`; }
+    else { d.best = Math.max(d.best, r.wins); note = win ? `원정 ${r.wins}승 ${r.losses}패 — 다음 상대로` : `원정 ${r.wins}승 ${r.losses}패 — 같은 상대에게 다시 도전합니다 (남은 기회 ${DRAFT.LOSSES - r.losses})`; }
+    Store.save();
+    return note;
+  },
+};
+
 // ---------- 오늘의 대국 ----------
 // 날짜마다 정해지는 상대(스토리 상대 7명 + 프리셋 덱 4종)와 특수 조건 8종. 조건마다 상대 인공지능 수준이 다르다.
 // 보통 AI 플레이어 기준 전체 승률 약 40% (조건별 35~48%)로 맞췄다.
@@ -215,6 +283,8 @@ function recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp = 0
   let note = '';
   const g0 = Store.data.gauntlet.clears, d0 = Store.data.daily.wins;
   if (cfg.mode === 'gauntlet') note = Gauntlet.finish(win && !surrendered, me.hp);
+  const dr0 = Store.data.draft.clears;
+  if (cfg.mode === 'draft') note = Draft.finish(win && !surrendered);
   if (cfg.mode === 'daily') note = Daily.finish(win && !surrendered, cfg.daily.day);
   const before = LOBBY_BGS.filter(lobbyBgUnlocked).length;
   const info = {
@@ -229,6 +299,7 @@ function recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp = 0
   else if (!info.win && !surrendered && cfg.enemy.level !== 'easy') bp += 1;
   if (Store.data.daily.wins > d0) bp += 6;
   if (Store.data.gauntlet.clears > g0) bp += 20;
+  if (Store.data.draft.clears > dr0) bp += 20; // 원정 돌파 보너스 (승리마다의 포인트는 위에서 이미 더했다)
   Store.data.bp = (Store.data.bp || 0) + bp; Store.save();
   return { note, achievements, newBgs, masteryUps: info.masteryUps || [], bp };
 }
@@ -284,6 +355,7 @@ screenHooks.challenge = el => {
   const g = Store.data.gauntlet, run = g.run;
   const dly = Daily.info(), done = Daily.doneToday();
   const runStage = run ? CAMPAIGN.find(s => s.id === run.stages[run.idx]) : null;
+  const dr = Store.data.draft, drun = dr.run;
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/squad.jpg');opacity:.3"></div>
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>도전 모드</h2><span class="sub">스토리 뒤에도 계속 즐길 수 있는 대국</span><span class="spacer"></span>
@@ -300,6 +372,18 @@ screenHooks.challenge = el => {
         <div class="ch-stats"><div><span>최고 기록</span><b>${g.best}/${GAUNTLET.MATCHES}</b></div><div><span>돌파 횟수</span><b>${g.clears}</b></div><div><span>최고 남은 라이프</span><b>${g.bestClearHp || '-'}</b></div></div>
         ${run ? `<div class="ch-now">진행 중: ${run.idx + 1}번째 대국 · ${esc(runStage.enemy.name)} · 내 라이프 ${run.hp}${run.deckName ? ` · 덱 「${esc(run.deckName)}」 고정` : ""}</div>` : ''}
         <div class="ch-actions">${run ? '<button class="btn" data-a="g-quit">포기</button><button class="btn primary big" data-a="g-go">이어서 대국</button>' : '<button class="btn primary big" data-a="g-new">순회전 시작</button>'}</div>
+      </div>
+      <div class="panel ch-col">
+        <div class="ch-kicker">EXPEDITION</div><h3>보급 원정</h3>
+        <p>제작사 두 곳을 고르고, 세 장 중 한 장씩 12번 골라 즉석 덱을 만듭니다. 그 덱으로 다섯 번 이기면 돌파, ${DRAFT.LOSSES}번 지면 끝납니다. 아직 해금하지 않은 카드도 원정에서는 쓸 수 있습니다.</p>
+        <div class="ch-path">${Array.from({ length: DRAFT.MATCHES }, (_, i) => {
+          const st = drun && drun.opps ? CAMPAIGN.find(s => s.id === drun.opps[i]) : null;
+          const state = !drun || drun.stage !== 'battle' ? '' : i < drun.idx ? 'done' : i === drun.idx ? 'now' : '';
+          return `<div class="ch-node ${state}"><div class="cn-face" style="${st && drun.stage === 'battle' ? `background-image:url('${artOf(CARDS[st.enemy.portrait])}')` : ''}">${st && drun.stage === 'battle' ? '' : '?'}</div><span>${i + 1}</span></div>`;
+        }).join('<i></i>')}</div>
+        <div class="ch-stats"><div><span>최고 승수</span><b>${dr.best}/${DRAFT.MATCHES}</b></div><div><span>돌파 횟수</span><b>${dr.clears}</b></div><div><span>원정 횟수</span><b>${dr.runs}</b></div></div>
+        ${drun ? `<div class="ch-now">${drun.stage === 'battle' ? `진행 중: ${drun.wins}승 ${drun.losses}패 · 다음 상대 ${esc(CAMPAIGN.find(s => s.id === drun.opps[drun.idx]).enemy.name)}` : `덱 만드는 중: ${drun.picks.length} / ${RULES.DECK_SIZE}장`}</div>` : ''}
+        <div class="ch-actions">${drun ? `<button class="btn" data-a="dr-quit">포기</button><button class="btn primary big" data-a="dr-go">${drun.stage === 'battle' ? '이어서 대국' : '덱 이어서 만들기'}</button>` : '<button class="btn primary big" data-a="dr-new">원정 시작</button>'}</div>
       </div>
       <div class="panel ch-col">
         <div class="ch-kicker">DAILY · ${dly.day}</div><h3>오늘의 대국</h3>
@@ -327,4 +411,11 @@ screenHooks.challenge = el => {
     g.best = Math.max(g.best, run.idx); g.run = null; Store.save(); showScreen('challenge', { instant: true });
   };
   $('[data-a=d-go]', el).onclick = () => Daily.play(challengeState.deck);
+  const drNew = $('[data-a=dr-new]', el); if (drNew) drNew.onclick = () => Draft.start();
+  const drGo = $('[data-a=dr-go]', el); if (drGo) drGo.onclick = () => Draft.play();
+  const drQuit = $('[data-a=dr-quit]', el);
+  if (drQuit) drQuit.onclick = async () => {
+    if (!await confirmBox('원정 포기', '진행 중인 보급 원정을 포기할까요? 지금까지의 승수는 최고 기록에 반영됩니다.', '포기', true)) return;
+    dr.best = Math.max(dr.best, drun.wins); dr.run = null; Store.save(); showScreen('challenge', { instant: true });
+  };
 };

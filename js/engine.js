@@ -413,6 +413,11 @@ class Game {
       if (!this.canAttack(u)) continue;
       if (u.slowed) { u.slowed = false; this.emit({ type: 'skip', unit: u }); this.log(`${u.card.n}은(는) 둔화로 공격하지 못합니다.`); continue; }
       this.attack(u, lane);
+      // 공격 후 효과: 공격한 유닛이 살아 있으면 발동한다
+      if (u.card.strike && u.hp > 0 && p.lanes[lane] === u && this.phase !== 'over') {
+        this.emit({ type: 'strike', unit: u });
+        this.runEffects(u.card.strike, p, { unit: u, lane, src: u.card });
+      }
     }
   }
 
