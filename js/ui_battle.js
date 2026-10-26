@@ -281,7 +281,7 @@ function showSelPreview(card) {
   $$('.sel-preview').forEach(e => e.remove());
   if (!document.body.classList.contains('compact') || card === COMMAND_CARD) return;
   const box = h('<div class="sel-preview"></div>');
-  box.appendChild(cardEl(card, { w: 380, noHover: true }));
+  box.appendChild(cardEl(card, { w: 320, noHover: true })); // 전장 왼쪽 빈 곳(기록 줄 위)에 들어가는 크기
   $('#scr-battle').appendChild(box);
 }
 function startMove(u) {
@@ -1011,7 +1011,7 @@ function checkBark() {
 function showBark(line) {
   const c = CARDS[line.who]; if (!c) return;
   const old = $('#scr-battle .bark'); if (old) old.remove();
-  const el = h(`<div class="bark ${speakerSide(line.who)}"><div class="bk-face" style="background-image:url('${artOf(c)}')"></div><div class="bk-body"><div class="bk-who">${esc(c.n)}</div><div class="bk-text">${esc(line.text)}</div></div></div>`);
+  const el = h(`<div class="bark ${line.who === 'PECS_Orangeade' ? 'left' : 'right'}"><div class="bk-face" style="background-image:url('${artOf(c)}')"></div><div class="bk-body"><div class="bk-who">${esc(c.n)}</div><div class="bk-text">${esc(line.text)}</div></div></div>`);
   $('#scr-battle').appendChild(el);
   Audio2.play('card', 0.5);
   setTimeout(() => el.classList.add('out'), 4200);

@@ -410,7 +410,7 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 /* 턴 종료 아래 안내 글이 덱 상자와 겹치지 않게 한 줄로 */
 .end-turn .phase-label { white-space: nowrap; max-width: none; }
 /* 휴대폰: 고른 손패 크게 보기, 설정 버튼·덱 목록 글자 */
-.sel-preview { position: absolute; left: calc(130px + var(--ox, 0px)); top: calc(150px + var(--oy, 0px)); z-index: 30; pointer-events: none; animation: spawnAnim 0.2s; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8)); }
+.sel-preview { position: absolute; left: calc(16px + var(--ox, 0px)); top: calc(190px + var(--oy, 0px)); z-index: 30; pointer-events: none; animation: spawnAnim 0.2s; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8)); }
 .compact .seg button { font-size: 30px; padding: 16px 26px; }
 .compact .deck-row { font-size: 28px; height: 64px; }
 /* 원정: 고른 카드 요약 (비용 곡선) */

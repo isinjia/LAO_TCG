@@ -147,8 +147,16 @@ async function launchStage(idx, deckId) {
 
 // ---------- 대화 ----------
 // 오렌지에이드와 리그 운영자 콘스탄챠는 왼쪽, 대국 상대와 그 일행은 오른쪽에 선다
-function speakerSide(who) {
-  return who === 'PECS_Orangeade' || who === '3P_ConstantiaS2' ? 'left' : 'right';
+// 말하는 인물을 세울 자리: 이미 서 있으면 그 자리, 주인공은 왼쪽,
+// 다른 인물은 빈 자리(오른쪽 먼저)나 가장 오래 말하지 않은 인물의 자리를 차지한다
+function speakerSide(who, stage) {
+  if (stage.left.who === who) return 'left';
+  if (stage.right.who === who) return 'right';
+  if (who === 'PECS_Orangeade') return 'left';
+  if (!stage.right.who) return 'right';
+  if (!stage.left.who) return 'left';
+  if (stage.left.who === 'PECS_Orangeade') return 'right';
+  return stage.left.last < stage.right.last ? 'left' : 'right';
 }
 function playDialogue(lines, opts = {}) {
   if (!lines || !lines.length) return Promise.resolve();
@@ -161,6 +169,7 @@ function playDialogue(lines, opts = {}) {
       <div class="dl-box"><div class="dl-name"></div><div class="dl-text"></div><div class="dl-next">▼ 클릭</div></div>`;
     d.classList.add('show');
     let i = -1, typing = null, full = '', auto = false, autoT = null;
+    const stage = { left: { who: null, last: -1 }, right: { who: null, last: -1 } };
     const textEl = $('.dl-text', d);
     // 자동 넘김: 글이 다 나온 뒤 길이에 맞춰 기다렸다가 다음 대사로
     const armAuto = () => { clearTimeout(autoT); if (auto && !typing) autoT = setTimeout(() => { if (auto && !$('.dl-logbox', d)) next(); }, 1400 + full.length * 45); };
@@ -171,7 +180,8 @@ function playDialogue(lines, opts = {}) {
       i++;
       if (i >= lines.length) return finish();
       const L = lines[i], c = CARDS[L.who];
-      const side = speakerSide(L.who);
+      const side = speakerSide(L.who, stage);
+      stage[side].who = L.who; stage[side].last = i;
       const ch = $(`.dl-char.${side}`, d), other = $(`.dl-char.${side === 'left' ? 'right' : 'left'}`, d);
       // 등장인물이 바뀌면 옆에서 미끄러져 들어오고, 같은 인물이 이어 말하면 살짝 들썩인다
       const src = fullOf(c);
@@ -204,15 +214,10 @@ function playDialogue(lines, opts = {}) {
       next();
     };
     window.addEventListener('keydown', key);
-    // 전신 그림을 미리 받아 글자보다 인물이 늦게 뜨지 않게 하고(최대 0.8초 기다림),
-    // 대화에 나오는 양쪽 첫 인물을 처음부터 함께 세워 둔다 (말하는 쪽만 밝게)
+    // 전신 그림을 미리 받아 글자보다 인물이 늦게 뜨지 않게 한다(최대 0.8초 기다림).
+    // 인물은 처음 말할 때 등장하고, 말을 마친 인물은 상대가 말하는 동안 어둡게 남는다
     const srcs = [...new Set(lines.map(L => CARDS[L.who] && fullOf(CARDS[L.who])).filter(Boolean))];
     const loads = srcs.map(src => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = src; }));
-    ['left', 'right'].forEach(side => {
-      const L = lines.find(x => speakerSide(x.who) === side && CARDS[x.who]); if (!L) return;
-      const ch = $(`.dl-char.${side}`, d), src = fullOf(CARDS[L.who]);
-      ch.dataset.src = src; ch.style.backgroundImage = `url('${src}')`; ch.classList.add('dim'); retrigger(ch, 'enter');
-    });
     Promise.race([Promise.all(loads.slice(0, 3)), sleepRaw(800)]).then(next);
   });
 }
