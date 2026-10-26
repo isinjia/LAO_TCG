@@ -21,9 +21,13 @@ button { font-family: inherit; }
 input, select { font-family: inherit; }
 img { -webkit-user-drag: none; }
 
-/* ---------- 스테이지 (1920x1080 고정, 화면에 맞춰 스케일) ---------- */
+/* ---------- 스테이지 (기준 1920x1080, 화면 비율에 맞춰 늘어나며 꽉 채움) ----------
+   앵커 규칙 (유니티 RectTransform 앵커와 같은 개념)
+   - 가장자리 고정: left/right/top/bottom 값을 그대로 쓴다 (무대가 늘어나면 그 가장자리를 따라간다)
+   - 가운데 고정: 기준 좌표에 var(--ox) / var(--oy)를 더한다 (기준 영역이 무대 가운데로 이동한 만큼)
+   - 반대쪽 고정: 기준 좌표에 var(--ex) / var(--ey)를 더한다 (오른쪽/아래 가장자리에 붙은 요소에 맞출 때) */
 #viewport { position: fixed; inset: 0; background: #000; overflow: hidden; }
-#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; background: var(--bg); }
+#stage { --ox: 0px; --oy: 0px; --ex: 0px; --ey: 0px; position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; background: var(--bg); }
 .screen { position: absolute; inset: 0; display: none; }
 .screen.active { display: block; }
 .bg-layer { position: absolute; inset: 0; background-size: cover; background-position: center; }
@@ -137,7 +141,7 @@ img { -webkit-user-drag: none; }
 .menu-item .mi-badge { position: absolute; right: 50px; top: 50%; transform: translateY(-50%); font-family: Orbitron, sans-serif; color: var(--accent); font-size: 18px; }
 .secretary { position: absolute; right: 60px; bottom: -40px; height: 1080px; width: 900px; background-size: contain; background-repeat: no-repeat; background-position: bottom center; filter: drop-shadow(0 0 30px rgba(0,0,0,0.6)); cursor: pointer; animation: breathe 5s ease-in-out infinite; transform-origin: bottom center; }
 @keyframes breathe { 50% { transform: translateY(-6px) scale(1.005); } }
-.speech { position: absolute; right: 640px; top: 180px; max-width: 460px; padding: 18px 24px; background: rgba(8,14,24,0.88); border: 1px solid var(--line-strong); font-size: 20px; line-height: 1.55; opacity: 0; transform: translateY(8px); transition: 0.3s; pointer-events: none; }
+.speech { position: absolute; right: 640px; top: calc(180px + var(--ey)); max-width: 460px; padding: 18px 24px; background: rgba(8,14,24,0.88); border: 1px solid var(--line-strong); font-size: 20px; line-height: 1.55; opacity: 0; transform: translateY(8px); transition: 0.3s; pointer-events: none; }
 .speech.show { opacity: 1; transform: none; }
 .speech .who { color: var(--accent); font-weight: 900; font-size: 16px; margin-bottom: 4px; }
 .lobby-foot { position: absolute; left: 70px; bottom: 40px; display: flex; gap: 30px; color: var(--muted); font-size: 18px; align-items: center; }
@@ -233,7 +237,7 @@ img { -webkit-user-drag: none; }
 
 /* ---------- 캠페인 ---------- */
 #scr-campaign .bg-dim { background: linear-gradient(180deg, rgba(4,8,14,0.55), rgba(4,8,14,0.85)); }
-.camp-map { position: absolute; left: 40px; top: 110px; width: 1180px; height: 940px; background: radial-gradient(ellipse at 20% 85%, rgba(70,210,255,0.12), transparent 45%), radial-gradient(ellipse at 90% 10%, rgba(255,60,80,0.16), transparent 45%); border: 1px solid rgba(110,170,230,0.15); }
+.camp-map { position: absolute; left: calc(40px + var(--ox)); top: calc(110px + var(--oy)); width: 1180px; height: 940px; background: radial-gradient(ellipse at 20% 85%, rgba(70,210,255,0.12), transparent 45%), radial-gradient(ellipse at 90% 10%, rgba(255,60,80,0.16), transparent 45%); border: 1px solid rgba(110,170,230,0.15); }
 .camp-map::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(90,160,230,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(90,160,230,0.07) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; }
 .camp-map .map-boss { position: absolute; right: -40px; top: -30px; height: 620px; opacity: 0.16; filter: saturate(0.4) drop-shadow(0 0 30px rgba(255,40,60,0.6)); pointer-events: none; }
 .camp-map .map-orca { position: absolute; left: -20px; bottom: -20px; height: 460px; opacity: 0.14; pointer-events: none; }
@@ -489,7 +493,7 @@ img { -webkit-user-drag: none; }
 .screen-flash.white { background: rgba(255,255,255,0.35); }
 .quake { animation: quake 0.35s; }
 @keyframes quake { 25% { translate: 6px -4px; } 50% { translate: -6px 4px; } 75% { translate: 4px 2px; } }
-.fc-svg { position: absolute; inset: 0; pointer-events: none; z-index: 9; width: 1920px; height: 1080px; }
+.fc-svg { position: absolute; inset: 0; pointer-events: none; z-index: 9; width: 100%; height: 100%; }
 .fc-svg path { fill: none; stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(0,0,0,0.8)); }
 
 /* 레벨업 / 멀리건 */
@@ -606,7 +610,7 @@ img { -webkit-user-drag: none; }
 .hand .card { --w: 170px; }
 .hand .hslot:hover .card { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-235px - var(--dy, 0px))) scale(1.2); }
 .hand .hslot .card.selected { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-140px - var(--dy, 0px))) scale(1.06) !important; }
-.enemy-hand { left: auto; right: 520px; top: -58px; transform: none; z-index: 6; }
+.enemy-hand { left: auto; right: calc(520px + var(--ox)); top: -58px; transform: none; z-index: 6; }
 
 /* 덱 더미 */
 .stack { position: absolute; right: 54px; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -637,24 +641,24 @@ img { -webkit-user-drag: none; }
 .ap-gems i.locked { background: #0e1724; }
 
 /* 사용 기록 */
-.history { position: absolute; left: 22px; top: 210px; width: 96px; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.history { position: absolute; left: 22px; top: calc(210px + var(--oy)); width: 96px; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .hs-title { font-size: 13px; color: var(--muted); letter-spacing: 0.3em; }
 .hs-list { display: flex; flex-direction: column; gap: 8px; }
 .hs-item { width: 84px; height: 84px; border-radius: 50%; background-size: cover; background-position: center 12%; border: 3px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.7); position: relative; cursor: pointer; animation: spawnAnim 0.4s; }
 .hs-item.theirs { border-color: var(--danger); }
 .hs-item span { position: absolute; left: -4px; top: -4px; width: 26px; height: 26px; background: #1aa7e0; color: #fff; font-weight: 900; font-size: 14px; display: flex; align-items: center; justify-content: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
-.preview { left: 134px; top: 200px; }
-.cast-btn { top: 494px; }
-#scr-battle.active ~ #toast-root { top: 480px; }
+.preview { left: 134px; top: calc(200px + var(--oy)); }
 .b-top-right .icon-btn { width: 48px; height: 48px; font-size: 20px; }
-/* 세로 배치 보정: 내 사령관 체력이 손패에 가리지 않도록 */
-.table { top: 196px; bottom: 326px; }
-.lanes.enemy { top: 214px; }
-.lanes.me { top: 490px; }
+/* 세로 배치 보정: 내 사령관 체력이 손패에 가리지 않도록
+   앵커: 판(테이블·레인·사령관)과 판 옆 UI는 가운데 고정, 손패는 아래, 기록·버튼은 좌우 가장자리 고정 */
+.table { left: calc(300px + var(--ox)); right: calc(300px + var(--ox)); top: calc(196px + var(--oy)); bottom: calc(326px + var(--oy)); }
+.lanes.enemy { top: calc(214px + var(--oy)); }
+.lanes.me { top: calc(490px + var(--oy)); }
 .slot { height: 236px; }
-.cmd.hero.me { top: 758px; }
-.stack.enemy { top: 206px; }
-.stack.me { top: 548px; }
-.end-turn { top: 404px; }
-.cast-btn { top: 438px; }
-#scr-battle.active ~ #toast-root { top: 430px; }
+.cmd.hero.enemy { top: calc(14px + var(--oy)); }
+.cmd.hero.me { top: calc(758px + var(--oy)); }
+.stack.enemy { top: calc(206px + var(--oy)); }
+.stack.me { top: calc(548px + var(--oy)); }
+.end-turn { top: calc(404px + var(--oy)); }
+.cast-btn { top: calc(438px + var(--oy)); }
+#scr-battle.active ~ #toast-root { top: calc(430px + var(--oy)); }

@@ -1,6 +1,7 @@
 // ===== 사운드: BGM 크로스페이드 + 효과음 =====
 const Audio2 = {
   bgmA: null, bgmB: null, current: null, currentName: null, unlocked: false, pending: null,
+  muted: false, // 창이 포커스를 잃으면 true (모든 소리 끔)
   sfxCache: {},
   SFX: {
     click: 'pick.wav', pick: 'pick.wav', pickSS: 'pick_ss.wav', place: 'place.wav', card: 'card.wav',
@@ -20,6 +21,23 @@ const Audio2 = {
     };
     window.addEventListener('pointerdown', unlock, { once: false });
     window.addEventListener('keydown', unlock, { once: false });
+    // 창이 포커스를 잃거나(다른 창 클릭·알트탭) 탭이 숨겨지면 소리를 끄고, 돌아오면 다시 켠다
+    const sync = () => this.setMuted(document.hidden || !document.hasFocus());
+    window.addEventListener('blur', sync);
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    sync();
+  },
+  // 음소거는 볼륨 대신 muted 속성을 써서, 페이드·음량 설정과 BGM 재생 위치를 그대로 유지한다
+  setMuted(m) {
+    if (this.muted === m) return;
+    this.muted = m;
+    this.allEls().forEach(a => { a.muted = m; });
+  },
+  allEls() {
+    const out = [this.bgmA, this.bgmB].filter(Boolean);
+    Object.values(this.sfxCache).forEach(pool => out.push(...pool));
+    return out;
   },
   bgm(name, force) {
     if (!name) return;
@@ -48,12 +66,13 @@ const Audio2 = {
   },
   setBgmVolume(v) { if (this.current) this.current.volume = v; },
   play(name, vol = 1) {
-    const file = this.SFX[name]; if (!file || !this.unlocked) return;
+    const file = this.SFX[name]; if (!file || !this.unlocked || this.muted) return;
     const v = Store.settings.sfx * vol; if (v <= 0) return;
     let pool = this.sfxCache[name];
     if (!pool) pool = this.sfxCache[name] = [];
     let a = pool.find(x => x.paused || x.ended);
     if (!a) { if (pool.length >= 4) a = pool[0]; else { a = new Audio(`assets/sfx/${file}`); pool.push(a); } }
+    a.muted = this.muted;
     try { a.currentTime = 0; a.volume = Math.min(1, v); a.play().catch(() => {}); } catch (e) {}
   },
 };

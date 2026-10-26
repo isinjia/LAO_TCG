@@ -1,7 +1,9 @@
 // ===== 공통 UI: 스테이지 스케일, 카드 렌더, 모달, 툴팁, 이펙트 =====
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
-const STAGE_W = 1920, STAGE_H = 1080;
+// 기준 해상도 (유니티 CanvasScaler의 Reference Resolution). 실제 무대는 화면 비율에 맞춰 이보다 넓거나 높아진다.
+const REF_W = 1920, REF_H = 1080;
+let STAGE_W = REF_W, STAGE_H = REF_H;
 let stageScale = 1;
 
 function h(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
@@ -12,12 +14,21 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms / (Store.settings.
 function sleepRaw(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ---------- 스테이지 스케일 ----------
+// 유니티 CanvasScaler 'Scale With Screen Size + Expand'와 같은 방식:
+// 기준 영역(1920x1080)이 항상 다 보이도록 배율을 정하고, 남는 방향으로 무대를 넓혀 화면을 꽉 채운다.
+// 요소는 CSS에서 가장자리(left/right/top/bottom) 또는 가운데(--ox/--oy 보정) 기준으로 고정된다.
+//   --ox / --oy : 기준 영역이 무대 가운데에 놓이도록 하는 가로/세로 여백 (가운데 앵커용)
+//   --ex / --ey : 기준보다 늘어난 전체 폭/높이 (반대쪽 가장자리 앵커용 = 여백 x2)
 function fitStage() {
   const vw = window.innerWidth, vh = window.innerHeight;
-  stageScale = Math.min(vw / STAGE_W, vh / STAGE_H);
+  stageScale = Math.min(vw / REF_W, vh / REF_H);
+  STAGE_W = Math.max(REF_W, vw / stageScale);
+  STAGE_H = Math.max(REF_H, vh / stageScale);
   const st = $('#stage');
-  const ox = (vw - STAGE_W * stageScale) / 2, oy = (vh - STAGE_H * stageScale) / 2;
-  st.style.transform = `translate(${ox}px, ${oy}px) scale(${stageScale})`;
+  Object.assign(st.style, { width: STAGE_W + 'px', height: STAGE_H + 'px', transform: `scale(${stageScale})` });
+  const ex = STAGE_W - REF_W, ey = STAGE_H - REF_H;
+  st.style.setProperty('--ox', ex / 2 + 'px'); st.style.setProperty('--oy', ey / 2 + 'px');
+  st.style.setProperty('--ex', ex + 'px'); st.style.setProperty('--ey', ey + 'px');
 }
 // 요소의 스테이지 좌표 (스케일 보정)
 function stageRect(el) {

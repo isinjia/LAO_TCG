@@ -70,7 +70,7 @@ screenHooks.battle = async el => {
     </div>
     <div class="lanes enemy">${[0, 1, 2].map(i => `<div class="slot" data-side="enemy" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
     <div class="lanes me">${[0, 1, 2].map(i => `<div class="slot" data-side="me" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
-    <svg class="fc-svg" viewBox="0 0 1920 1080"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
+    <svg class="fc-svg"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
     ${cmdHtml('me', me)}
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
     <div class="end-turn"><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
@@ -656,12 +656,13 @@ async function processEvents() {
   const myB = B; if (!B) return;
   const { game } = B;
   const evs = game.events.splice(0);
-  B.holdDie = new Set(evs.filter(e => e.type === 'die').map(e => e.unit.uid));
-  B.holdSpawn = new Set(evs.filter(e => e.type === 'summon').map(e => e.unit.uid));
+  const holdDie = new Set(evs.filter(e => e.type === 'die').map(e => e.unit.uid));
+  const holdSpawn = new Set(evs.filter(e => e.type === 'summon').map(e => e.unit.uid));
+  B.holdDie = holdDie; B.holdSpawn = holdSpawn;
   try { for (const ev of evs) {
     alive(myB);
-    if (ev.type === 'summon') B.holdSpawn.delete(ev.unit.uid);
-    if (ev.type === 'die') B.holdDie.delete(ev.unit.uid);
+    if (ev.type === 'summon') holdSpawn.delete(ev.unit.uid);
+    if (ev.type === 'die') holdDie.delete(ev.unit.uid);
     switch (ev.type) {
       case 'log': {
         const list = $('.log-list'); if (!list) break;
@@ -697,7 +698,7 @@ async function processEvents() {
       }
       case 'skill': pushHistory(ev.card, ev.player); Audio2.play('energy'); renderAll(); break;
       case 'fx': {
-        const from = ev.from && B.unitEls.get(ev.from.uid) ? centerOf(B.unitEls.get(ev.from.uid)) : { x: 960, y: 500 };
+        const from = ev.from && B.unitEls.get(ev.from.uid) ? centerOf(B.unitEls.get(ev.from.uid)) : { x: STAGE_W / 2, y: STAGE_H / 2 - 40 };
         const color = ev.op === 'destroy' ? '#ff4d5a' : FX_COLOR.dmg;
         for (const t of ev.targets) {
           const el = t.unit ? B.unitEls.get(t.unit.uid) : cmdElOf(t.cmd);
@@ -766,7 +767,10 @@ async function processEvents() {
       case 'gameOver': break;
       default: break;
     }
-  } } finally { if (myB) { myB.holdDie = null; myB.holdSpawn = null; } }
+  } } finally {
+    if (myB.holdDie === holdDie) myB.holdDie = null;
+    if (myB.holdSpawn === holdSpawn) myB.holdSpawn = null;
+  }
   renderAll();
 }
 

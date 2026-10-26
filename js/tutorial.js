@@ -62,18 +62,19 @@ const Tutorial = {
     if (target && target.offsetParent !== null) {
       const r = stageRect(target); const pad = 10;
       spot.classList.remove('none');
-      Object.assign(spot.style, { left: (r.x - pad) + 'px', top: (r.y - pad) + 'px', width: (r.w + pad * 2) + 'px', height: (Math.min(r.h, 1080 - r.y) + pad * 2) + 'px' });
+      Object.assign(spot.style, { left: (r.x - pad) + 'px', top: (r.y - pad) + 'px', width: (r.w + pad * 2) + 'px', height: (Math.min(r.h, STAGE_H - r.y) + pad * 2) + 'px' });
       const bw = 520, bh = box.offsetHeight || 170;
-      let x = Math.max(20, Math.min(1920 - bw - 20, r.cx - bw / 2));
-      let y = r.cy > 540 ? r.y - bh - 30 : r.y + r.h + 30;
-      if (y < 20) y = 20; if (y + bh > 1060) y = 1060 - bh;
+      let x = Math.max(20, Math.min(STAGE_W - bw - 20, r.cx - bw / 2));
+      let y = r.cy > STAGE_H / 2 ? r.y - bh - 30 : r.y + r.h + 30;
+      if (y < 20) y = 20; if (y + bh > STAGE_H - 20) y = STAGE_H - 20 - bh;
       // 대상과 겹치면 옆으로 비킨다
-      if (y < r.y + r.h && y + bh > r.y) x = r.x > 960 ? Math.max(20, r.x - bw - 30) : Math.min(1920 - bw - 20, r.x + r.w + 30);
-      if (st.box) { x = st.box[0]; y = st.box[1]; }
+      if (y < r.y + r.h && y + bh > r.y) x = r.x > STAGE_W / 2 ? Math.max(20, r.x - bw - 30) : Math.min(STAGE_W - bw - 20, r.x + r.w + 30);
+      // 고정 상자 좌표는 기준 해상도 기준이며, 대상(AP 표시)이 오른쪽 아래에 고정되어 있으므로 같은 방향으로 옮긴다
+      if (st.box) { x = st.box[0] + (STAGE_W - REF_W); y = st.box[1] + (STAGE_H - REF_H); }
       box.style.left = x + 'px'; box.style.top = y + 'px';
     } else {
       spot.classList.add('none');
-      box.style.left = (960 - 260) + 'px'; box.style.top = '420px';
+      box.style.left = (STAGE_W / 2 - 260) + 'px'; box.style.top = (420 + (STAGE_H - REF_H) / 2) + 'px';
     }
   },
   on(evt, data) {
