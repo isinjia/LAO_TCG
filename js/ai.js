@@ -50,7 +50,7 @@ const AI = {
   commandAction(game, p) {
     if (game.cur !== p || !game.canCommand()) return null;
     const o = game.other(p), dmg = RULES.COMMAND.dmg;
-    if (o.hp <= dmg) return { command: true, card: COMMAND_CARD, target: { cmd: o } };
+    if (o.hp <= dmg || p.style === 'aggro') return { command: true, card: COMMAND_CARD, target: { cmd: o } };
     const kill = o.units().filter(u => !u.evade && u.hp + u.shield <= dmg).sort((a, b) => b.card.c - a.card.c)[0];
     if (kill) return { command: true, card: COMMAND_CARD, target: { unit: kill } };
     return { command: true, card: COMMAND_CARD, target: { cmd: o } };
@@ -118,16 +118,23 @@ const AI = {
     return v;
   },
 
+  // 성향별 평가 가중치: 공격형은 상대 라이프, 제어형은 적 전투원 제거와 내 라이프를 더 중시한다
+  STYLE: {
+    balanced: { face: 2.2, guard: 2.0, kill: 1.1 },
+    aggro: { face: 3.0, guard: 1.5, kill: 0.9 },
+    control: { face: 1.8, guard: 2.4, kill: 1.4 },
+  },
   evaluate(g, p) {
     const o = g.other(p);
     if (g.winner === p) return 1e6;
     if (g.winner && g.winner !== p) return -1e6;
+    const w = this.STYLE[p.style] || this.STYLE.balanced;
     let s = 0;
     // 사령관 체력: 낮아질수록 가치 상승 (마무리 우선)
-    s += (o.maxHp - o.hp) * 2.2 + (o.hp <= 8 ? (8 - o.hp) * 2 : 0);
-    s -= (p.maxHp - p.hp) * 2.0 + (p.hp <= 8 ? (8 - p.hp) * 2.5 : 0);
+    s += (o.maxHp - o.hp) * w.face + (o.hp <= 8 ? (8 - o.hp) * 2 : 0);
+    s -= (p.maxHp - p.hp) * w.guard + (p.hp <= 8 ? (8 - p.hp) * 2.5 : 0);
     p.units().forEach(u => { s += this.unitValue(u, g); });
-    o.units().forEach(u => { s -= this.unitValue(u, g) * 1.1; });
+    o.units().forEach(u => { s -= this.unitValue(u, g) * w.kill; });
     s += p.hand.length * 1.2;
     // 상대의 다음 공격 위협
     const fc = g.forecast(o);

@@ -206,6 +206,18 @@ t('교체 단계 저장·복원: 같은 손패, 교체 권한 유지', () => {
   eq(r.phase, 'mulligan'); eq(r.players[0].hand.map(c => c.id).join(), a.hand.map(c => c.id).join(), '같은 손패');
   ok(!r.players[0].mulliganDone, '플레이어는 아직 교체 가능'); ok(r.players[1].mulliganDone, 'AI는 교체 끝');
 });
+t('특수 임무 별 판정', () => {
+  const { a, b, g } = fresh(D0, D1); g.start(); g.winner = a;
+  a.stats.kills = 5; a.stats.commands = 2; a.stats.skillsUsed = 0; a.stats.guards = 1; a.stats.unitsPlayed = 7;
+  ok(starMet({ type: 'kills', v: 5 }, g, a) && !starMet({ type: 'kills', v: 6 }, g, a), 'kills');
+  ok(starMet({ type: 'commands', v: 2 }, g, a) && !starMet({ type: 'commands', v: 3 }, g, a), 'commands');
+  ok(starMet({ type: 'noSkill' }, g, a), 'noSkill'); a.stats.skillsUsed = 1; ok(!starMet({ type: 'noSkill' }, g, a), 'noSkill used');
+  ok(starMet({ type: 'guards', v: 1 }, g, a), 'guards'); ok(starMet({ type: 'units', v: 7 }, g, a) && !starMet({ type: 'units', v: 6 }, g, a), 'units');
+  CAMPAIGN.forEach(st => st.stars.forEach(x => ok(starLabel(x), st.id + ' label ' + x.type)));
+});
+t('보급 카드는 프리셋·튜토리얼·스토리 보상과 겹치지 않음', () => {
+  ok(SUPPLY_CARDS.size > 40, 'size'); SUPPLY_CARDS.forEach(id => { ok(CARDS[id] && !CARDS[id].enemy && CARDS[id].g !== 'B', id); ok(LOCKED.has(id), 'locked ' + id); });
+});
 t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
   const code = src.slice(src.indexOf('const DAILY_TWISTS'), src.indexOf('  doneToday()')) + '}; this.__Daily = Daily; this.__opps = dailyOpponents;';

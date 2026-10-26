@@ -314,3 +314,19 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .pool-grid { grid-template-columns: repeat(auto-fill, 250px); }
 .compact .pool-grid .card { --w: 250px; }
 .compact .card .c-text { font-size: 0.78em; }
+.round-info .mission { color: #9fe4ff; }
+.round-info .mission.ok { color: var(--good); }
+.round-info .mission.ok::before { content: "✔ "; }
+
+/* ---------- 보급소 ---------- */
+.supply h3 .sp-bp { font-size: 20px; color: var(--muted); margin-left: 14px; }
+.supply h3 .sp-bp b { color: var(--lo-yellow); font-family: "Exo 2", sans-serif; font-size: 26px; }
+.sp-top { display: flex; align-items: center; gap: 14px; font-size: 18px; margin-bottom: 12px; }
+.sp-grid { grid-template-columns: repeat(7, 170px); max-height: 600px; }
+.sp-item { position: relative; }
+.sp-item .card { filter: grayscale(0.35) brightness(0.85); }
+.sp-item:hover .card { filter: none; }
+.sp-cost { position: absolute; right: -6px; bottom: -6px; z-index: 8; min-width: 40px; height: 40px; padding: 0 8px; display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-weight: 900; font-size: 20px; color: #17181b; background: var(--lo-yellow); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.rs-bp { font-size: 18px; color: #e8e8ea; }
+.rs-bp b { color: var(--lo-yellow); font-family: "Exo 2", sans-serif; font-size: 22px; margin-right: 10px; }
+.rs-bp span { font-size: 14px; color: var(--muted); }

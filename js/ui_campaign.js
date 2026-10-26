@@ -110,7 +110,7 @@ function renderStagePanel(el) {
     </div>
     <div class="stage-body">
       <p>${esc(s.desc)}</p>
-      <div class="stage-info"><span>대국 상대 <b>${esc(en.name)}</b></span><span>상대 라이프 <b>${en.hp}</b></span><span>AI <b>${LEVEL_LABEL[en.level]}</b></span>${en.start.length ? `<span>선배치 <b>${en.start.map(x => CARDS[x.id].n).join(', ')}</b></span>` : ''}</div>
+      <div class="stage-info"><span>대국 상대 <b>${esc(en.name)}</b></span><span>상대 라이프 <b>${en.hp}</b></span><span>AI <b>${LEVEL_LABEL[en.level]}</b></span><span>성향 <b>${{ aggro: '공격형', control: '제어형', balanced: '균형형' }[en.style || 'balanced']}</b></span>${en.start.length ? `<span>선배치 <b>${en.start.map(x => CARDS[x.id].n).join(', ')}</b></span>` : ''}</div>
       <div class="stage-info"><span>적 제작사 ${[...new Set(en.deck.map(id => CARDS[id].f))].map(f => `<span class="chip" style="background:${FACTIONS[f].color}">${FACTIONS[f].name}</span>`).join(' ')}</span></div>
       <div class="star-list">${s.stars.map((st, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="lo-star ${stars[i] ? 'on' : ''}"></span> ${starLabel(st)}</div>`).join('')}</div>
       ${(STAGE_REWARDS[s.id] || []).length ? `<div class="stage-reward">첫 클리어 보상 <span data-v="rw"></span>${Store.data.campaign.cleared[s.id] ? '<span class="done">✔ 획득 완료</span>' : ''}</div>` : ''}

@@ -10,7 +10,7 @@ for (const s of CAMPAIGN) {
   let w = 0, n = 0, rounds = 0;
   for (const d of PRESET_DECKS) for (let i = 0; i < N; i++) {
     const me = new Player('me', s.playerDeck || d.cards, { isAI: true });
-    const en = new Player('en', s.enemy.deck, { isAI: true, hp: s.enemy.hp });
+    const en = new Player('en', s.enemy.deck, { isAI: true, hp: s.enemy.hp, style: s.enemy.style });
     const g = (s.playerFirst || i % 2 === 0) ? new Game(me, en) : new Game(en, me);
     (s.start || []).forEach(x => g.placeStart(en, x.lane, x.id));
     g.start();

@@ -28,7 +28,7 @@ function startBattle(cfg) {
   abandonSavedBattle(); // 새 전투를 시작하면 이전 진행 기록은 패배로 정리한다
   const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp); // 순회전·오늘의 대국: 깎인 라이프로 시작
-  const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait });
+  const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
     const want = cfg.openingHand.map(id => me.deck.find(c => c.id === id)).filter(Boolean);
@@ -446,7 +446,8 @@ function renderRoundInfo() {
   const r = Math.max(1, B.game.round()), ot = RULES.OVERTIME_ROUND;
   const next = B.game.overtimeDamage(r + 1);
   el.className = 'round-info' + (ot && r >= ot ? ' over' : ot && ot - r <= 2 ? ' soon' : '');
-  el.innerHTML = `ROUND <b>${r}</b>${!ot ? '' : r >= ot ? `<span>시간 초과 · 다음 피해 ${next}</span>` : `<span>시간 초과까지 ${ot - r}라운드</span>`}`;
+  const mission = B.cfg.mode === 'campaign' ? missionProgress(CAMPAIGN[B.cfg.stageIdx], B.game, B.me) : null;
+  el.innerHTML = `ROUND <b>${r}</b>${!ot ? '' : r >= ot ? `<span>시간 초과 · 다음 피해 ${next}</span>` : `<span>시간 초과까지 ${ot - r}라운드</span>`}${mission ? `<span class="mission ${mission.ok ? 'ok' : ''}">임무 · ${mission.label}</span>` : ''}`;
 }
 function setPhaseLabel(t) { const p = $('.phase-label'); if (p) p.textContent = t; }
 
@@ -854,19 +855,22 @@ async function finishBattle(surrendered) {
   // 전적
   const rec = Store.data.record;
   if (win) { rec.w++; rec.streak++; } else { rec.l++; rec.streak = 0; }
-  let stars = null, stage = null, got = { cards: [], secretaries: [] };
+  let stars = null, stage = null, got = { cards: [], secretaries: [] }, campaignBp = 0;
   if (cfg.mode === 'campaign') {
     stage = CAMPAIGN[cfg.stageIdx];
+    const prevStars = Store.stageStars(stage.id).filter(Boolean).length, prevCleared = !!Store.data.campaign.cleared[stage.id];
     stars = evalStars(stage, game, me);
     const diff = cfg.diff || 'normal'; // 시작할 때의 난이도 (도중에 바꿔도 결과에 영향 없음)
     if (diff === 'easy' && !stage.tutorial) stars[2] = false; // 쉬움 난이도는 별 2개까지
     if (diff === 'hard' && win && !stage.tutorial) { Store.data.campaign.hardCleared[stage.id] = true; }
     Store.setStageResult(stage.id, stars);
+    // 보급 포인트: 처음 이기면 6, 새로 얻은 별마다 2
+    campaignBp = (win && !prevCleared ? 6 : 0) + (Store.stageStars(stage.id).filter(Boolean).length - prevStars) * 2;
     if (stage.tutorial && win) Store.data.tutorialDone = true;
     got = Store.grantRewards(stage.id, win);
   }
   Store.save();
-  const ch = recordChallengeResult({ win, surrendered, game, me, cfg });
+  const ch = recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp });
   // MVP: 가장 많은 피해를 준 카드
   const dmg = Object.entries(me.stats.cardDmg).sort((a, b) => b[1] - a[1]);
   const mvp = dmg.length ? CARDS[dmg[0][0]] : CARDS['PECS_Orangeade'];
@@ -887,6 +891,7 @@ async function finishBattle(surrendered) {
       </div>
       ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st lo-star ${stars[i] ? 'on' : ''}" style="animation-delay:${0.3 + i * 0.35}s"></span>${starLabel(s)}</div>`).join('')}</div>` : ''}
       ${ch.note ? `<div class="rs-note">${esc(ch.note)}</div>` : ''}
+      ${ch.bp ? `<div class="rs-bp">보급 포인트 <b>+${ch.bp}</b><span>보유 ${Store.data.bp} · 카드 도감의 보급소에서 카드를 해금할 수 있습니다</span></div>` : ''}
       ${ch.masteryUps.length ? `<div class="rs-mastery">${ch.masteryUps.slice(0, 6).map(m => `<span class="mst m${m.level}">${esc(CARDS[m.id].n)} <b>${MASTERY[m.level - 1].name}</b></span>`).join('')}${ch.masteryUps.length > 6 ? `<span class="mst">외 ${ch.masteryUps.length - 6}장</span>` : ''}<em>숙련도 상승</em></div>` : ''}
       ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}${ch.newBgs.map(b => `<span><i class="lo-star on"></i>로비 배경 해금 · <b>${esc(b.name)}</b></span>`).join('')}</div>` : ''}
       ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}

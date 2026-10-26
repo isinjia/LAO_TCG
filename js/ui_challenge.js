@@ -19,6 +19,7 @@ const ACHIEVEMENTS = [
   { id: 'stars', name: '완벽주의자', desc: `스토리 별 ${CAMPAIGN.length * 3}개를 모두 모은다 (외전 포함).`, test: () => Store.totalStars() >= CAMPAIGN.length * 3 },
   { id: 'mastery1', name: '손에 익은 카드', desc: '카드 하나의 숙련도를 금까지 올린다.', test: () => goldCount() >= 1 },
   { id: 'mastery12', name: '황금 덱', desc: '카드 12장의 숙련도를 금까지 올린다.', test: () => goldCount() >= 12 },
+  { id: 'collector', name: '수집가', desc: '보급소의 카드를 모두 해금한다.', test: () => supplyLocked().length === 0 },
   { id: 'exstory', name: '붉은 시뮬레이션 종결', desc: '외전 결전 「오메가」에서 승리한다.', test: () => !!Store.data.campaign.cleared.ex4 },
   { id: 'hardstory', name: '어려움 정복', desc: '스토리 난이도 어려움으로 결승에서 승리한다.', test: () => !!Store.data.campaign.hardCleared.s8 },
   { id: 'hardall', name: '전 리그 제패', desc: `튜토리얼을 뺀 스토리 ${CAMPAIGN.filter(s => !s.tutorial).length}대국(외전 포함)을 모두 어려움 난이도로 이긴다.`, test: () => CAMPAIGN.every(s => s.tutorial || Store.data.campaign.hardCleared[s.id]) },
@@ -47,6 +48,7 @@ const LOBBY_BGS = [
   { id: 'blacksun', name: '검은 태양', ach: 'hardstory' },
   { id: 'red_boss', name: '붉은 서버', ach: 'exstory' },
   { id: 'mansion_dark', name: '밤의 저택', ach: 'mastery12' },
+  { id: 'offline', name: '오프라인 구역', ach: 'collector' },
 ];
 function lobbyBgUnlocked(bg) { return !bg.ach || !!Store.data.ach[bg.ach]; }
 
@@ -209,8 +211,9 @@ const Daily = {
 };
 
 // ---------- 대국 종료 처리 (결과 화면에서 호출) ----------
-function recordChallengeResult({ win, surrendered, game, me, cfg }) {
+function recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp = 0 }) {
   let note = '';
+  const g0 = Store.data.gauntlet.clears, d0 = Store.data.daily.wins;
   if (cfg.mode === 'gauntlet') note = Gauntlet.finish(win && !surrendered, me.hp);
   if (cfg.mode === 'daily') note = Daily.finish(win && !surrendered, cfg.daily.day);
   const before = LOBBY_BGS.filter(lobbyBgUnlocked).length;
@@ -220,7 +223,56 @@ function recordChallengeResult({ win, surrendered, game, me, cfg }) {
   };
   const achievements = Ach.record(info);
   const newBgs = LOBBY_BGS.filter(lobbyBgUnlocked).length > before ? LOBBY_BGS.filter(b => b.ach && achievements.some(a => a.id === b.ach)) : [];
-  return { note, achievements, newBgs, masteryUps: info.masteryUps || [] };
+  // 보급 포인트: 보통 이상 상대에게 이기면 4(어려움 +3), 지면 1. 업적 5, 오늘의 대국 첫 승리 6, 순회전 돌파 20, 스토리 보너스
+  let bp = campaignBp + achievements.length * 5;
+  if (info.fair) bp += 4 + (cfg.enemy.level === 'hard' ? 3 : 0);
+  else if (!info.win && !surrendered && cfg.enemy.level !== 'easy') bp += 1;
+  if (Store.data.daily.wins > d0) bp += 6;
+  if (Store.data.gauntlet.clears > g0) bp += 20;
+  Store.data.bp = (Store.data.bp || 0) + bp; Store.save();
+  return { note, achievements, newBgs, masteryUps: info.masteryUps || [], bp };
+}
+
+// ---------- 보급소 ----------
+function supplyLocked() { return [...SUPPLY_CARDS].filter(id => !Store.isUnlocked(id)).map(id => CARDS[id]); }
+function buySupply(card) {
+  const cost = SUPPLY_COST[card.g];
+  if ((Store.data.bp || 0) < cost) { toast(`보급 포인트가 부족합니다 (${Store.data.bp}/${cost})`, true); return false; }
+  Store.data.bp -= cost; Store.data.unlocked.push(card.id); Store.save();
+  Audio2.play(card.g === 'SS' || card.g === 'S' ? 'pickSS' : 'pick'); toast(`${card.n} 해금!`);
+  return true;
+}
+function openSupply(onChange) {
+  const render = () => {
+    const left = supplyLocked().sort((a, b) => SUPPLY_COST[a.g] - SUPPLY_COST[b.g] || a.f.localeCompare(b.f) || a.c - b.c);
+    box.innerHTML = `<h3>보급소 <small class="sp-bp">보급 포인트 <b>${Store.data.bp || 0}</b></small></h3>
+      <p>대국에서 이기거나 별·업적을 얻으면 보급 포인트가 쌓입니다. 카드를 골라 해금하거나, ${SUPPLY_RANDOM_COST}포인트로 무작위 보급을 받을 수 있습니다. (A ${SUPPLY_COST.A} · S ${SUPPLY_COST.S} · SS ${SUPPLY_COST.SS})</p>
+      <div class="sp-top"><span>남은 보급 카드 <b>${left.length}</b> / ${SUPPLY_CARDS.size}</span><span class="spacer"></span>${left.length ? `<button class="btn primary" data-a="rand">무작위 보급 (${SUPPLY_RANDOM_COST})</button>` : ''}</div>
+      <div class="pile-view scroll sp-grid"></div>`;
+    const grid = $('.sp-grid', box);
+    if (!left.length) grid.appendChild(h('<div class="empty-note">보급소의 카드를 모두 해금했습니다!</div>'));
+    left.forEach(c => {
+      const wrap = h(`<div class="sp-item"><div class="sp-cost">${SUPPLY_COST[c.g]}</div></div>`);
+      const ce = cardEl(c, { w: 170 }); wrap.prepend(ce);
+      ce.onclick = async () => {
+        if (!await confirmBox('보급 해금', `${c.n}을(를) 보급 포인트 ${SUPPLY_COST[c.g]}로 해금할까요? (보유 ${Store.data.bp || 0})`, '해금')) return;
+        if (buySupply(c)) { render(); onChange && onChange(); }
+      };
+      ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(c); };
+      grid.appendChild(wrap);
+    });
+    const rb = $('[data-a=rand]', box);
+    if (rb) rb.onclick = () => {
+      if ((Store.data.bp || 0) < SUPPLY_RANDOM_COST) { toast(`보급 포인트가 부족합니다 (${Store.data.bp}/${SUPPLY_RANDOM_COST})`, true); return; }
+      const c = left[Math.floor(Math.random() * left.length)];
+      Store.data.bp -= SUPPLY_RANDOM_COST; Store.data.unlocked.push(c.id); Store.save();
+      Audio2.play(c.g === 'SS' || c.g === 'S' ? 'pickSS' : 'pick'); toast(`무작위 보급: ${c.n} 해금!`);
+      render(); onChange && onChange(); openCardDetail(c);
+    };
+  };
+  const box = h('<div class="modal-box supply" style="width:1500px"></div>');
+  render();
+  openModal(box);
 }
 
 // ---------- 도전 모드 화면 ----------

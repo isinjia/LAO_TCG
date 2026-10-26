@@ -45,6 +45,7 @@ class Player {
     this.name = name;
     this.isAI = !!opts.isAI;
     this.portrait = opts.portrait || null;
+    this.style = opts.style || 'balanced'; // AI 성향: aggro(공격형) | control(제어형) | balanced(균형형)
     this.maxHp = opts.hp || RULES.CMD_HP;
     this.hp = this.maxHp;
     this.deckIds = deckIds.slice();
@@ -428,7 +429,7 @@ class Game {
     let target = o.lanes[lane];
     if (!target) {
       const guards = [lane - 1, lane + 1].filter(l => l >= 0 && l < 3 && o.lanes[l] && o.lanes[l].role === 'DEF');
-      if (guards.length) { target = o.lanes[guards[0]]; this.log(`${target.card.n}이(가) 보호합니다.`); this.emit({ type: 'guard', unit: target }); }
+      if (guards.length) { target = o.lanes[guards[0]]; this.log(`${target.card.n}이(가) 보호합니다.`); this.emit({ type: 'guard', unit: target }); o.stats.guards = (o.stats.guards || 0) + 1; }
     }
     if (target) {
       const dmg = atk + this.typeBonus(u, target);
@@ -503,7 +504,7 @@ function serializeGame(g) {
   return {
     v: 2, turn: g.turn, current: g.current, phase: g.phase, seed: g.seed, logs: g.logs.slice(-60),
     players: g.players.map(p => ({
-      name: p.name, isAI: p.isAI, portrait: p.portrait, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
+      name: p.name, isAI: p.isAI, portrait: p.portrait, style: p.style, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
       ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
       lanes: p.lanes.map(u => u && { cardId: u.cardId, atk: u.atk, hp: u.hp, maxHp: u.maxHp, shield: u.shield, evade: u.evade, slowed: u.slowed, summonedTurn: u.summonedTurn }),
@@ -516,7 +517,7 @@ function restoreGame(snap) {
   const card = id => { if (!CARDS[id]) throw new Error('unknown card ' + id); return CARDS[id]; };
   g.players = snap.players.map(sp => {
     const p = Object.create(Player.prototype);
-    Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
+    Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, style: sp.style || 'balanced', maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
       deck: sp.deck.map(card), hand: sp.hand.map(card), grave: sp.grave.map(card), factions: sp.factions,
       ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
     p.lanes = sp.lanes.map(su => {

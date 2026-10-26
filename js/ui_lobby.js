@@ -96,7 +96,7 @@ screenHooks.lobby = el => {
       <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="challenge"><div class="mi-icon">🏆</div><div><div class="mi-title">도전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `리그 순회전 · 오늘의 대국 · 업적 ${Ach.count()}/${ACHIEVEMENTS.length}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div>${Store.data.tutorialDone && !Daily.doneToday() ? '<div class="mi-badge">NEW</div>' : ''}</div>
       <div class="menu-item" data-go="setup"><div class="mi-icon">⚡</div><div><div class="mi-title">자유 대국</div><div class="mi-sub">원하는 덱으로 AI와 1:1 대국</div></div></div>
       <div class="menu-item" data-go="deck"><div class="mi-icon">🗂</div><div><div class="mi-title">덱 편성</div><div class="mi-sub">12장 덱 만들기 · 저장 ${Store.data.decks.length}개</div></div></div>
-      <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">전투원 ${POOL.filter(c => c.kind === 'unit').length}종 · 지원 카드 ${POOL.filter(c => c.kind === 'skill').length}종</div></div></div>
+      <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}장 · 보급 포인트 ${Store.data.bp || 0}</div></div></div>
       <div class="menu-item" data-go="howto"><div class="mi-icon">📘</div><div><div class="mi-title">게임 방법</div><div class="mi-sub">규칙 · 상성 · 키워드</div></div></div>
     </div>
     <div class="lobby-foot"><span>전적 <b>${rec.w}</b>승 <b>${rec.l}</b>패</span><span>연승 <b>${rec.streak}</b></span><span style="font-size:14px">${touchText('마우스를 올리면 카드 정보 · 우클릭 상세 보기')}</span></div>`;

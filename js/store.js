@@ -20,6 +20,8 @@ const Store = {
       secretaries: [],           // 해금한 특별 부관 id
       stats: { wins: 0, kills: 0, factionsWon: [], fairStreak: 0 }, // 업적용 누적 기록 (쉬움 AI 상대 승리 제외)
       ach: {},                   // 달성한 업적 id → 달성 시각
+      bp: 0,                     // 보급 포인트 (보급소에서 카드 해금에 쓴다)
+      supplyV: 1,                // 보급소 도입 표시 (도입 전 저장은 보급 카드를 모두 가진 것으로 친다)
       mastery: {},               // 카드 숙련도: 카드 id → 그 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
@@ -32,6 +34,12 @@ const Store = {
     if (!d || typeof d !== 'object') d = def;
     // 스토리 개편(v2): 주인공 오렌지에이드를 기본 로비 캐릭터로 (필드 보정 전에 판단)
     if (d !== def && d.storyV !== 3) { d.storyV = 3; if (!d.secretary || d.secretary === '3P_ConstantiaS2') d.secretary = 'PECS_Orangeade'; }
+    // 보급소 도입 전부터 하던 저장이면 지금까지 쓰던 카드를 빼앗지 않도록 보급 카드를 모두 준다
+    if (d !== def && d.supplyV === undefined) {
+      const played = d.tutorialDone || (d.record && (d.record.w + d.record.l) > 0);
+      d.supplyV = 1;
+      if (played) d.unlocked = [...new Set([...(Array.isArray(d.unlocked) ? d.unlocked : []), ...SUPPLY_CARDS])];
+    }
     // 누락 필드 보정
     for (const k of Object.keys(def)) if (d[k] === undefined) d[k] = def[k];
     d.settings = { ...def.settings, ...(d.settings || {}) };

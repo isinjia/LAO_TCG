@@ -159,6 +159,16 @@ async function main() {
     if (r.afterEasy !== 0 || r.afterNormal !== 1) throw new Error(JSON.stringify(r));
   });
 
+  await t('보급소: 포인트로 잠긴 카드 해금, 포인트 부족이면 거절', async () => {
+    const r = await ev(`while (topModal()) closeModal(topModal());
+      const c = supplyLocked()[0]; const cost = SUPPLY_COST[c.g];
+      Store.data.bp = cost - 1; const fail = buySupply(c); const lockedAfterFail = !Store.isUnlocked(c.id);
+      Store.data.bp = cost + 2; const ok = buySupply(c);
+      const out = { fail, lockedAfterFail, ok, unlocked: Store.isUnlocked(c.id), bp: Store.data.bp };
+      Store.data.unlocked = Store.data.unlocked.filter(id => id !== c.id); Store.data.bp = 0; Store.save(); return out;`);
+    if (r.fail || !r.lockedAfterFail || !r.ok || !r.unlocked || r.bp !== 2) throw new Error(JSON.stringify(r));
+  });
+
   await t('덱 편성: 잠긴 카드 추가 불가, 자동 채우기', async () => {
     const r = await ev(`closeModal(topModal()); B = null; await showScreen('deck');
       document.querySelector('[data-a=new]').click(); await new Promise(r => setTimeout(r, 200));

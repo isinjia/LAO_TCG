@@ -192,6 +192,7 @@ screenHooks.collection = el => {
   Audio2.bgm('lobby');
   el.innerHTML = `
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>카드 도감</h2><span class="sub">카드를 클릭하면 일러스트와 상세 정보를 볼 수 있습니다</span><span class="spacer"></span>
+      <button class="btn primary small" data-a="supply">보급소 · <span data-v="bp">${Store.data.bp || 0}</span></button>
       <label style="display:flex;gap:10px;align-items:center;font-size:17px;color:var(--muted)">특수 카드 포함 <div class="switch ${colFilter.enemy ? 'on' : ''}" data-a="enemy"></div></label></div>
     <div class="pool-wrap full">${filterBarHtml(colFilter, true)}<div class="pool-grid scroll" data-v="pool"></div></div>`;
   const render = () => {
@@ -203,6 +204,7 @@ screenHooks.collection = el => {
     list.forEach(c => { const ce = cardEl(c, { w: 190, lockCheck: true }); ce.onclick = () => { Audio2.play('click'); openCardDetail(c, list); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(c, list); }; grid.appendChild(ce); });
   };
   bindFilterBar(el, colFilter, render);
+  $('[data-a=supply]', el).onclick = () => openSupply(() => { render(); $('[data-v=bp]', el).textContent = Store.data.bp || 0; });
   $('[data-a=enemy]', el).onclick = e => { colFilter.enemy = !colFilter.enemy; e.currentTarget.classList.toggle('on', colFilter.enemy); render(); };
   $('[data-a=back]', el).onclick = () => showScreen('lobby');
   render();
