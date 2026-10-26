@@ -75,4 +75,15 @@ const Audio2 = {
     a.muted = this.muted;
     try { a.currentTime = 0; a.volume = Math.min(1, v); a.play().catch(() => {}); } catch (e) {}
   },
+  // 캐릭터 음성 (원작 대사). 한 번에 하나만 낸다. force가 아니면 다른 음성이 나오는 중일 때는 건너뛴다
+  voice(cardId, kind, force = false) {
+    if (typeof VOICE_LIST === 'undefined' || !this.unlocked || this.muted) return;
+    const v = Store.settings.voice ?? 0.8; if (v <= 0) return;
+    if (!(VOICE_LIST[cardId] || '').split(' ').includes(kind)) return;
+    const cur = this.voiceEl;
+    if (cur && !cur.paused && !cur.ended) { if (!force) return; cur.pause(); }
+    const a = this.voiceEl = new Audio(`assets/voice/${cardId}_${kind}.mp3`);
+    a.volume = Math.min(1, v); a.play().catch(() => {});
+  },
+  stopVoice() { if (this.voiceEl) this.voiceEl.pause(); },
 };

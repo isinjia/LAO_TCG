@@ -174,7 +174,9 @@ async function onTurnBegin() {
     setPhaseLabel('카드를 사용하거나 턴을 종료하세요');
     saveBattleSnapshot();
     tut('myTurn', game.round());
-    showTacticalTip();
+    if (Lessons.cur) Lessons.close();
+    Lessons.check(B);
+    if (!Lessons.cur) showTacticalTip();
   } else {
     await aiTurn();
   }
@@ -202,7 +204,7 @@ async function aiTurn() {
   saveBattleSnapshot();
   B.busy = true; renderAll();
   setPhaseLabel('적 지휘관 행동 중…');
-  await sleep(600); alive(myB);
+  await sleep(380); alive(myB);
   let guard = 0;
   while (game.phase === 'main' && guard++ < 12 && !B.over) {
     const act = AI.nextAction(game, ai, cfg.enemy.level);
@@ -211,7 +213,7 @@ async function aiTurn() {
     const ok = game.act(act);
     if (!ok) break;
     await processEvents(); alive(myB); renderAll();
-    await sleep(300); alive(myB);
+    await sleep(180); alive(myB);
   }
   if (game.phase === 'over' || B.over) { B.busy = false; return finishBattle(); }
   await sleep(250); alive(myB);
@@ -683,11 +685,13 @@ function showBanner(main, sub, side) {
   $('#stage').appendChild(b); setTimeout(() => b.remove(), 1300 / (Store.settings.speed || 1));
 }
 async function revealCard(card, mine) {
-  const r = h(`<div class="reveal ${mine ? 'mine' : ''}"><div class="rv-who">${mine ? '오렌지에이드' : esc(B.ai.name)} — ${card.kind === 'unit' ? '배치' : '지원 카드'}</div></div>`);
+  const ss = card.kind === 'unit' && card.g === 'SS';
+  const r = h(`<div class="reveal ${mine ? 'mine' : ''} ${ss ? 'ss' : ''}"><div class="rv-who">${mine ? '오렌지에이드' : esc(B.ai.name)} — ${card.kind === 'unit' ? '배치' : '지원 카드'}</div></div>`);
   r.appendChild(cardEl(card, { noHover: true }));
   $('#stage').appendChild(r);
   Audio2.play('card');
-  await sleep(mine ? 650 : 900);
+  if (ss) { Audio2.play('pickSS'); screenFlash('gold'); vibrate(90); } // SS 등장은 잠깐 멈추고 번쩍인다
+  await sleep((mine ? 600 : 760) + (ss ? 550 : 0));
   setTimeout(() => r.remove(), 400);
 }
 function flyCard(card, from, to) {
@@ -757,6 +761,7 @@ async function processEvents() {
         const el = B.unitEls.get(ev.unit.uid);
         if (el) { const c = centerOf(el); burstAt(c.x, c.y, FACTIONS[ev.unit.card.f].color); }
         Audio2.play('place');
+        if (!ev.token) Audio2.voice(ev.unit.cardId, 'deploy', ev.unit.card.g === 'SS');
         await sleep(ev.token ? 160 : 380);
         break;
       }
@@ -810,7 +815,7 @@ async function processEvents() {
         retrigger(el, 'hit');
         const r = stageRect(el); floatAt(r.x + r.w * 0.6, r.cy, `-${ev.v}`, 'dmg big');
         Audio2.play('explosion');
-        if (ev.player === B.me) { screenFlash('red'); quake(); }
+        if (ev.player === B.me) { screenFlash('red'); quake(); vibrate(ev.v >= 5 ? 160 : 70); }
         renderAll(); await sleep(380);
         checkBark();
         break;
@@ -846,7 +851,7 @@ async function finishBattle(surrendered) {
   saveBattleSnapshot(); // 인공지능 턴에 끝난 경우에도 결과 상태를 먼저 남긴다
   B.resultShown = true; B.over = true; B.busy = true;
   clearSelection(); renderAll();
-  Tutorial.stop();
+  Tutorial.stop(); Lessons.close();
   // 시작 패 교체 창 등 전투 중에 열린 창은 결과 화면 전에 모두 닫는다
   $$('#modal-root .modal').forEach(m => closeModal(m));
   const { game, me, cfg } = B;
@@ -872,7 +877,7 @@ async function finishBattle(surrendered) {
   const ch = recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp });
   Store.clearBattle();
   await sleepRaw(700); alive(myB);
-  if (win) Audio2.play('win'); else Audio2.play('warning');
+  if (win) Audio2.play('win'); else { Audio2.play('boom', 0.7); vibrate([120, 60, 220]); }
   // MVP: 가장 많은 피해를 준 카드
   const dmg = Object.entries(me.stats.cardDmg).sort((a, b) => b[1] - a[1]);
   const mvp = dmg.length ? CARDS[dmg[0][0]] : CARDS['PECS_Orangeade'];
@@ -911,6 +916,7 @@ async function finishBattle(surrendered) {
     got.secretaries.forEach(id => rl.appendChild(h(`<div class="rr-sec"><div class="rr-face" style="background-image:url('${artOf(CARDS[id])}')"></div><span>로비 캐릭터 해금<br><b>${esc(CARDS[id].n)}</b></span></div>`)));
   }
   const m = openModal(box, { closable: false });
+  if (win) setTimeout(() => Audio2.voice(mvp.kind === 'unit' ? mvp.id : 'PECS_Orangeade', 'mvp', true), 900); // 최고 활약 대사
   if ((stars && stars.filter(Boolean).length === 3) || got.cards.length || ch.achievements.length) setTimeout(() => Audio2.play('rankup'), 900);
   const leave = async target => {
     closeModal(m);

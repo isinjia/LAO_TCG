@@ -109,7 +109,7 @@ screenHooks.lobby = el => {
   const pool = Store.data.secretary === 'PECS_Orangeade' ? HERO_LINES : SECRETARY_LINES;
   const pick = () => pool[Math.floor(Math.random() * pool.length)];
   setTimeout(() => say(!Store.data.tutorialDone ? (Store.data.secretary === 'PECS_Orangeade' ? '좋아, 스토리 모드의 "첫 카드 수업"부터 시작하자!' : '오렌지에이드, 처음이지? 스토리 모드의 "첫 카드 수업"부터 해 봐!') : pick()), 500);
-  $('.secretary', el).onclick = () => { Audio2.play('click'); say(pick()); };
+  $('.secretary', el).onclick = () => { Audio2.play('click'); say(pick()); Audio2.voice(Store.data.secretary, 'idle', true); };
   $$('.menu-item', el).forEach(m => {
     m.onmouseenter = () => Audio2.play('card', 0.5);
     m.onclick = () => {

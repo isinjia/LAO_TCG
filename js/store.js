@@ -8,7 +8,7 @@ const Store = {
       v: 1,
       decks: [],                 // { id, name, cards }
       activeDeck: 'preset:0',    // 'preset:N' | 사용자 덱 id
-      settings: { bgm: 0.45, sfx: 0.7, speed: 1, forecast: true, autoLevel: false, tips: true },
+      settings: { bgm: 0.45, sfx: 0.7, voice: 0.8, speed: 1, forecast: true, autoLevel: false, tips: true },
       campaign: { stars: {}, difficulty: 'normal', cleared: {}, hardCleared: {} },
       record: { w: 0, l: 0, streak: 0 },
       secretary: 'PECS_Orangeade',  // 로비 캐릭터 (기본: 주인공 오렌지에이드)
@@ -25,6 +25,7 @@ const Store = {
       mastery: {},               // 카드 숙련도: 카드 id → 그 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
+      lessons: {},               // 튜토리얼 뒤 실전에서 한 번씩 보여 주는 규칙 안내 (id → true)
     };
   },
   load() {

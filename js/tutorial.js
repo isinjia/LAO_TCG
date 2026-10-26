@@ -56,26 +56,7 @@ const Tutorial = {
   place() {
     if (!this.active || this.waitingTrigger) return;
     const st = TUTORIAL_STEPS[this.i]; if (!st) return;
-    const c = $('#coach'); const spot = $('.ch-spot', c), box = $('.ch-box', c);
-    if (!spot || !box) return;
-    const target = st.spot ? $(st.spot) : null;
-    if (target && target.offsetParent !== null) {
-      const r = stageRect(target); const pad = 10;
-      spot.classList.remove('none');
-      Object.assign(spot.style, { left: (r.x - pad) + 'px', top: (r.y - pad) + 'px', width: (r.w + pad * 2) + 'px', height: (Math.min(r.h, STAGE_H - r.y) + pad * 2) + 'px' });
-      const bw = 520, bh = box.offsetHeight || 170;
-      let x = Math.max(20, Math.min(STAGE_W - bw - 20, r.cx - bw / 2));
-      let y = r.cy > STAGE_H / 2 ? r.y - bh - 30 : r.y + r.h + 30;
-      if (y < 20) y = 20; if (y + bh > STAGE_H - 20) y = STAGE_H - 20 - bh;
-      // 대상과 겹치면 옆으로 비킨다
-      if (y < r.y + r.h && y + bh > r.y) x = r.x > STAGE_W / 2 ? Math.max(20, r.x - bw - 30) : Math.min(STAGE_W - bw - 20, r.x + r.w + 30);
-      // 고정 상자 좌표는 기준 해상도 기준이며, 대상(AP 표시)이 오른쪽 아래에 고정되어 있으므로 같은 방향으로 옮긴다
-      if (st.box) { x = st.box[0] + (STAGE_W - REF_W); y = st.box[1] + (STAGE_H - REF_H); }
-      box.style.left = x + 'px'; box.style.top = y + 'px';
-    } else {
-      spot.classList.add('none');
-      box.style.left = (STAGE_W / 2 - 260) + 'px'; box.style.top = (420 + (STAGE_H - REF_H) / 2) + 'px';
-    }
+    placeCoach(st.spot, st.box);
   },
   on(evt, data) {
     const st = TUTORIAL_STEPS[this.i]; if (!st) return;
@@ -86,6 +67,29 @@ const Tutorial = {
     else if (evt === 'cardPlayed' && st.wait === 'cardSelected') { this.go(this.i + 1); const n = TUTORIAL_STEPS[this.i]; if (n && n.wait === 'cardPlayed') this.go(this.i + 1); }
   },
 };
+// 안내 상자와 강조 테두리를 대상 요소 옆에 놓는다 (튜토리얼·실전 안내 공용)
+function placeCoach(spotSel, fixedBox) {
+  const c = $('#coach'); const spot = $('.ch-spot', c), box = $('.ch-box', c);
+  if (!spot || !box) return;
+  const target = spotSel ? $(spotSel) : null;
+  if (target && target.offsetParent !== null) {
+    const r = stageRect(target); const pad = 10;
+    spot.classList.remove('none');
+    Object.assign(spot.style, { left: (r.x - pad) + 'px', top: (r.y - pad) + 'px', width: (r.w + pad * 2) + 'px', height: (Math.min(r.h, STAGE_H - r.y) + pad * 2) + 'px' });
+    const bw = box.offsetWidth || 520, bh = box.offsetHeight || 170;
+    let x = Math.max(20, Math.min(STAGE_W - bw - 20, r.cx - bw / 2));
+    let y = r.cy > STAGE_H / 2 ? r.y - bh - 30 : r.y + r.h + 30;
+    if (y < 20) y = 20; if (y + bh > STAGE_H - 20) y = STAGE_H - 20 - bh;
+    // 대상과 겹치면 옆으로 비킨다
+    if (y < r.y + r.h && y + bh > r.y) x = r.x > STAGE_W / 2 ? Math.max(20, r.x - bw - 30) : Math.min(STAGE_W - bw - 20, r.x + r.w + 30);
+    // 고정 상자 좌표는 기준 해상도 기준이며, 대상(AP 표시)이 오른쪽 아래에 고정되어 있으므로 같은 방향으로 옮긴다
+    if (fixedBox) { x = Math.min(fixedBox[0] + (STAGE_W - REF_W), STAGE_W - bw - 20); y = fixedBox[1] + (STAGE_H - REF_H); }
+    box.style.left = x + 'px'; box.style.top = y + 'px';
+  } else {
+    spot.classList.add('none');
+    box.style.left = (STAGE_W / 2 - (box.offsetWidth || 520) / 2) + 'px'; box.style.top = (420 + (STAGE_H - REF_H) / 2) + 'px';
+  }
+}
 function tut(evt, data) { if (Tutorial.active) Tutorial.on(evt, data); }
 function tutHasPlayable() {
   if (!B) return false;
@@ -100,3 +104,44 @@ function tutAllowsEndTurn() {
   }
   return true;
 }
+
+// ===== 실전 규칙 안내 =====
+// 튜토리얼에서 다루지 않은 규칙을, 실제 대국에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
+const LESSONS = [
+  { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '.cmd-power',
+    text: () => `오른쪽 아래 <b>포격 지원</b>은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 줘요. 카드를 다 내고 AP가 남을 때 쓰면 좋아요.` },
+  { id: 'skill', when: b => b.me.hand.some(c => c.kind === 'skill' && b.me.canAfford(c)), spot: '.hand',
+    text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 내요. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 돼요. 끌어다 놓아도 사용돼요.' },
+  { id: 'guard', when: b => b.ai.units().some(u => u.role === 'DEF'), spot: '.lanes.enemy',
+    text: () => '상대에게 <b>보호기</b>가 나왔어요. 보호기는 양옆 레인으로 가는 공격을 대신 받고, 전투원에게 받는 피해가 1 줄어요. 포격 지원이나 광역 공격으로 넘기거나, 보호기가 없는 쪽을 노리세요.' },
+  { id: 'keywords', when: b => [...b.me.units(), ...b.ai.units()].some(u => Object.keys(u.kw).some(k => KW_LESSON.includes(k))), spot: '.lanes.enemy',
+    text: b => { const ks = [...new Set([...b.me.units(), ...b.ai.units()].flatMap(u => Object.keys(u.kw)).filter(k => KW_LESSON.includes(k)))].slice(0, 3);
+      return '전투원 위의 작은 표시는 <b>키워드</b>예요. ' + ks.map(k => `<b>${k}</b>: ${KEYWORD_HELP[k]}`).join(' ') + ' 카드를 길게 보면 모든 키워드 설명이 나와요.'; } },
+  { id: 'overtime', when: b => b.game.round() >= RULES.OVERTIME_ROUND - 3, spot: '.round-info',
+    text: () => `오른쪽 위 라운드를 보세요. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해는 점점 커져요. 그 전에 끝낼 수 있게 몰아붙이세요.` },
+];
+const KW_LESSON = ['회피', '방어막', '재생', '반격', '광역', '관통'];
+const Lessons = {
+  cur: null,
+  // 내 턴이 시작될 때 부른다. 아직 안 본 안내 중 조건이 맞는 첫 번째 하나만 띄운다
+  check(b) {
+    if (!b || b.cfg.tutorial || Tutorial.active || this.cur || !Store.settings.tips) return;
+    const seen = Store.data.lessons || (Store.data.lessons = {});
+    const l = LESSONS.find(x => !seen[x.id] && x.when(b)); if (!l) return;
+    seen[l.id] = true; Store.save();
+    this.show(l, b);
+  },
+  show(l, b) {
+    this.cur = l;
+    const c = $('#coach');
+    c.innerHTML = `<div class="ch-spot"></div><div class="ch-box"><div class="ch-face" style="background-image:url('${artOf(CARDS['3P_ConstantiaS2'])}')"></div>
+      <span class="ch-step">실전 안내</span><div class="ch-who">콘스탄챠 S2</div><div class="ch-text">${touchText(l.text(b))}</div>
+      <div class="ch-btns"><button class="btn small ghost" data-a="off">안내 끄기</button><button class="btn small primary" data-a="ok">알겠어요</button></div></div>`;
+    c.classList.add('show');
+    $('[data-a=ok]', c).onclick = () => { Audio2.play('click'); this.close(); };
+    $('[data-a=off]', c).onclick = () => { Store.settings.tips = false; Store.save(); this.close(); toast('실전 안내와 전술 팁을 껐습니다. 설정에서 다시 켤 수 있어요.'); };
+    this.place();
+  },
+  close() { this.cur = null; const c = $('#coach'); c.classList.remove('show'); c.innerHTML = ''; },
+  place() { if (this.cur) placeCoach(this.cur.spot); },
+};

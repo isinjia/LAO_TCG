@@ -52,6 +52,7 @@ async function showScreen(id, opts = {}) {
   const fade = $('#fade');
   if (currentScreen && !opts.instant) { fade.classList.add('on'); await sleepRaw(320); }
   hideTip(); hidePreview();
+  if (id !== 'battle' && typeof Lessons !== 'undefined') { if (Tutorial.active) Tutorial.stop(); Lessons.close(); } // 전투를 떠나면 안내 상자도 닫는다
   $$('.screen').forEach(s => s.classList.remove('active'));
   const el = $('#scr-' + id);
   el.classList.add('active');
@@ -64,6 +65,8 @@ async function showScreen(id, opts = {}) {
 // ---------- 터치 환경 문구 ----------
 // 마우스가 없는 기기(휴대폰·태블릿)에서는 "마우스를 올리면"·"우클릭" 안내를 길게 누르기로 바꿔 보여 준다
 const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
+// 휴대폰 진동 (터치 기기에서만, 지원하지 않으면 무시)
+function vibrate(p) { try { if (IS_TOUCH && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 function touchText(s) { return IS_TOUCH ? String(s).replace(/마우스를 올리면/g, '길게 누르면').replace(/우클릭으로/g, '길게 눌러').replace(/우클릭/g, '길게 누르기') : s; }
 
 // ---------- 카드 텍스트 ----------
@@ -239,10 +242,11 @@ function openSettings(inBattle) {
     <div class="settings-grid">
       <span>배경음</span><input type="range" min="0" max="1" step="0.05" value="${s.bgm}" data-k="bgm">
       <span>효과음</span><input type="range" min="0" max="1" step="0.05" value="${s.sfx}" data-k="sfx">
+      <span>캐릭터 음성</span><input type="range" min="0" max="1" step="0.05" value="${s.voice ?? 0.8}" data-k="voice">
       <span>전투 속도</span><div class="seg" data-k="speed">${[1, 1.5, 2, 3].map(v => `<button data-v="${v}" class="${s.speed === v ? 'on' : ''}">x${v}</button>`).join('')}</div>
       <span>전투 예측 표시</span><div class="switch ${s.forecast ? 'on' : ''}" data-k="forecast"></div>
       <span class="hint">이번 턴 전투 결과(피해·격파)를 유닛 위에 미리 표시합니다.</span>
-      <span>전술 팁</span><div class="switch ${s.tips ? 'on' : ''}" data-k="tips"></div>
+      <span>전술 팁·실전 안내</span><div class="switch ${s.tips ? 'on' : ''}" data-k="tips"></div>
     </div>
     <div class="modal-actions">${inBattle ? '' : '<button class="btn danger small" data-a="reset">저장 데이터 초기화</button><button class="btn small" data-a="export">저장 내보내기</button><button class="btn small" data-a="import">저장 불러오기</button><span class="spacer"></span>'}<button class="btn primary" data-a="ok">닫기</button></div></div>`);
   const m = openModal(box);
@@ -250,6 +254,7 @@ function openSettings(inBattle) {
     s[r.dataset.k] = parseFloat(r.value);
     if (r.dataset.k === 'bgm') Audio2.setBgmVolume(s.bgm);
     if (r.dataset.k === 'sfx') Audio2.play('click');
+    if (r.dataset.k === 'voice') Audio2.voice(Store.data.secretary, 'deploy', true);
     Store.save();
   });
   box.querySelectorAll('.seg button').forEach(b => b.onclick = () => {

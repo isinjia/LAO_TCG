@@ -98,6 +98,13 @@ t('소환 효과 (철충 무리)', () => { const { a, b } = fresh(D0, D1); const
 t('멀리건: 같은 장수 유지', () => { const { a, g } = fresh(D0, D1); const n = a.hand.length; g.mulligan(a, a.hand.slice(0, 2)); eq(a.hand.length, n); eq(a.hand.length + a.deck.length, 12); });
 t('멀리건: 4장을 골라도 최대 3장만 교체', () => { const { a, g } = fresh(D0, D1); const before = a.hand.slice(); g.mulligan(a, before.slice()); eq(a.hand.length, 4); eq(a.hand.length + a.deck.length, 12); eq(before.filter(c => a.hand.includes(c)).length, 1, '남은 원래 카드 수'); eq(RULES.MULLIGAN_MAX, 3); });
 t('멀리건: 1회만 가능', () => { const { a, g } = fresh(D0, D1); g.mulligan(a, []); const h = a.hand.slice(); g.mulligan(a, a.hand.slice(0, 3)); eq(a.hand.every((c, i) => c === h[i]), true); });
+t('어려움 AI: 이번 턴 확정 승리를 찾는다 (포격 지원으로 마무리)', () => {
+  const { a, b, g } = fresh(D0, D1); g.mulligan(a, []); g.mulligan(b, []); g.start();
+  const p = g.cur, o = g.other(p);
+  p.hand = []; p.ap = RULES.COMMAND.cost; o.hp = RULES.COMMAND.dmg; o.lanes = [null, null, null]; p.lanes = [null, null, null];
+  const act = AI.nextAction(g, p, 'hard');
+  ok(act && act.command && act.target.cmd === o, '상대 라이프에 포격 지원');
+});
 t('AI 멀리건: 최대 3장', () => { const p = new Player('X', D0, { isAI: true }); p.hand = [...p.deck]; eq(AI.pickMulligan(p, 'normal').length <= 3, true); });
 t('덱 소진 시 묘지 재순환', () => { const { a, g } = fresh(D0, D1); a.grave.push(...a.deck.splice(0)); a.hand.length = 0; a.draw(3, g); eq(a.hand.length, 3); });
 t('패 최대치 초과 시 소각', () => { const { a, g } = fresh(D0, D1); a.draw(10, g); eq(a.hand.length, RULES.HAND_MAX); });

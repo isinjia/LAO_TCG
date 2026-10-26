@@ -1,7 +1,7 @@
 // ===== AI =====
 // easy   : 일부는 보통처럼 두고, 나머지는 휴리스틱 상위 3개 후보 중 하나를 고른다 (최선이 아닌 수를 섞음). 가끔 카드를 아끼고 턴을 넘긴다
 // normal : 휴리스틱 상위 5개 후보를 실제로 두어 보고(내 전투까지) 평가가 가장 좋은 것을 고른다. 교환·처치·상대 위협을 따진다
-// hard   : 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
+// hard   : 이번 턴 확정 승리 수순(행동 3개까지)을 먼저 찾고, 없으면 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
 const AI = {
   EASY_SMART: 0.75, // 쉬움이 보통과 같은 수를 두는 비율 (보통 상대 승률 약 30%를 목표로 맞춘 값)
@@ -218,10 +218,36 @@ const AI = {
     return card ? { card, lane: best.lane, target } : null;
   },
 
+  // 확정 승리 탐색: 이번 턴 행동 최대 depth개와 내 전투로 상대 라이프를 0으로 만드는 수순을 찾는다 (없으면 null, 행동 없이 이기면 [])
+  lethalPath(game, p, depth) {
+    const o = game.other(p);
+    const winsNow = g => g.phase === 'over' && g.winner === g.players[game.players.indexOf(p)];
+    const endWins = g => { const c = g.clone(); c.quiet = true; c.noEvents = true; c.phase = 'combat'; c.resolveCombat(); return winsNow(c) || (c.phase !== 'over' && c.players[1 - game.players.indexOf(p)].hp <= 0); };
+    if (endWins(game)) return [];
+    // 상대 라이프에 닿을 피해가 이번 턴에 나올 수 없을 만큼 멀면 넓게 찾지 않는다
+    if (o.hp > 30) return null;
+    const dfs = (g, d) => {
+      if (d === 0) return null;
+      const gp = g.players[game.players.indexOf(p)];
+      for (const a of this.legalActions(g, gp).slice(0, 14)) {
+        const c = g.clone(); c.quiet = true; c.noEvents = true;
+        const cp = c.players[game.players.indexOf(p)];
+        if (!this.applyAct(c, cp, a)) continue;
+        if (winsNow(c) || (c.phase !== 'over' && endWins(c))) return [a];
+        if (c.phase === 'over') continue;
+        const rest = dfs(c, d - 1); if (rest) return [a, ...rest];
+      }
+      return null;
+    };
+    return dfs(game, depth);
+  },
+
   // 2수 빔 탐색: 1수 후보 상위 4개에 대해 2번째 행동까지 평가한다
   searchAction(real, rp) {
     const game = this.hiddenInfoView(real, rp);
     const p = game.players[real.players.indexOf(rp)];
+    const win = this.lethalPath(game, p, 3);
+    if (win) return win.length ? this.toReal(real, game, rp, win[0]) : null; // 이번 턴에 확실히 이기는 수순이 있으면 그대로 둔다
     const base = this.scoreSeq(game, p, []);
     const firsts = this.legalActions(game, p).map(a => ({ a, s: this.scoreSeq(game, p, [a]) })).filter(x => x.s > -Infinity).sort((x, y) => y.s - x.s);
     let best = null, bestScore = base + 0.5; // 아무것도 안 하는 것보다 확실히 나을 때만 행동
@@ -235,7 +261,10 @@ const AI = {
       }
     }
     if (!best) return null;
-    // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
+    return this.toReal(real, game, rp, best);
+  },
+  // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
+  toReal(real, game, rp, best) {
     const card = best.command ? COMMAND_CARD : rp.hand.find(c => c.id === best.card.id);
     let target = best.target;
     if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };

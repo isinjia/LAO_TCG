@@ -1,5 +1,7 @@
 // ===== 덱 편성 / 카드 도감 =====
 const GRADE_ORDER = { B: 0, A: 1, S: 2, SS: 3 };
+// 덱 편성·도감 카드 크기: 휴대폰(.compact)에서는 크게 그려 효과 글씨를 읽을 수 있게 한다
+function poolCardW() { return document.body.classList.contains('compact') ? 330 : 190; }
 function makeFilterState() { return { q: '', facs: new Set(), kind: '', grade: '', cost: '', sort: 'cost', enemy: false }; }
 const deckFilter = makeFilterState();
 const colFilter = makeFilterState();
@@ -166,7 +168,7 @@ function renderPool(el) {
   const list = filterCards(POOL, deckFilter);
   $('.pool-count', el).textContent = `${list.length}장 · 해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}`;
   list.forEach(c => {
-    const ce = cardEl(c, { w: 190, lockCheck: true });
+    const ce = cardEl(c, { w: poolCardW(), lockCheck: true });
     const inDeck = editing.cards.includes(c.id);
     const locked = !Store.isUnlocked(c.id);
     const full = editing.cards.length >= RULES.DECK_SIZE;
@@ -201,7 +203,7 @@ screenHooks.collection = el => {
     const list = filterCards(base, colFilter);
     $('.pool-count', el).textContent = `${list.length}장`;
     $('.pool-count', el).textContent = `${list.length}장 · 해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}`;
-    list.forEach(c => { const ce = cardEl(c, { w: 190, lockCheck: true }); ce.onclick = () => { Audio2.play('click'); openCardDetail(c, list); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(c, list); }; grid.appendChild(ce); });
+    list.forEach(c => { const ce = cardEl(c, { w: poolCardW(), lockCheck: true }); ce.onclick = () => { Audio2.play('click'); openCardDetail(c, list); }; ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(c, list); }; grid.appendChild(ce); });
   };
   bindFilterBar(el, colFilter, render);
   $('[data-a=supply]', el).onclick = () => openSupply(() => { render(); $('[data-v=bp]', el).textContent = Store.data.bp || 0; });
