@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: 스크립트 문법 검사 (한 파일이라도 깨지면 배포하지 않는다)
+        run: for f in js/*.js sw.js; do node --check "$f" || exit 1; done
       - name: 규칙 테스트 (실패하면 배포하지 않는다)
         run: node tools/test.js
       - name: 배포할 파일 모으기

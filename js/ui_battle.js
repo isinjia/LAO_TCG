@@ -507,8 +507,7 @@ function renderCmd(side, p) {
   // 켜진 제작사 결속을 이름 아래에 표시한다
   const syn = p.factions.filter(f => SYNERGY[f] && B.game.synergy(p, f));
   $$('.hero-facs i', el).forEach(i => i.classList.toggle('on', syn.includes(i.dataset.f)));
-  const sl = $('.hero-syn', el); if (sl) { const t = syn.map(f => `결속 · ${SYNERGY[f].name}`).join(' / '); if (sl.textContent !== t) { sl.textContent = t; if (t) retrigger(sl, 'pop'); } sl.title = syn.map(f => `${SYNERGY[f].name}: ${SYNERGY[f].text}`).join('
-'); }
+  const sl = $('.hero-syn', el); if (sl) { const t = syn.map(f => `결속 · ${SYNERGY[f].name}`).join(' / '); if (sl.textContent !== t) { sl.textContent = t; if (t) retrigger(sl, 'pop'); } sl.title = syn.map(f => `${SYNERGY[f].name}: ${SYNERGY[f].text}`).join(' / '); }
   const ap = $('.hero-ap', el); if (ap) ap.textContent = p.ap > p.maxAp ? `AP ${p.ap} (이월 +${p.ap - p.maxAp})` : `AP ${p.ap}/${p.maxAp}`;
 }
 function renderAp() {
