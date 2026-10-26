@@ -45,9 +45,9 @@ const UNITS = [
   { id: '3P_CSPerrault', n: 'C.S. 페로', f: '3P', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 5, kw: [], deploy: [{ op: 'buff', tgt: 'adjAllies', a: 1, h: 1 }], text: '전개: 양옆 아군 +1/+1.' },
   { id: '3P_Daphne', n: '다프네', f: '3P', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: ['회피'] },
   { id: '3P_Fenrir', n: '펜릴', f: '3P', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 5, kw: ['돌격'] },
-  { id: '3P_BlackWyrm', n: '블랙 웜', f: '3P', t: 'H', r: 'ATK', g: 'S', c: 5, a: 4, h: 7, kw: ['반격'] },
+  { id: '3P_BlackWyrm', n: '블랙 웜', f: '3P', t: 'H', r: 'ATK', g: 'S', c: 5, a: 5, h: 7, kw: ['반격'] },
   { id: '3P_Sowan', n: '소완', f: '3P', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: [] , deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
-  { id: '3P_Ran', n: '란', f: '3P', t: 'M', r: 'SUP', g: 'S', c: 4, a: 2, h: 5, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
+  { id: '3P_Ran', n: '란', f: '3P', t: 'M', r: 'SUP', g: 'S', c: 4, a: 2, h: 6, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
   { id: '3P_Alexandra', n: '알렉산드라', f: '3P', t: 'L', r: 'SUP', g: 'A', c: 3, a: 2, h: 4, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
   { id: '3P_Aqua', n: '아쿠아', f: '3P', t: 'M', r: 'DEF', g: 'A', c: 3, a: 3, h: 6, kw: ['회피'] },
   { id: '3P_Ajax', n: '에이젝스', f: '3P', t: 'L', r: 'DEF', g: 'A', c: 3, a: 3, h: 5, kw: ['반격'] },
@@ -102,7 +102,7 @@ const UNITS = [
   { id: 'BR_Hraesvelgr', n: '흐레스벨그', f: 'BR', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 5, kw: [], deploy: [{ op: 'dmg', tgt: 'enemyCmd', v: 3 }], text: '전개: 상대 라이프에 3 피해.' },
   { id: 'BR_Io', n: '이오', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 4, kw: ['돌격', '관통'] },
   { id: 'BR_May', n: '메이', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 4, kw: ['회피'], deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
-  { id: 'BR_NightAngel', n: '나이트 엔젤', f: 'BR', t: 'L', r: 'ATK', g: 'S', c: 4, a: 6, h: 2, kw: ['돌격'] },
+  { id: 'BR_NightAngel', n: '나이트 엔젤', f: 'BR', t: 'L', r: 'ATK', g: 'S', c: 4, a: 5, h: 2, kw: ['돌격'] },
   { id: 'BR_Phantom', n: '팬텀', f: 'BR', t: 'L', r: 'ATK', g: 'S', c: 4, a: 4, h: 3, kw: ['회피'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: 'BR_Scathy', n: '스카디', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 5, kw: ['관통'] },
   { id: 'BR_Sleipnir', n: '슬레이프니르', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 5, a: 4, h: 6, kw: ['돌격'] },
@@ -116,7 +116,7 @@ const UNITS = [
   { id: 'BR_Cheona', n: '천아', f: 'BR', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'] },
   { id: 'BR_Emily', n: '에밀리', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 2, a: 3, h: 3, kw: [], death: [{ op: 'dmg', tgt: 'enemyCmd', v: 1 }], text: '격파: 상대 라이프에 1 피해.' },
   { id: 'BR_Gremlin', n: '그렘린', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 3, a: 3, h: 4, kw: [], deploy: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '전개: 무작위 적 유닛에게 1 피해.' },
-  { id: 'BR_Leona', n: '레오나', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['회피'] },
+  { id: 'BR_Leona', n: '레오나', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 4, kw: ['회피'] },
   { id: 'BR_Nashorn', n: '나스호른', f: 'BR', t: 'H', r: 'DEF', g: 'A', c: 3, a: 1, h: 6, kw: ['반격'] },
   { id: 'BR_RedHood', n: '레드후드', f: 'BR', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 2, kw: ['관통'] },
   { id: 'BR_Shirayuri', n: '시라유리', f: 'BR', t: 'L', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '전개: 마주한 적 유닛 공격력 -1.' },
@@ -169,7 +169,7 @@ const UNITS = [
   { id: 'AGS_Aeda', n: '에이다 Type-G', f: 'AGS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'AGS_Watcher', n: '와쳐', f: 'AGS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'AGS_SpartanA', n: '스파르탄 캡틴', f: 'AGS', t: 'H', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: ['방어막:1'] },
-  { id: 'AGS_SpartanB', n: '스파르탄 부머', f: 'AGS', t: 'H', r: 'ATK', g: 'B', c: 2, a: 3, h: 3, kw: [], death: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '격파: 마주한 적 유닛에게 2 피해.' },
+  { id: 'AGS_SpartanB', n: '스파르탄 부머', f: 'AGS', t: 'H', r: 'ATK', g: 'B', c: 2, a: 3, h: 4, kw: [], death: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '격파: 마주한 적 유닛에게 2 피해.' },
   { id: 'AGS_SpartanC', n: '스파르탄 어썰트', f: 'AGS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 1, h: 2, kw: ['돌격'] },
 
   // ---------- 철충 (캠페인 적 전용) ----------
@@ -250,6 +250,10 @@ const PRESET_DECKS = [
     cards: ['AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_RheinRitter', 'AGS_Arachne', 'AGS_Albatross', 'AGS_SpartanA', 'PECS_Empress', 'PECS_Sekhmet', 'PECS_LemonadeBeta', 'SK_AGS_Barrier', 'SK_AGS_Protocol'] },
   { name: '덴세츠 그림자 (DS+3P)', desc: '회피와 암살. 적 유닛을 제거하며 경장 공격기로 찌른다.',
     cards: ['DS_Saraqael', 'DS_Sarena', 'DS_BunnySlayer', 'DS_Ramiel', 'DS_Baekto', 'DS_Faucre', 'DS_KunoichiZero', 'DS_Angel', '3P_Hirume', '3P_Daphne', 'SK_DS_Smoke', 'SK_DS_Assassinate'] },
+  { name: '월하 결전 (삼안+PECS)', desc: '히루메와 블랙 웜을 축으로 버티다가 후반에 몰아친다.',
+    cards: ['3P_Ran', '3P_Daphne', 'PECS_Hestia', '3P_Hirume', '3P_BlackLilith', 'PECS_HighElven', 'PECS_LemonadeBeta', '3P_BlackWyrm', '3P_Alexandra', '3P_Ajax', 'SK_3P_Barrage', '3P_Aqua'] },
+  { name: '블랙리버 기동대 (BR+AGS)', desc: '돌격 전투원과 AGS 보호기로 앞줄을 지키며 밀어붙인다.',
+    cards: ['BR_PoniesAnger', 'BR_HongRyun', 'AGS_Albatross', 'AGS_Stronghold', 'BR_NightAngel', 'SK_AGS_Reinforce', 'BR_Phoenix', 'AGS_Goltarion', 'BR_Leona', 'SK_AGS_Overload', 'BR_May', 'AGS_SpartanB'] },
 ];
 
 const RULES = {

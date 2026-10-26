@@ -20,7 +20,7 @@ const CAMPAIGN = [
     intro: [
       { who: 'PECS_Orangeade', text: '오르카 카드 리그, 참가자 모집 중…? 우승하면 오르카호 최고의 카드 마스터로 인정받는대요!' },
       { who: 'PECS_Orangeade', text: '알파 님께 보여 드릴 기회예요. 저도 혼자서 해낼 수 있다는 거요. 헤헤…' },
-      { who: '3P_ConstantiaS2', text: '참가 신청하러 왔니? 리그 운영은 제가 맡고 있어요.' },
+      { who: '3P_ConstantiaS2', text: '참가 신청하러 왔니? 리그 운영은 내가 맡고 있어.' },
       { who: 'PECS_Orangeade', text: '네! 그런데 저, 카드는 만져 본 적이 거의 없거든요…' },
       { who: '3P_ConstantiaS2', text: '괜찮아. 다들 처음엔 그랬잖니. 규칙부터 하나씩 익히면 돼.' },
       { who: '3P_ConstantiaS2', text: '연습 상대는 스파르탄 캡틴이 맡아 줄 거야. 연습이라도 실전처럼 하는 아이니까 긴장 풀지 말고.' },
@@ -169,7 +169,7 @@ const CAMPAIGN = [
   {
     id: 's6', no: '6', title: '강철 군단', sub: '리그 6차전 · 신속의 칸', bg: 'sub', bgm: 'battle1',
     desc: '침식된 AGS와 아이언 프린스 카드로 짠 신속의 칸의 덱. 광역 공격에 대비해 유닛을 분산하세요.',
-    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 20, level: 'normal', style: 'balanced',
+    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 18, level: 'normal', style: 'balanced',
       deck: ['IW_IronPrince', 'IW_Robert', 'IW_MetalGuard', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Gigantes', 'AGS_Deathstalker', 'AGS_Fortress', 'AGS_Roc', 'SK_IW_Corrode', 'SK_AGS_Barrier'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'units', v: 9 }],
@@ -218,7 +218,7 @@ const CAMPAIGN = [
     lose: { who: 'PECS_LemonadeAlpha', text: '아직 멀었어요. 다시 오세요, 오렌지에이드. 기다리고 있을게요.' },
   },
   {
-    id: 's8', no: '8', title: '오르카 카드 마스터', sub: '결승 · 챔피언 라비아타', bg: 'squad', bgm: 'boss2', boss: true,
+    id: 's8', no: '8', title: '오르카 카드 마스터', sub: '결승 · 챔피언 라비아타 프로토타입', bg: 'squad', bgm: 'boss2', boss: true,
     desc: '오르카 리그 챔피언 라비아타의 삼안 정예 덱. 광역 공격과 강력한 SS 카드를 넘어서야 합니다.',
     enemy: { name: '라비아타 프로토타입', portrait: '3P_Labiata', hp: 19, level: 'hard', style: 'control',
       deck: ['3P_Labiata', '3P_Titania', '3P_Ajax', '3P_ConstantiaS2', '3P_Fenrir', '3P_BlackLilith', '3P_Sowan', '3P_Daphne', '3P_CSPerrault', '3P_Aqua', 'SK_3P_Rally', 'SK_3P_Barrage'] },
@@ -231,7 +231,7 @@ const CAMPAIGN = [
       { who: '3P_Labiata', text: '어서 오렴, 오렌지에이드 양. 여기까지 올라온 걸 보니 정말 많이 노력했구나.' },
       { who: 'PECS_Orangeade', text: '라비아타 씨…! 오늘은 챔피언 자리를 받으러 왔어요!' },
       { who: '3P_Labiata', text: '후후, 그 기세 좋구나. 알파 양도 보고 있으니 나도 봐주지 않겠단다.' },
-      { who: '3P_Labiata', text: '전력으로 상대할게요. 오르카호의 챔피언으로서.' },
+      { who: '3P_Labiata', text: '전력으로 상대해 줄게. 오르카호의 챔피언으로서.' },
     ],
     outro: [
       { who: '3P_Labiata', text: '…내가 졌구나. 축하한단다. 오늘부터 오르카호 최고의 카드 마스터는 너야.' },

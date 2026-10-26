@@ -314,6 +314,18 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .pool-grid { grid-template-columns: repeat(auto-fill, 250px); }
 .compact .pool-grid .card { --w: 250px; }
 .compact .card .c-text { font-size: 0.78em; }
+/* 휴대폰 전투: 내 초상을 왼쪽 아래로 옮기고, 비운 자리로 손패를 올려 카드가 거의 다 보이게 한다 */
+.compact .cmd.hero.me { left: calc(420px + var(--ox)); top: 836px; }
+.compact .hand { left: 1100px; bottom: -18px; }
+.compact .hand .hslot { width: 196px; height: calc(196px * 1.4); }
+.compact .hand .card { --w: 196px; }
+.compact .hand .hslot:hover .card { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-120px - var(--dy, 0px))) scale(1.15); }
+.compact .hand .hslot .card.selected { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-70px - var(--dy, 0px))) scale(1.04) !important; }
+.compact .unit .u-tags { font-size: 21px; }
+.compact .unit .u-tags .tag { font-size: 1em; }
+.compact .unit .u-stat { width: 56px; height: 56px; font-size: 31px; }
+.compact .unit .u-badges .badge { font-size: 22px; }
+.compact .hero-ap { font-size: 26px; }
 .round-info .mission { color: #9fe4ff; }
 .round-info .mission.ok { color: var(--good); }
 .round-info .mission.ok::before { content: "✔ "; }
