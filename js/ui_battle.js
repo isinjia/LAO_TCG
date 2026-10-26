@@ -99,7 +99,7 @@ screenHooks.battle = async el => {
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
     <div class="round-info"></div>
     <div class="end-turn"><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
-    <button class="cmd-power" title="작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해. 카드를 다 내고 남은 AP를 쓰기 좋습니다."><span class="cp-icon" style="background-image:url('assets/skill/${COMMAND_CARD.icon}.png')"></span><span class="cp-name">포격 지원<small>작전 지시 · 턴당 1회</small></span><span class="cp-cost">${RULES.COMMAND.cost}</span></button>
+    <button class="cmd-power" title="작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해. 카드를 다 내고 남은 AP를 쓰기 좋습니다."><span class="cp-icon" style="background-image:url('assets/skill/${COMMAND_CARD.icon}.png')"></span><span class="cp-name">포격 지원<small>작전 지시 · 턴당 1회</small></span><span class="cp-cost" data-v="cmdcost">${RULES.COMMAND.cost}</span></button>
     <div class="ap-bar" id="ap-me" title="AP: 매 턴 최대치가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 남은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다."><div class="ap-num"></div><div class="ap-gems"></div></div>
     <div class="hand"></div>
     <div class="log-panel"><h4>전투 기록</h4><div class="log-list scroll"></div></div>`;
@@ -118,7 +118,7 @@ function cmdHtml(side, p) {
     <div class="hero-frame"><div class="cm-portrait" style="background-image:url('${portrait}')"></div></div>
     <div class="hero-hp"><span class="num">0</span></div>
     ${side === 'enemy' ? '<div class="hero-ap" title="적 AP"></div>' : ''}
-    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? '카드 마스터 지망생' : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}"></i>`).join('')}</span></div>
+    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? '카드 마스터 지망생' : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
     <div class="cm-fc"></div></div>`;
 }
 
@@ -338,7 +338,7 @@ function selectCard(card) {
     clearSelection(); renderHand(true); return false;
   }
   clearSelection();
-  if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
+  if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${B.game.commandCost(me)})`, true); return false; }
   if (!me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
   hidePreview(); // 마우스를 올렸던 카드의 큰 그림은 닫는다
@@ -504,6 +504,11 @@ function renderCmd(side, p) {
   num.textContent = p.hp;
   el.classList.toggle('low', p.hp <= Math.ceil(p.maxHp * 0.3));
   el.title = `${p.name} — 체력 ${p.hp}/${p.maxHp}`;
+  // 켜진 제작사 결속을 이름 아래에 표시한다
+  const syn = p.factions.filter(f => SYNERGY[f] && B.game.synergy(p, f));
+  $$('.hero-facs i', el).forEach(i => i.classList.toggle('on', syn.includes(i.dataset.f)));
+  const sl = $('.hero-syn', el); if (sl) { const t = syn.map(f => `결속 · ${SYNERGY[f].name}`).join(' / '); if (sl.textContent !== t) { sl.textContent = t; if (t) retrigger(sl, 'pop'); } sl.title = syn.map(f => `${SYNERGY[f].name}: ${SYNERGY[f].text}`).join('
+'); }
   const ap = $('.hero-ap', el); if (ap) ap.textContent = p.ap > p.maxAp ? `AP ${p.ap} (이월 +${p.ap - p.maxAp})` : `AP ${p.ap}/${p.maxAp}`;
 }
 function renderAp() {
@@ -534,6 +539,7 @@ function renderAll(forceHand) {
   renderRoundInfo();
   $('[data-v=deck]').textContent = me.deck.length; $('[data-v=grave]').textContent = me.grave.length;
   $('[data-v=edeck]').textContent = ai.deck.length; $('[data-v=egrave]').textContent = ai.grave.length;
+  const cc = $('[data-v=cmdcost]'); if (cc) { cc.textContent = game.commandCost(me); cc.classList.toggle('syn', game.commandCost(me) < RULES.COMMAND.cost); }
   const eh = $('.enemy-hand'); const n = ai.hand.length;
   if (eh.childElementCount !== n) eh.innerHTML = ai.hand.map((_, i) => `<div class="card-back" style="--r:${(i - (n - 1) / 2) * -5}deg;--y:${Math.abs(i - (n - 1) / 2) * 5}px"></div>`).join('');
   for (const [p, side] of [[me, 'me'], [ai, 'enemy']]) {

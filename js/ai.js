@@ -37,6 +37,8 @@ const AI = {
           let v = c.c * 2 + c.a + c.h * 0.5 + (c.kw || []).length;
           const mine = p.lanes[l];
           if (!canAt(c, l)) return;
+          // 같은 제작사 전투원이 이미 있으면 결속이 켜지므로 조금 더 높게 본다
+          if (p.units().some(u => u !== mine && u.card.f === c.f)) v += 1.5;
           if (mine) { v -= mine.card.c * 2 + mine.atk + mine.hp * 0.5 + 3; if (v <= 0) return; }
           const opp = o.lanes[l];
           if (opp) {

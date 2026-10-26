@@ -464,3 +464,9 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .lobby-menu.many { top: 170px; gap: 6px; }
 .compact .lobby-menu.many .menu-item { padding-top: 10px; padding-bottom: 16px; }
 .compact .lobby-menu.many .mi-sub { font-size: 18px; }
+/* 제작사 결속 표시 */
+.hero-facs i { opacity: 0.55; transition: opacity 0.2s, box-shadow 0.2s; }
+.hero-facs i.on { opacity: 1; box-shadow: 0 0 10px currentColor, 0 0 0 2px #fff; }
+.hero-syn { display: block; font-size: 14px; color: var(--lo-yellow); font-weight: 800; min-height: 0; }
+.compact .hero-syn { font-size: 24px; }
+.cmd-power .cp-cost.syn { background: linear-gradient(180deg, #fff3b0, #ffc600); }

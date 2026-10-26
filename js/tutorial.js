@@ -129,6 +129,8 @@ const LESSONS = [
     text: () => `레인이 다 찼니? 그래도 <b>교체 배치</b>를 할 수 있단다. 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 놓으면 AP를 ${RULES.REPLACE_COST} 더 쓰고, 원래 전투원은 철수해(격파 효과는 없어).` },
   { id: 'move', when: b => b.game.round() >= 3 && b.me.units().length >= 1 && b.game.canMove(b.me.units()[0]) && b.ai.units().some(e => b.me.units().some(m => TYPE_BEATS[e.type] === m.type)), spot: '.lanes.me',
     text: () => `상성이 불리한 자리에 있는 전투원이 있구나. 내 턴에 내 전투원을 누르면 <b>이동</b>할 수 있단다. 턴마다 한 번, AP ${RULES.MOVE_COST}로 이웃 레인으로 옮기고, 아군이 있으면 자리를 바꿔.` },
+  { id: 'synergy', when: b => b.me.factions.some(f => SYNERGY[f] && b.game.synergy(b.me, f)), spot: '#cmd-me',
+    text: b => { const f = b.me.factions.find(x => SYNERGY[x] && b.game.synergy(b.me, x)); return `같은 제작사 전투원이 ${RULES.SYNERGY_MIN}기 모여 <b>제작사 결속</b>이 켜졌구나! ${FACTIONS[f].name}의 「${SYNERGY[f].name}」: ${SYNERGY[f].text}. 제작사마다 결속 효과가 다르니 덱을 짤 때 생각해 보렴.`; } },
   { id: 'overtime', when: b => b.game.round() >= RULES.OVERTIME_ROUND - 3, spot: '.round-info',
     text: () => `오른쪽 위 라운드를 보렴. <b>${RULES.OVERTIME_ROUND}라운드</b>부터는 작전 시간 초과로 매 턴 양쪽 라이프가 깎이고, 피해도 점점 커진단다. 그 전에 끝낼 수 있게 몰아붙이렴.` },
 ];

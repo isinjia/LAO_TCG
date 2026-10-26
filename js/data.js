@@ -13,6 +13,14 @@ const FACTIONS = {
   'IW':   { name: '철충',      short: '철충', color: '#c9ced8', dark: '#3a1520', enemy: true },
 };
 const PLAYER_FACTIONS = ['3P', 'PECS', 'BR', 'DS', 'AGS'];
+// 제작사 결속: 같은 제작사 전투원이 전장에 2기 이상이면 켜지는 제작사 고유 효과 (덱마다 성격을 만든다)
+const SYNERGY = {
+  '3P':   { name: '함대 지휘', text: '포격 지원 AP 1 감소, 피해 +1' },
+  'PECS': { name: '정비 연계', text: '내 턴 시작에 모든 아군 전투원 체력 1 회복' },
+  'BR':   { name: '돌파 화력', text: '블랙리버 전투원이 상대 라이프를 직접 칠 때 피해 +1' },
+  'DS':   { name: '그림자 연계', text: '새로 낸 덴세츠 전투원이 회피를 얻음' },
+  'AGS':  { name: '방벽 프로토콜', text: '내 턴 시작에 AGS 전투원마다 방어막 2' },
+};
 
 const TYPES = { L: '경장', M: '기동', H: '중장' };
 const TYPE_BEATS = { L: 'M', M: 'H', H: 'L' }; // 경장>기동>중장>경장
@@ -131,7 +139,7 @@ const UNITS = [
 
   // ---------- 덴세츠사 ----------
   { id: 'DS_Azazel', n: '아자젤', f: 'DS', t: 'L', r: 'ATK', g: 'SS', c: 6, a: 8, h: 4, kw: ['돌격', '회피'] },
-  { id: 'DS_Saraqael', n: '사라콰엘', f: 'DS', t: 'H', r: 'ATK', g: 'SS', c: 7, a: 7, h: 7, kw: ['관통'], deploy: [{ op: 'destroyLowest', v: 4 }], text: '전개: 체력 4 이하인 적 유닛 중 가장 약한 하나를 처치.' },
+  { id: 'DS_Saraqael', n: '사라콰엘', f: 'DS', t: 'H', r: 'ATK', g: 'SS', c: 7, a: 7, h: 6, kw: ['관통'], deploy: [{ op: 'destroyLowest', v: 4 }], text: '전개: 체력 4 이하인 적 유닛 중 가장 약한 하나를 처치.' },
   { id: 'DS_Sarena', n: '사레나', f: 'DS', t: 'H', r: 'DEF', g: 'SS', c: 6, a: 4, h: 11, kw: ['회피', '방어막:2'] },
   { id: 'DS_Arman', n: '아르망', f: 'DS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['회피'], strike: [{ op: 'slow', tgt: 'oppUnit' }], text: '공격 후: 마주한 적 유닛 둔화.' },
   { id: 'DS_Atalanta', n: '아탈란테', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 3, kw: ['돌격', '회피'] },
@@ -270,10 +278,11 @@ const RULES = {
   TYPE_BONUS: 1,
   SECOND_EXTRA_CARDS: 1, // 후공 보정: 교체를 마친 뒤 추가로 뽑는 장수
   SECOND_AP_BONUS: 1,    // 후공 첫 턴 추가 AP
-  SECOND_HP_BONUS: 3,    // 후공 라이프 보정 (작전 지시가 선공에게 더 유리해서 넣었다. 3 → 1 → 2 → 3으로 재조정)
+  SECOND_HP_BONUS: 4,    // 후공 라이프 보정 (작전 지시가 선공에게 더 유리해서 넣었다. 3 → 1 → 2 → 3 → 4(제작사 결속 뒤)로 재조정)
   REPLACE: true,         // 교체 배치: 이번 턴에 낸 것이 아닌 내 전투원 위에 새 전투원을 내면 원래 전투원은 철수(묘지로, 격파 효과 없음)
   REPLACE_COST: 1,       // 교체 배치 추가 AP (남발해 판이 늘어지거나 약한 전투원을 공짜로 갈아 끼우지 않게)
   MOVE_COST: 2,          // 이동: 턴마다 한 번, AP 2로 내 전투원을 이웃 레인으로 옮긴다 (아군이 있으면 자리를 바꾼다)
+  SYNERGY_MIN: 2,        // 제작사 결속이 켜지는 같은 제작사 전투원 수 (0이면 끔)
   ATK_ROLE_PIERCE: 0,    // 공격기 역할이 기본으로 관통을 가짐
   DEF_ROLE_ARMOR: 1,     // 보호기 역할: 유닛 공격으로 받는 피해 감소량 (최소 1)
   ATK_ROLE_TYPE_BONUS: 0, // 공격기 역할: 상성 유리 시 추가 피해

@@ -171,6 +171,9 @@ class Game {
       this.damageCmd(p, ot, null);
       if (this.phase === 'over') return;
     }
+    // 제작사 결속 (턴 시작)
+    if (this.synergy(p, 'PECS')) p.units().forEach(u => { const v = Math.min(1, u.maxHp - u.hp); if (v > 0) { u.hp += v; p.stats.healed += v; this.emit({ type: 'heal', unit: u, v }); } });
+    if (this.synergy(p, 'AGS')) p.units().forEach(u => { if (u.card.f === 'AGS' && u.shield < 2) { u.shield = 2; this.emit({ type: 'shield', unit: u, v: 2 }); } });
     p.units().forEach(u => {
       if (u.kw['재생'] && u.hp < u.maxHp) {
         const v = Math.min(u.kw['재생'], u.maxHp - u.hp);
@@ -215,6 +218,8 @@ class Game {
       p.stats.unitsPlayed++;
       this.emit({ type: 'summon', unit: u, lane, player: p });
       this.log(`${p.name}: ${card.n} 배치 (${LANE_NAMES[lane]})`);
+      // 덴세츠 결속(그림자 연계): 결속이 켜진 상태에서 낸 덴세츠 전투원은 회피를 얻는다
+      if (card.f === 'DS' && this.synergy(p, 'DS') && !u.evade) { u.evade = true; this.emit({ type: 'evadeGain', unit: u }); }
       if (card.deploy) this.runEffects(card.deploy, p, { unit: u, lane, src: card });
     } else {
       p.grave.push(card);
@@ -230,17 +235,19 @@ class Game {
   // target을 생략하면 지금 쓸 수 있는지만 확인한다
   canCommand(target) {
     const p = this.cur, c = RULES.COMMAND;
-    if (!c || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < c.cost) return false;
+    if (!c || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < this.commandCost(p)) return false;
     if (target === undefined) return true;
     return !!(target && ((target.unit && target.unit.owner !== p && p.lanes.indexOf(target.unit) < 0) || (target.cmd && target.cmd !== p)));
   }
   command(target) {
     if (!this.canCommand(target)) return false;
     const p = this.cur;
-    p.ap -= RULES.COMMAND.cost; p.cmdUsed = this.turn; p.stats.commands = (p.stats.commands || 0) + 1;
+    p.ap -= this.commandCost(p); p.cmdUsed = this.turn; p.stats.commands = (p.stats.commands || 0) + 1;
     this.emit({ type: 'skill', card: COMMAND_CARD, player: p, target });
     this.log(`${p.name}: 작전 지시 — 포격 지원`, 'skill');
-    this.runEffects(COMMAND_CARD.fx, p, { target, src: null });
+    // 삼안 결속(함대 지휘): 포격 피해 +1
+    const fx = this.synergy(p, '3P') ? COMMAND_CARD.fx.map(e => (e.op === 'dmg' ? { ...e, v: e.v + 1 } : e)) : COMMAND_CARD.fx;
+    this.runEffects(fx, p, { target, src: null });
     return true;
   }
   // ---- 이동: 턴마다 한 번, AP를 써서 내 전투원을 이웃 레인으로 옮긴다. 아군이 있으면 자리를 바꾼다 ----
@@ -415,6 +422,10 @@ class Game {
   }
 
   // ---- 공격력 계산 (지원기 오라) ----
+  // 포격 지원 AP: 삼안 결속(함대 지휘)이면 1 싸다
+  commandCost(p) { return RULES.COMMAND.cost - (this.synergy(p, '3P') ? 1 : 0); }
+  // 제작사 결속이 켜져 있는가 (같은 제작사 전투원이 SYNERGY_MIN기 이상)
+  synergy(p, f) { return !!RULES.SYNERGY_MIN && p.units().filter(u => u.card.f === f).length >= RULES.SYNERGY_MIN; }
   effectiveAtk(u) {
     const p = u.owner; const lane = p.lanes.indexOf(u);
     let a = u.atk;
@@ -476,9 +487,10 @@ class Game {
         this.damageCmd(o, over, u.card);
       }
     } else {
+      const dmg = atk + (u.card.f === 'BR' && this.synergy(p, 'BR') ? 1 : 0); // 블랙리버 결속: 직격 +1
       this.emit({ type: 'attack', unit: u, lane, targetCmd: o });
-      this.log(`${u.card.n} → ${o.name} 직격 ${atk}`);
-      this.damageCmd(o, atk, u.card);
+      this.log(`${u.card.n} → ${o.name} 직격 ${dmg}`);
+      this.damageCmd(o, dmg, u.card);
     }
   }
 
