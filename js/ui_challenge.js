@@ -44,7 +44,8 @@ const Ach = {
 
 // ---------- 리그 순회전 ----------
 // 스토리 상대 다섯 명과 연달아 대국한다. 라이프는 다음 대국으로 이어지고, 이길 때마다 조금 회복한다.
-const GAUNTLET = { MATCHES: 5, HEAL: 8, LEVELS: ['normal', 'normal', 'hard', 'hard', 'hard'] };
+// 상대 라이프는 스테이지와 상관없이 ENEMY_HP로 고정한다 (보통 AI 플레이어 기준 돌파율 약 13%)
+const GAUNTLET = { MATCHES: 5, HEAL: 14, ENEMY_HP: 14, LEVELS: ['easy', 'normal', 'normal', 'normal', 'hard'] };
 // 대국마다 고를 수 있는 스토리 스테이지 (뒤로 갈수록 강한 상대)
 const GAUNTLET_POOL = [['s1', 's2', 's3'], ['s2', 's3', 's4'], ['s4', 's5', 's6'], ['s6', 's7'], ['s7', 's8']];
 
@@ -68,7 +69,7 @@ const Gauntlet = {
     const st = CAMPAIGN.find(s => s.id === r.stages[r.idx]);
     startBattle({
       mode: 'gauntlet', myDeck: deck.cards, myDeckName: deck.name, myHp: r.hp, userDeck: !deck.preset,
-      enemy: { ...st.enemy, level: GAUNTLET.LEVELS[r.idx] },
+      enemy: { ...st.enemy, hp: GAUNTLET.ENEMY_HP, level: GAUNTLET.LEVELS[r.idx] },
       first: 'random', bg: st.bg, bgm: r.idx === GAUNTLET.MATCHES - 1 ? 'boss2' : st.bgm,
       gauntlet: { idx: r.idx, total: GAUNTLET.MATCHES },
     });
@@ -96,7 +97,7 @@ const Gauntlet = {
 // 날짜마다 정해지는 상대와 특수 조건. 상대 인공지능은 항상 어려움.
 const DAILY_TWISTS = [
   { name: '철벽 상대', desc: '상대 라이프 +8', apply: c => { c.enemy.hp += 8; } },
-  { name: '벼랑 끝', desc: '내 라이프 15로 시작', apply: c => { c.myHp = 15; } },
+  { name: '벼랑 끝', desc: '내 라이프 18로 시작', apply: c => { c.myHp = 18; } },
   { name: '선제 배치', desc: '상대가 모든 레인에 전투원을 미리 배치하고 시작', apply: (c, rnd) => {
     const units = c.enemy.deck.filter(id => CARDS[id].kind === 'unit' && CARDS[id].c <= 4);
     c.enemy.start = [0, 1, 2].map(lane => ({ lane, id: units[Math.floor(rnd() * units.length)] }));
@@ -172,7 +173,7 @@ screenHooks.challenge = el => {
     <div class="ch-wrap">
       <div class="panel ch-col">
         <div class="ch-kicker">GAUNTLET</div><h3>리그 순회전</h3>
-        <p>스토리 상대 다섯 명과 연달아 대국합니다. 라이프는 다음 대국으로 이어지고, 이길 때마다 ${GAUNTLET.HEAL}씩 회복합니다. 셋째 대국부터 상대가 어려움 인공지능으로 바뀝니다.</p>
+        <p>스토리 상대 다섯 명과 연달아 대국합니다. 라이프는 다음 대국으로 이어지고, 이길 때마다 ${GAUNTLET.HEAL}씩 회복합니다. 상대 라이프는 ${GAUNTLET.ENEMY_HP}이고, 마지막 대국의 상대는 어려움 인공지능입니다.</p>
         <div class="ch-path">${Array.from({ length: GAUNTLET.MATCHES }, (_, i) => {
           const st = run ? CAMPAIGN.find(s => s.id === run.stages[i]) : null;
           const state = !run ? '' : i < run.idx ? 'done' : i === run.idx ? 'now' : '';

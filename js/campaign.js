@@ -170,7 +170,7 @@ const CAMPAIGN = [
   {
     id: 's7', no: '7', title: '알파 님의 시험', sub: '준결승 · 레모네이드 알파', bg: 'beach', bgm: 'boss1', boss: true,
     desc: '레모네이드 컬렉션 덱. 제타와 오메가 한정 카드가 등장하니 레인을 비워 두지 마세요.',
-    enemy: { name: '레모네이드 알파', portrait: 'PECS_LemonadeAlpha', hp: 25, level: 'hard',
+    enemy: { name: '레모네이드 알파', portrait: 'PECS_LemonadeAlpha', hp: 21, level: 'hard',
       deck: ['PECS_LemonadeAlpha', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'IW_LemonadeZeta', 'IW_LemonadeOmega', 'PECS_Hathor', 'PECS_Ignis', 'PECS_Empress', 'PECS_Draculina', 'PECS_Sekhmet', 'SK_PECS_Blessing', 'SK_IW_Corrode'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 15 }],
     intro: [

@@ -1,7 +1,7 @@
 // ===== AI =====
 // easy   : 휴리스틱 + 실수(행동 생략, 무작위 레인)
 // normal : 휴리스틱 평가로 가장 가치 높은 카드부터 사용
-// hard   : 복제 상태에서 행동 2수까지 실행 → 전투 결과와 상대 반격까지 평가하는 빔 탐색
+// hard   : 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
 const AI = {
   // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
@@ -134,12 +134,21 @@ const AI = {
     const card = gp.hand.find(c => c.id === act.card.id);
     return !!card && g.play(card, act.lane, target);
   },
-  // 행동(들) 적용 후 내 전투까지 진행했을 때의 평가값
+  // 행동(들) 적용 → 내 전투 → 상대 턴 시작과 배치까지 진행했을 때의 평가값
+  // 상대가 빈 레인을 채우고 지원 카드를 쓴 뒤의 반격을 보므로, 다음 턴에 막힐 공격·받을 피해를 더 정확히 따진다
   scoreSeq(game, p, acts) {
     const g = game.clone();
     const gp = g.players[game.players.indexOf(p)];
     for (const a of acts) { if (!this.applyAct(g, gp, a)) return -Infinity; if (g.phase === 'over') return this.evaluate(g, gp); }
     g.phase = 'combat'; g.resolveCombat();
+    if (g.phase === 'over') return this.evaluate(g, gp);
+    const go = g.other(gp);
+    g.current = g.players.indexOf(go); g.quiet = true; g.noEvents = true;
+    g.beginTurn();
+    for (let i = 0; i < 6 && g.phase === 'main'; i++) {
+      const a = this.heuristicAction(g, go);
+      if (!a || !(a.card.kind === 'unit' ? g.play(a.card, a.lane) : g.play(a.card, null, a.target))) break;
+    }
     return this.evaluate(g, gp);
   },
   scoreAfter(game, p, act) { return this.scoreSeq(game, p, act ? [act] : []); },
