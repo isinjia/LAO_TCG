@@ -78,6 +78,9 @@ function kwHelpList(card) {
   return out;
 }
 
+// 원작 역할·등급 아이콘 (공격기=검, 보호기=방패, 지원기=톱니, 글자가 등급)
+function roleIconOf(card) { return `assets/ui/role_${card.r}_${card.g}.png`; }
+
 // ---------- 카드 엘리먼트 ----------
 // opts: { w, cost (현재 사용 가능 여부), noHover }
 function cardEl(card, opts = {}) {
@@ -94,7 +97,7 @@ function cardEl(card, opts = {}) {
     ${!isUnit && iconOf(card) ? `<div class="c-icon" style="background-image:url('${iconOf(card)}')"></div>` : ''}
     <div class="c-frame"></div>
     <div class="c-cost">${card.c}</div>
-    <div class="c-grade" style="color:${GRADE_COLOR[card.g]}">${card.g}</div>
+    ${isUnit ? `<div class="c-grade role-ico" style="background-image:url('${roleIconOf(card)}')"></div>` : `<div class="c-grade" style="color:${GRADE_COLOR[card.g]}">${card.g}</div>`}
     <div class="c-fac">${f.short}</div>
     <div class="c-plate">
       <div class="c-name">${esc(card.n)}</div>

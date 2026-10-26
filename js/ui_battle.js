@@ -509,7 +509,7 @@ function unitEl(u) {
   const c = u.card;
   const el = h(`<div class="unit" style="--fc:${FACTIONS[c.f].color}">
     <div class="u-bg"></div><div class="u-art" style="background-image:url('${artOf(c)}')"></div><div class="u-shade"></div><div class="u-shieldfx"></div>
-    <div class="u-grade" style="color:${GRADE_COLOR[c.g]}">${c.g}</div><div class="u-badges"></div><div class="u-zzz">배치 대기</div>
+    <div class="u-frame g-${c.g}"></div><div class="u-grade role-ico" style="background-image:url('${roleIconOf(c)}')" title="${ROLES[c.r]} · ${c.g}등급"></div><div class="u-badges"></div><div class="u-zzz">배치 대기</div>
     <div class="u-name">${esc(c.n)}</div>
     <div class="u-tags"><span class="tag type-${c.t}">${TYPES[c.t]}</span><span class="tag role-${c.r}">${ROLES[c.r]}</span></div>
     <div class="u-stat u-atk"></div><div class="u-stat u-hp"></div><div class="u-fc"></div></div>`);
@@ -824,7 +824,7 @@ async function finishBattle(surrendered) {
         <div><span>배치한 전투원</span><b>${st.unitsPlayed}</b></div>
         <div><span>지원 카드 / 회복</span><b>${st.skillsUsed} / ${st.healed}</b></div>
       </div>
-      ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st" style="animation-delay:${0.3 + i * 0.35}s">★</span>${starLabel(s)}</div>`).join('')}</div>` : ''}
+      ${stage ? `<div class="rs-stars">${stage.stars.map((s, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="st lo-star ${stars[i] ? 'on' : ''}" style="animation-delay:${0.3 + i * 0.35}s"></span>${starLabel(s)}</div>`).join('')}</div>` : ''}
       ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}
       <div class="modal-actions" style="margin-top:auto">
         <button class="btn" data-a="lobby">로비</button>

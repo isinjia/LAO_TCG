@@ -1,0 +1,130 @@
+/* ===== 원작 UI 스킨 =====
+   원작 아틀라스에서 뽑은 조각(assets/ui, tools/build_ui.py)과 원작 글꼴(고도체, Exo 2)로 style.css의 겉모습을 덮어쓴다.
+   9분할 조각은 border-image로 그린다. border-image-width는 레이아웃에 영향을 주지 않으므로 border 폭은 0으로 둔다. */
+@font-face { font-family: "Godo"; src: url("../assets/font/GodoM.ttf") format("truetype"); font-weight: 100 600; font-display: swap; }
+@font-face { font-family: "Godo"; src: url("../assets/font/GodoB.ttf") format("truetype"); font-weight: 700 900; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Bold.otf") format("opentype"); font-weight: 100 700; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-ExtraBold.otf") format("opentype"); font-weight: 800; font-display: swap; }
+@font-face { font-family: "Exo 2"; src: url("../assets/font/Exo2-Black.otf") format("opentype"); font-weight: 900; font-display: swap; }
+
+:root {
+  --lo-yellow: #ffc600;
+  --lo-yellow-dark: #c99a00;
+  --lo-ink: #17181b;
+  --lo-panel: rgba(24, 25, 28, 0.92);
+  --lo-edge: #5d6068;
+}
+.scroll::-webkit-scrollbar-thumb { background: rgba(255,198,0,0.45); border-radius: 0; }
+
+/* ---------- 버튼: 원작 스토리 작전 버튼(노랑/회색, 왼쪽 아래 사선 줄무늬) ---------- */
+.btn { background: none; border: 0 solid transparent; clip-path: none; color: #f2f2f2; text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  border-image: url("../assets/ui/btn_off.png") 10 10 36 120 fill / 6px 6px 20px 66px; padding: 12px 30px 16px 34px; }
+.btn.primary { border-image-source: url("../assets/ui/btn_on.png"); color: var(--lo-ink); text-shadow: none; }
+.btn.danger { border-image: none; background: linear-gradient(180deg, #c53a42, #7d1d24); border: 1px solid #ff8a92; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); }
+.btn.ghost { border-image-source: url("../assets/ui/btn_off.png"); }
+.btn.small { padding: 7px 18px 10px 22px; border-image-width: 4px 4px 14px 46px; }
+.btn.big { padding: 18px 48px 24px 52px; border-image-width: 8px 8px 28px 92px; }
+.btn:hover { filter: brightness(1.18); }
+.btn:disabled { filter: grayscale(1) brightness(0.7); opacity: 0.6; }
+.icon-btn { border-radius: 0; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); border: none; background: linear-gradient(180deg, #45474d, #26272b); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12); }
+.icon-btn:hover { background: var(--lo-yellow); color: var(--lo-ink); }
+.icon-btn.on { background: var(--lo-yellow); color: var(--lo-ink); }
+.seg { border-color: var(--lo-edge); background: rgba(0,0,0,0.3); }
+.seg button.on { background: var(--lo-yellow); color: var(--lo-ink); }
+input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
+
+/* ---------- 패널·제목줄·팝업 ---------- */
+.panel { background: none; border: 0 solid transparent; box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  border-image: url("../assets/ui/panel.png") 26 84 26 26 fill / 26px 84px 26px 26px; }
+.title-bar { background: linear-gradient(180deg, rgba(22,23,26,0.97), rgba(22,23,26,0.82)); border-bottom: 2px solid var(--lo-yellow); box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+.title-bar h2 { padding: 6px 96px 8px 22px; border: 0 solid transparent; border-image: url("../assets/ui/title_bg.png") 0 150 0 30 fill / 0 82px 0 16px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.6); }
+/* 원작 팝업 틀은 반투명이라 뒤에 같은 모양(오른쪽 아래 40px 사선)의 어두운 바탕을 한 겹 더 깐다 */
+.modal-box { background: rgba(14,15,18,0.75); border: 0 solid transparent; box-shadow: none; border-image: url("../assets/ui/popup.png") 40 100 100 40 fill / 40px 100px 100px 40px; padding: 38px 46px 44px;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%); }
+.modal-box::before { content: ""; position: absolute; left: 0; top: 0; width: 180px; height: 5px; background: var(--lo-yellow); }
+.modal-box::after { content: ""; position: absolute; left: 186px; top: 0; width: 26px; height: 5px; background: var(--lo-yellow); opacity: 0.5; transform: skewX(-40deg); }
+.modal-box h3 { color: #fff; }
+.howto-tabs button, .fac-toggle button { border-radius: 0; }
+.howto-tabs button.on { background: var(--lo-yellow); color: var(--lo-ink); }
+.tip, .toast, .log-panel, .preview .pv-kw { background: rgba(20,21,24,0.97); }
+.toast { border-color: var(--lo-yellow); border-left-width: 6px; color: #fff; }
+
+/* ---------- 로비 ---------- */
+.logo-kicker { color: var(--lo-yellow); }
+.logo-main { text-shadow: 0 0 36px rgba(255,198,0,0.35); }
+.menu-item { clip-path: none; background: none; border: 0 solid transparent; border-image: url("../assets/ui/btn_off.png") 10 10 36 120 fill / 8px 8px 26px 88px; padding: 18px 34px 26px 40px; }
+.menu-item:hover, .menu-item.main { background: none; border-image-source: url("../assets/ui/btn_on.png"); color: var(--lo-ink); transform: translateX(10px); }
+.menu-item.main:not(:hover) { transform: none; }
+.menu-item:hover .mi-sub, .menu-item.main .mi-sub { color: rgba(23,24,27,0.75); }
+.menu-item:hover .mi-badge, .menu-item.main .mi-badge { color: var(--lo-ink); }
+.menu-item .mi-icon { filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+.speech { background: rgba(20,21,24,0.92); border: none; border-left: 5px solid var(--lo-yellow); }
+
+/* ---------- 카드: 원작 캐릭터 카드 틀(등급별) + 역할·등급 아이콘 ---------- */
+.card { border-radius: 0.12em; background: #1d1e22; }
+.card .c-frame { border: none; border-radius: 0; box-shadow: none; border-image: url("../assets/ui/frame_B.png") 6 6 100 16 / 0.3em 0.3em 4.8em 0.78em; }
+.card.g-A .c-frame { border-image-source: url("../assets/ui/frame_A.png"); }
+.card.g-S .c-frame { border-color: transparent; box-shadow: none; border-image-source: url("../assets/ui/frame_S.png"); }
+.card.g-SS .c-frame { border-color: transparent; box-shadow: inset 0 0 1.2em rgba(255,214,60,0.35); border-image-source: url("../assets/ui/frame_SS.png"); }
+.card .c-bg { background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--fc) 32%, transparent), transparent 70%), linear-gradient(170deg, #34363b 0%, #1b1c20 70%); }
+.card .c-art::after { background: linear-gradient(180deg, transparent 50%, rgba(22,23,26,0.98) 100%); }
+.card .c-grade.role-ico, .unit .u-grade.role-ico { background: none no-repeat center / contain; padding: 0; color: transparent !important; filter: drop-shadow(0 0.08em 0.15em rgba(0,0,0,0.8)); }
+.card .c-grade.role-ico { width: 2.3em; height: 2.3em; right: 0.25em; top: 0.25em; }
+.card .c-fac { right: 0.45em; top: 4.25em; border-radius: 0; clip-path: polygon(0.35em 0, 100% 0, calc(100% - 0.35em) 100%, 0 100%); }
+.card .c-cost { box-shadow: none; }
+.card .c-text .kw { color: var(--lo-yellow); }
+.tag { border-radius: 0; }
+.card.playable { box-shadow: 0 0 0 0.12em var(--lo-yellow), 0 0 1.2em rgba(255,198,0,0.7); }
+
+/* ---------- 대화창: 원작 대화 틀과 이름표 ---------- */
+.dialogue .dl-box { background: none; border: 0 solid transparent; border-image: url("../assets/ui/dlg_box.png") 24 70 120 24 fill / 24px 70px 120px 24px; border-image-repeat: round stretch; padding: 40px 54px 46px; }
+.dialogue .dl-name { top: -30px; left: 26px; background: none; clip-path: none; color: #fff; padding: 10px 70px 12px 34px; border: 0 solid transparent; border-image: url("../assets/ui/dlg_name.png") 0 90 0 70 fill / 0 66px 0 52px; text-shadow: 0 2px 3px #000; }
+.dialogue .dl-next { color: var(--lo-yellow); right: 90px; bottom: 34px; }
+.dialogue .dl-title .t1 { color: var(--lo-yellow); }
+.coach .ch-box { background: rgba(22,23,26,0.96); border: 1px solid var(--lo-edge); border-top: 4px solid var(--lo-yellow); }
+
+/* ---------- 캠페인 ---------- */
+.node .n-hex { background: #55575e; }
+.node.sel .n-hex { background: var(--lo-yellow); }
+.stage-hero .sh-no { color: var(--lo-yellow); }
+.lo-star { display: inline-block; width: 1.25em; height: 1.2em; vertical-align: -0.2em; background: url("../assets/ui/star_off.png") no-repeat center / contain; }
+.lo-star.on { background-image: url("../assets/ui/star_on.png"); }
+
+/* ---------- 전투 ---------- */
+.table { border-radius: 0; border: none; background: none; box-shadow: none; border-image: url("../assets/ui/panel.png") 26 84 26 26 fill / 30px 96px 30px 30px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.55)); opacity: 0.94; }
+.table::before { border-radius: 0; border-color: rgba(255,255,255,0.06); }
+.table-mid { background: linear-gradient(90deg, transparent, rgba(255,198,0,0.7), transparent); box-shadow: 0 0 14px rgba(255,198,0,0.35); }
+.slot { border-radius: 0; border: 2px dashed rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
+.slot.place { border-color: var(--lo-yellow); background: rgba(255,198,0,0.12); box-shadow: inset 0 0 40px rgba(255,198,0,0.25); }
+.unit { border-radius: 0; border: none; background: #1d1e22; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+.unit .u-frame { position: absolute; inset: 0; pointer-events: none; z-index: 2; border-image: url("../assets/ui/frame_B.png") 6 6 100 16 / 5px 5px 82px 14px; }
+.unit .u-frame.g-A { border-image-source: url("../assets/ui/frame_A.png"); }
+.unit .u-frame.g-S { border-image-source: url("../assets/ui/frame_S.png"); }
+.unit .u-frame.g-SS { border-image-source: url("../assets/ui/frame_SS.png"); }
+.unit .u-grade.role-ico { width: 46px; height: 46px; left: 6px; top: 6px; z-index: 3; }
+.unit .u-badges { z-index: 3; }
+.unit .u-stat { z-index: 4; }
+.unit .u-shade { background: linear-gradient(180deg, transparent, rgba(22,23,26,0.96) 55%); }
+.unit.ready::after { border-color: var(--lo-yellow); z-index: 3; }
+.hero-frame { background: linear-gradient(160deg, #ffe066, #c99a00); }
+.cmd.hero.enemy .hero-frame { background: linear-gradient(160deg, #ff8f8f, #8e1c22); }
+.hero-name { background: linear-gradient(270deg, rgba(20,21,24,0.94), rgba(20,21,24,0)); }
+.hero-name::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: var(--lo-yellow); }
+.cmd.hero.enemy .hero-name::after { background: #ff4d5a; }
+.hero-ap { background: linear-gradient(90deg, rgba(20,21,24,0.94), rgba(20,21,24,0)); }
+.end-btn { border-radius: 0; border: 0 solid transparent; background: none; box-shadow: none; color: var(--lo-ink);
+  border-image: url("../assets/ui/btn_big_on.png") 12 40 50 70 fill / 10px 34px 40px 56px; padding-bottom: 8px; animation: none; }
+.end-btn.glow { animation: endGlowLO 1.2s infinite; }
+@keyframes endGlowLO { 50% { filter: brightness(1.25) drop-shadow(0 0 16px rgba(255,198,0,0.9)); } }
+.end-btn:disabled { background: none; border-image-source: url("../assets/ui/btn_big_off.png"); color: #c9cacd; filter: none; }
+.cast-btn { clip-path: none; border: 0 solid transparent; background: none; color: var(--lo-ink); border-image: url("../assets/ui/btn_on.png") 10 10 36 120 fill / 6px 6px 22px 72px; padding: 14px 44px 22px 56px; }
+.st-deck { border-radius: 0; background: linear-gradient(135deg, #3a3c42, #1d1e22); border-color: #6a6d75; box-shadow: 3px 3px 0 #141518, 6px 6px 0 #2a2b30, 9px 9px 0 #141518, 0 12px 24px rgba(0,0,0,0.7); }
+.card-back { border-radius: 0; background: linear-gradient(135deg, #3a3c42, #1d1e22); border-color: #6a6d75; }
+.card-back::after { color: rgba(255,198,0,0.45); }
+.banner { background: linear-gradient(90deg, transparent, rgba(20,21,24,0.94) 22%, rgba(20,21,24,0.94) 78%, transparent); border-top: 2px solid rgba(255,198,0,0.7); border-bottom: 2px solid rgba(255,198,0,0.7); }
+.banner.mine .bn-main { color: var(--lo-yellow); text-shadow: 0 0 30px rgba(255,198,0,0.55); }
+.hs-item { border-color: var(--lo-yellow); }
+
+/* ---------- 결과 ---------- */
+.result h2.win { color: var(--lo-yellow); text-shadow: 0 0 40px rgba(255,198,0,0.5); }
+.result .rs-art .mvp { color: var(--lo-yellow); }

@@ -40,6 +40,7 @@ python tools/serve.py 8765
 ```
 index.html            진입점 (1920x1080 고정 스테이지를 화면에 맞춰 스케일)
 css/style.css         전체 스타일
+css/lo_skin.css       원작 UI 스킨 (원작 아틀라스 조각·글꼴로 겉모습을 덮어씀)
 js/data.js            카드·제작사·키워드·프리셋 덱·규칙 상수
 js/engine.js          규칙 엔진 (UI와 분리, 이벤트 기반, clone/forecast 지원)
 js/ai.js              AI (쉬움/보통/어려움 — 어려움은 복제 상태 탐색)
@@ -55,6 +56,7 @@ tools/uibot.js        브라우저용 UI 자동 플레이 봇 (실제 화면 입
 tools/ui_test.js      헤드리스 Chrome UI 통합 테스트
 tools/build_art.py    원작 일러스트 → 카드 초상/전신 이미지
 tools/build_assets.py 원작 배경·BGM·효과음·스킬 아이콘 복사
+tools/build_ui.py     원작 아틀라스에서 카드 테두리·버튼·팝업·역할 아이콘과 글꼴(고도체·Exo 2) 추출
 tools/unity_render/   2D 모델 프리팹을 Unity 배치 모드로 렌더링 (기본 일러스트 복원)
 DESIGN.md             게임 디자인 문서
 ```
@@ -89,6 +91,12 @@ python tools/build_assets.py
 
 ```bash
 python tools/build_art.py
+```
+
+화면 구성 조각(카드 등급 테두리, 노란 작전 버튼, 대화창·팝업 틀, 역할·등급 아이콘, 별)과 원작 글꼴은 원작 프로젝트(`E:\LAO_Google_QA`)의 아틀라스에서 이름으로 잘라 `assets/ui`, `assets/font`에 저장합니다.
+
+```bash
+python tools/build_ui.py
 ```
 
 기본(N) 일러스트가 원본 폴더에 완성된 한 장으로 없고 로비 애니메이션용 2D 모델(스프라이트 + 스키닝 메시)로만 있는 카드는, 설치된 Unity로 그 모델을 직접 렌더링해 씁니다. 원본 프로젝트는 건드리지 않고, 필요한 프리팹과 의존 파일만 복사한 임시 프로젝트에서 배치 모드로 렌더링합니다. 결과는 `tools/unity_render/renders`에 저장되고 `build_art.py`가 최우선으로 사용합니다.

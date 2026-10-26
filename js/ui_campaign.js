@@ -61,7 +61,7 @@ function renderMap(el) {
     const n = h(`<div class="node ${s.boss ? 'boss' : ''} ${i === selStage ? 'sel' : ''} ${unlocked ? '' : 'locked'} ${i === nextIdx ? 'next' : ''}" style="left:${x}px;top:${y}px">
       <div class="n-hex"><div class="n-img" style="background-image:url('${artOf(CARDS[s.enemy.portrait])}')"></div><span class="n-no">${unlocked ? s.no : '🔒'}</span></div>
       <div class="n-title">${esc(s.title)}</div>
-      <div class="n-stars">${stars.map(v => `<span class="${v ? '' : 'off'}">★</span>`).join('')}</div></div>`);
+      <div class="n-stars">${stars.map(v => `<span class="lo-star ${v ? 'on' : ''}"></span>`).join('')}</div></div>`);
     n.onclick = () => {
       if (!unlocked) { toast('이전 대국에서 먼저 이겨야 합니다.', true); return; }
       selStage = i; Audio2.play('click'); renderMap(el); renderStagePanel(el);
@@ -86,7 +86,7 @@ function renderStagePanel(el) {
       <p>${esc(s.desc)}</p>
       <div class="stage-info"><span>대국 상대 <b>${esc(en.name)}</b></span><span>상대 라이프 <b>${en.hp}</b></span><span>AI <b>${LEVEL_LABEL[en.level]}</b></span>${en.start.length ? `<span>선배치 <b>${en.start.map(x => CARDS[x.id].n).join(', ')}</b></span>` : ''}</div>
       <div class="stage-info"><span>적 제작사 ${[...new Set(en.deck.map(id => CARDS[id].f))].map(f => `<span class="chip" style="background:${FACTIONS[f].color}">${FACTIONS[f].name}</span>`).join(' ')}</span></div>
-      <div class="star-list">${s.stars.map((st, i) => `<div class="s ${stars[i] ? 'on' : ''}">★ ${starLabel(st)}</div>`).join('')}</div>
+      <div class="star-list">${s.stars.map((st, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="lo-star ${stars[i] ? 'on' : ''}"></span> ${starLabel(st)}</div>`).join('')}</div>
       ${(STAGE_REWARDS[s.id] || []).length ? `<div class="stage-reward">첫 클리어 보상 <span data-v="rw"></span>${Store.data.campaign.cleared[s.id] ? '<span class="done">✔ 획득 완료</span>' : ''}</div>` : ''}
       ${s.playerDeck ? '<div class="stage-info">이 대국은 콘스탄챠가 빌려준 연습용 덱으로 진행합니다.</div>' : `<div class="stage-deck">사용할 덱 <select data-a="deck">${decks.map(d => `<option value="${d.id}" ${d.id === curDeck ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select></div>`}
       <div class="stage-go"><button class="btn small" data-a="enemydeck">상대 덱 보기</button><span class="spacer"></span><button class="btn primary big" data-a="go">대국 시작</button></div>
