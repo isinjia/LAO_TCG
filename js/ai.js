@@ -1,5 +1,5 @@
 // ===== AI =====
-// easy   : 휴리스틱 + 실수(행동 생략, 무작위 레인)
+// easy   : 휴리스틱 상위 3개 후보 중 하나를 고른다 (최선이 아닌 수를 자연스럽게 섞음). 가끔 카드를 아끼고 턴을 넘긴다
 // normal : 휴리스틱 평가로 가장 가치 높은 카드부터 사용
 // hard   : 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
@@ -7,20 +7,21 @@ const AI = {
   // 한 번에 한 행동만 반환 (UI가 애니메이션 사이에 호출). null이면 턴 종료.
   nextAction(game, p, level = 'normal') {
     if (level === 'hard') return this.searchAction(game, p);
-    const act = this.heuristicAction(game, p) || this.commandAction(game, p, level);
-    if (!act) return null;
-    if (act.command) return level === 'easy' && game.random() < 0.5 ? null : act;
     if (level === 'easy') {
-      if (game.random() < 0.3) return null;
-      if (act.card.kind === 'unit') { const e = p.emptyLanes(); act.lane = e[Math.floor(game.random() * e.length)]; }
+      const opts = this.heuristicOptions(game, p).slice(0, 3);
+      if (!opts.length) return game.random() < 0.5 ? this.commandAction(game, p) : null;
+      if (game.random() < 0.15) return null; // 카드를 아껴 둔다
+      return opts[Math.floor(game.random() * opts.length)];
     }
-    return act;
+    return this.heuristicAction(game, p) || this.commandAction(game, p);
   },
 
-  heuristicAction(game, p) {
+  heuristicAction(game, p) { return this.heuristicOptions(game, p)[0] || null; },
+  // 낼 수 있는 행동을 가치가 높은 순서로 (카드마다 가장 좋은 레인·대상 하나)
+  heuristicOptions(game, p) {
     const o = game.other(p);
     const playable = p.hand.filter(c => p.canAfford(c));
-    if (!playable.length) return null;
+    if (!playable.length) return [];
     const skills = playable.filter(c => c.kind === 'skill').map(c => ({ card: c, ...this.evalSkill(game, p, o, c) })).filter(x => x.value > 0);
     const empty = p.emptyLanes();
     const units = [];
@@ -42,8 +43,7 @@ const AI = {
         if (best) units.push({ card: c, ...best });
       });
     }
-    const all = [...skills, ...units].sort((a, b) => b.value - a.value);
-    return all[0] || null;
+    return [...skills, ...units].sort((a, b) => b.value - a.value);
   },
 
   // 카드를 다 낸 뒤 남은 AP로 작전 지시: 마무리 > 처치 가능한 가장 비싼 유닛 > 상대 라이프
