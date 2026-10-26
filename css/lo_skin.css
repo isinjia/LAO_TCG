@@ -470,3 +470,4 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .hero-syn { display: block; font-size: 14px; color: var(--lo-yellow); font-weight: 800; min-height: 0; }
 .compact .hero-syn { font-size: 24px; }
 .cmd-power .cp-cost.syn { background: linear-gradient(180deg, #fff3b0, #ffc600); }
+.coach.under-modal { display: none !important; }

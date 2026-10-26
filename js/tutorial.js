@@ -58,12 +58,15 @@ const Tutorial = {
     const nx = $('[data-a=next]', c); if (nx) nx.onclick = () => { Audio2.play('click'); this.go(this.i + 1); };
     // 「다음」과 붙어 있어 잘못 누르기 쉬우므로 한 번 더 묻는다
     $('[data-a=skip]', c).onclick = async () => {
+      c.classList.add('under-modal');
       if (!await confirmBox('튜토리얼 끄기', '안내를 끄고 남은 대국을 직접 진행할까요? 스토리 지도의 「첫 카드 수업」에서 언제든 다시 할 수 있습니다.', '끄기')) return;
       this.stop(); toast('튜토리얼을 껐습니다. 오른쪽 위 ? 버튼으로 규칙을 볼 수 있어요.');
     };
     this.place();
   },
   place() {
+    // 확인 창·카드 상세 같은 창이 열려 있으면 안내 상자가 그 위를 덮지 않게 잠시 숨긴다
+    $('#coach').classList.toggle('under-modal', !!document.querySelector('#modal-root .modal'));
     if (!this.active || this.waitingTrigger) return;
     const st = TUTORIAL_STEPS[this.i]; if (!st) return;
     placeCoach(st.spot, st.box);
@@ -156,8 +159,12 @@ const Lessons = {
     c.classList.add('show');
     $('[data-a=ok]', c).onclick = () => { Audio2.play('click'); this.close(); };
     $('[data-a=off]', c).onclick = () => { Store.settings.tips = false; Store.save(); this.close(); toast('실전 안내와 전술 팁을 껐습니다. 설정에서 다시 켤 수 있어요.'); };
-    this.place();
+    this.place(); clearInterval(this.timer); this.timer = setInterval(() => this.place(), 350);
   },
-  close() { this.cur = null; const c = $('#coach'); c.classList.remove('show'); c.innerHTML = ''; },
-  place() { if (this.cur) placeCoach(this.cur.spot); },
+  close() { clearInterval(this.timer); this.cur = null; const c = $('#coach'); c.classList.remove('show'); c.innerHTML = ''; },
+  place() {
+    if (!this.cur) return;
+    $('#coach').classList.toggle('under-modal', !!document.querySelector('#modal-root .modal'));
+    placeCoach(this.cur.spot);
+  },
 };
