@@ -306,3 +306,11 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .slot[data-side=enemy] { box-shadow: inset 0 -30px 40px -30px rgba(255,77,90,0.25); }
 .slot[data-side=me] { box-shadow: inset 0 30px 40px -30px rgba(255,198,0,0.22); }
 .unit { box-shadow: 0 12px 30px rgba(0,0,0,0.7), 0 0 24px color-mix(in srgb, var(--fc) 35%, transparent); }
+/* 전투 중 안내(전술 팁 등)는 전장을 가리지 않도록 왼쪽 빈 공간에 띄운다 */
+#scr-battle.active ~ #toast-root { left: 130px; top: calc(210px + var(--oy)); transform: none; align-items: flex-start; }
+#scr-battle.active ~ #toast-root .toast { max-width: 390px; text-align: left; font-size: 17px; }
+.compact #scr-battle.active ~ #toast-root .toast { font-size: 20px; }
+/* 휴대폰: 덱 편성·도감 카드를 크게 */
+.compact .pool-grid { grid-template-columns: repeat(auto-fill, 250px); }
+.compact .pool-grid .card { --w: 250px; }
+.compact .card .c-text { font-size: 0.78em; }

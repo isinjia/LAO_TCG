@@ -194,6 +194,13 @@ t('AI 판단은 저장·복원 뒤에도 같음 (새로고침으로 다시 굴�
     eq(key(r, AI.nextAction(r, r.cur, lv)), key(g, AI.nextAction(g, g.cur, lv)), lv);
   }
 });
+t('교체 단계 저장·복원: 같은 손패, 교체 권한 유지', () => {
+  const { a, b, g } = fresh(D0, D1);
+  g.mulligan(b, []); // AI가 먼저 교체를 마친 시점에 저장된다
+  const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
+  eq(r.phase, 'mulligan'); eq(r.players[0].hand.map(c => c.id).join(), a.hand.map(c => c.id).join(), '같은 손패');
+  ok(!r.players[0].mulliganDone, '플레이어는 아직 교체 가능'); ok(r.players[1].mulliganDone, 'AI는 교체 끝');
+});
 t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
   const code = src.slice(src.indexOf('const DAILY_TWISTS'), src.indexOf('  doneToday()')) + '}; this.__Daily = Daily; this.__opps = dailyOpponents;';

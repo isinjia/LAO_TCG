@@ -91,7 +91,7 @@ screenHooks.lobby = el => {
       <button class="icon-btn" data-a="settings" title="설정">⚙</button>
     </div>
     <div class="lobby-menu">
-      ${Store.loadBattle() ? `<div class="menu-item main resume" data-go="resume"><div class="mi-icon">▶</div><div><div class="mi-title">전투 이어하기</div><div class="mi-sub">${esc(Store.loadBattle().cfg.enemy.name)} 전 · 라운드 ${Store.loadBattle().round}</div></div></div>` : ''}
+      ${Store.loadBattle() ? `<div class="menu-item main resume" data-go="resume"><div class="mi-icon">▶</div><div><div class="mi-title">전투 이어하기</div><div class="mi-sub">${esc(Store.loadBattle().cfg.enemy.name)} 전 · ${Store.loadBattle().round ? `라운드 ${Store.loadBattle().round}` : "시작 패 교체 중"}</div></div></div>` : ''}
       <div class="menu-item ${Store.loadBattle() ? '' : 'main'}" data-go="campaign"><div class="mi-icon">⚔</div><div><div class="mi-title">스토리</div><div class="mi-sub">${nextIdx >= 0 ? `다음 대국: ${esc(CAMPAIGN[nextIdx].no)}. ${esc(CAMPAIGN[nextIdx].title)}` : '오르카 카드 마스터 달성!'}</div></div><div class="mi-badge">★ ${stars}/${maxStars}</div></div>
       <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="challenge"><div class="mi-icon">🏆</div><div><div class="mi-title">도전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `리그 순회전 · 오늘의 대국 · 업적 ${Ach.count()}/${ACHIEVEMENTS.length}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div>${Store.data.tutorialDone && !Daily.doneToday() ? '<div class="mi-badge">NEW</div>' : ''}</div>
       <div class="menu-item" data-go="setup"><div class="mi-icon">⚡</div><div><div class="mi-title">자유 대국</div><div class="mi-sub">원하는 덱으로 AI와 1:1 대국</div></div></div>

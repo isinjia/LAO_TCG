@@ -1,6 +1,6 @@
 // ===== AI =====
 // easy   : 휴리스틱 상위 3개 후보 중 하나를 고른다 (최선이 아닌 수를 자연스럽게 섞음). 가끔 카드를 아끼고 턴을 넘긴다
-// normal : 휴리스틱 평가로 가장 가치 높은 카드부터 사용
+// normal : 휴리스틱 상위 5개 후보를 실제로 두어 보고(내 전투까지) 평가가 가장 좋은 것을 고른다. 교환·처치·상대 위협을 따진다
 // hard   : 복제 상태에서 행동 2수까지 실행 → 내 전투 → 상대의 다음 턴 배치(휴리스틱)까지 진행한 뒤 상대 반격을 평가하는 빔 탐색
 
 const AI = {
@@ -13,7 +13,7 @@ const AI = {
       if (game.random() < 0.15) return null; // 카드를 아껴 둔다
       return opts[Math.floor(game.random() * opts.length)];
     }
-    return this.heuristicAction(game, p) || this.commandAction(game, p);
+    return this.lookaheadAction(game, p);
   },
 
   heuristicAction(game, p) { return this.heuristicOptions(game, p)[0] || null; },
@@ -180,6 +180,31 @@ const AI = {
     const pool = shuffle([...o.hand, ...o.deck], () => g.random());
     o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
     return g;
+  },
+
+  // 보통: 휴리스틱 후보를 한 수씩 두어 보고 내 전투까지 진행한 평가로 고른다 (상대 다음 턴은 보지 않음)
+  shallowScore(game, p, act) {
+    const g = game.clone(); const gp = g.players[game.players.indexOf(p)];
+    if (act && !this.applyAct(g, gp, act)) return -Infinity;
+    if (g.phase !== 'over') { g.phase = 'combat'; g.resolveCombat(); }
+    return this.evaluate(g, gp);
+  },
+  lookaheadAction(real, rp) {
+    const game = this.hiddenInfoView(real, rp);
+    const p = game.players[real.players.indexOf(rp)];
+    const cands = this.heuristicOptions(game, p).slice(0, 5);
+    const cmd = this.commandAction(game, p); if (cmd) cands.push(cmd);
+    if (!cands.length) return null;
+    const base = this.shallowScore(game, p, null);
+    let best = null, bestScore = base - 1.5; // 손해가 크지 않으면 카드를 내서 판을 채운다
+    for (const a of cands) { const s = this.shallowScore(game, p, a); if (s > bestScore) { bestScore = s; best = a; } }
+    if (!best) return null;
+    if (best.command) { const t = best.target.cmd ? { cmd: real.players[game.players.indexOf(best.target.cmd)] } : (() => { for (const q of real.players) for (const u of q.lanes) if (u && u.uid === best.target.unit.uid) return { unit: u }; return null; })(); return t ? { command: true, card: COMMAND_CARD, target: t } : null; }
+    const card = rp.hand.find(c => c.id === best.card.id);
+    let target = best.target;
+    if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };
+    else if (target && target.unit) { const uid = target.unit.uid; target = null; for (const q of real.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u }; }
+    return card ? { card, lane: best.lane, target } : null;
   },
 
   // 2수 빔 탐색: 1수 후보 상위 4개에 대해 2번째 행동까지 평가한다

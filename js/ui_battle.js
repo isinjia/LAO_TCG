@@ -51,7 +51,8 @@ function resumeBattle(snap) {
   showScreen('battle', { cfg: snap.cfg });
 }
 function saveBattleSnapshot() {
-  if (!B || B.cfg.tutorial || B.over || B.game.phase === 'over' || B.game.phase === 'combat' || B.game.phase === 'mulligan') return;
+  // 교체 단계도 저장한다 (첫 손패를 본 뒤 새로고침으로 다시 굴리지 못하게)
+  if (!B || B.cfg.tutorial || B.over || B.game.phase === 'over' || B.game.phase === 'combat') return;
   const { game, me } = B;
   Store.saveBattle({ game: serializeGame(game), cfg: B.cfg, meIdx: game.players.indexOf(me), meFirst: B.meFirst, round: game.round(), savedAt: Date.now() });
 }
@@ -123,6 +124,7 @@ async function battleIntro() {
   await sleepRaw(1300); alive(myB);
   // 멀리건
   game.mulligan(ai, AI.pickMulligan(ai, cfg.enemy.level));
+  saveBattleSnapshot();
   if (!cfg.tutorial) { await mulliganPrompt(); alive(myB); }
   else game.mulligan(me, []);
   renderAll(true);

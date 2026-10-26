@@ -504,7 +504,7 @@ function serializeGame(g) {
     players: g.players.map(p => ({
       name: p.name, isAI: p.isAI, portrait: p.portrait, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
-      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, stats: JSON.parse(JSON.stringify(p.stats)),
+      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
       lanes: p.lanes.map(u => u && { cardId: u.cardId, atk: u.atk, hp: u.hp, maxHp: u.maxHp, shield: u.shield, evade: u.evade, slowed: u.slowed, summonedTurn: u.summonedTurn }),
     })),
   };
@@ -517,7 +517,7 @@ function restoreGame(snap) {
     const p = Object.create(Player.prototype);
     Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
       deck: sp.deck.map(card), hand: sp.hand.map(card), grave: sp.grave.map(card), factions: sp.factions,
-      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: true });
+      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
     p.lanes = sp.lanes.map(su => {
       if (!su) return null;
       const u = makeUnit(card(su.cardId), p);

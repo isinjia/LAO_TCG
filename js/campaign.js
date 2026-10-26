@@ -41,9 +41,9 @@ const CAMPAIGN = [
   {
     id: 's1', no: '1', title: '첫 도전', sub: '리그 1차전 · 레드후드', bg: 'barracks', bgm: 'battle1',
     desc: '스틸 라인 연대장 레드후드의 속공 덱. 보호기와 중장형으로 초반 공세를 버텨 내세요.',
-    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 22, level: 'normal',
+    enemy: { name: '레드후드', portrait: 'BR_RedHood', hp: 20, level: 'normal',
       deck: ['BR_RedHood', 'BR_Cheona', 'BR_Harpy', 'BR_Impet', 'BR_PoniesAnger', 'BR_Emily', 'BR_Gremlin', 'BR_BeastHunter', 'BR_Leona', 'BR_Brownie', 'BR_Pixie', 'SK_BR_Snipe'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 13 }, { type: 'rounds', v: 9 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'rounds', v: 9 }],
     intro: [
       { who: 'BR_Impet', text: '연대장님, 이번 상대는 신참입니다. 적당히 하시는 게…' },
       { who: 'BR_RedHood', text: '임펫, 전장에 적당히란 없다. 승리! 네가 이번 리그의 신참인가. 스틸 라인 연대장, 레드후드다.' },
@@ -91,9 +91,9 @@ const CAMPAIGN = [
   {
     id: 's3', no: '3', title: '그림자 대국', sub: '리그 3차전 · 쿠노이치 제로', bg: 'corridor_dark', bgm: 'battle3',
     desc: '회피와 암살에 능한 덴세츠 덱. 회피는 한 번만 막아 준다는 점을 이용하세요.',
-    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 23, level: 'normal',
+    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 22, level: 'normal',
       deck: ['DS_Saraqael', 'DS_Sarena', 'DS_BunnySlayer', 'DS_Ramiel', 'DS_Baekto', 'DS_Faucre', 'DS_KunoichiZero', 'DS_Angel', 'DS_KunoichiShiden', 'DS_KunoichiEnrai', 'SK_DS_Smoke', 'SK_DS_Shuriken'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 11 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'rounds', v: 12 }],
     intro: [
       { who: 'DS_KunoichiZero', text: '오오, 네가 소문의 신인이구나! 쿠노이치 제로다.' },
       { who: 'DS_KunoichiEnrai', text: '제로, 대국 전에는 예를 갖추라고 했지요. …덴세츠의 엔라이입니다. 오늘은 제로의 대국을 지켜보러 왔습니다.' },
@@ -121,7 +121,7 @@ const CAMPAIGN = [
     enemy: { name: '스트롱홀드', portrait: 'AGS_Stronghold', hp: 21, level: 'normal',
       deck: ['AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_RheinRitter', 'AGS_Arachne', 'AGS_Albatross', 'AGS_SpartanB', 'AGS_Roc', 'PECS_Hestia', 'PECS_LemonadeBeta', 'SK_AGS_Barrier', 'SK_AGS_Protocol'] },
     start: [{ lane: 1, id: 'AGS_SpartanA' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 12 }],
     intro: [
       { who: 'PECS_Orangeade', text: '콘스탄챠 씨… 연습하느라 어제 거의 못 잤어요. 다음 상대는 벽 같은 덱이라던데요.' },
       { who: '3P_ConstantiaS2', text: '그러니까 오늘은 서두르지 마. 단단한 덱일수록 먼저 조급해지는 쪽이 지는 거란다.' },
@@ -143,10 +143,10 @@ const CAMPAIGN = [
   {
     id: 's5', no: '5', title: '철충 테마 덱', sub: '리그 5차전 · 알렉산드라', bg: 'vr', bgm: 'battle3',
     desc: '철충 연구 자료로 만든 특수 카드 덱. 철충 무리 카드가 빈 레인을 한꺼번에 채웁니다.',
-    enemy: { name: '알렉산드라', portrait: '3P_Alexandra', hp: 16, level: 'normal',
+    enemy: { name: '알렉산드라', portrait: '3P_Alexandra', hp: 14, level: 'normal',
       deck: ['IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'IW_RocC', 'IW_MetalGuard', 'IW_Robert', 'AGS_Gigantes', 'AGS_Deathstalker', 'SK_IW_Swarm', 'SK_IW_Corrode'] },
     start: [{ lane: 0, id: 'IW_NightChick' }, { lane: 1, id: 'IW_Stalker' }, { lane: 2, id: 'IW_NightChick' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'rounds', v: 11 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'rounds', v: 10 }],
     intro: [
       { who: '3P_Alexandra', text: '후후, 어서 와요, 오렌지에이드 양. 오늘은 철충 연구 자료로 만든 특별한 덱을 준비했어요.' },
       { who: '3P_ConstantiaS2', text: '알렉산드라 언니, 리그 대국에 철충 카드를 쓰는 건 좀…' },
@@ -169,10 +169,10 @@ const CAMPAIGN = [
   {
     id: 's6', no: '6', title: '강철 군단', sub: '리그 6차전 · 신속의 칸', bg: 'sub', bgm: 'battle1',
     desc: '침식된 AGS와 아이언 프린스 카드로 짠 신속의 칸의 덱. 광역 공격에 대비해 유닛을 분산하세요.',
-    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 18, level: 'normal',
+    enemy: { name: '신속의 칸', portrait: 'BR_Khan', hp: 20, level: 'normal',
       deck: ['IW_IronPrince', 'IW_Robert', 'IW_MetalGuard', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Gigantes', 'AGS_Deathstalker', 'AGS_Fortress', 'AGS_Roc', 'SK_IW_Corrode', 'SK_AGS_Barrier'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 7 }, { type: 'rounds', v: 11 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 11 }],
     intro: [
       { who: 'BR_Leona', text: '칸, 상대가 꽤 어리네. 너무 몰아붙이지는 마.' },
       { who: 'BR_Khan', text: '레오나, 실전에 나이는 상관없다. …신속의 칸이다. 침식된 기체로 짠 덱이지.' },
@@ -196,9 +196,9 @@ const CAMPAIGN = [
   {
     id: 's7', no: '7', title: '알파 님의 시험', sub: '준결승 · 레모네이드 알파', bg: 'beach', bgm: 'boss1', boss: true,
     desc: '레모네이드 컬렉션 덱. 제타와 오메가 한정 카드가 등장하니 레인을 비워 두지 마세요.',
-    enemy: { name: '레모네이드 알파', portrait: 'PECS_LemonadeAlpha', hp: 22, level: 'hard',
+    enemy: { name: '레모네이드 알파', portrait: 'PECS_LemonadeAlpha', hp: 26, level: 'hard',
       deck: ['PECS_LemonadeAlpha', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'IW_LemonadeZeta', 'IW_LemonadeOmega', 'PECS_Hathor', 'PECS_Ignis', 'PECS_Empress', 'PECS_Draculina', 'PECS_Sekhmet', 'SK_PECS_Blessing', 'SK_IW_Corrode'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 18 }, { type: 'rounds', v: 10 }],
     intro: [
       { who: 'PECS_Orangeade', text: '알파 님…! 정말 알파 님이 준결승 상대세요?' },
       { who: 'PECS_LemonadeAlpha', text: '그래요, 오렌지에이드. 리그에 나갔다는 이야기는 다른 아이들에게 들었어요. 저에게는 한마디도 없었죠.' },
@@ -220,9 +220,9 @@ const CAMPAIGN = [
   {
     id: 's8', no: '8', title: '오르카 카드 마스터', sub: '결승 · 챔피언 라비아타', bg: 'squad', bgm: 'boss2', boss: true,
     desc: '오르카 리그 챔피언 라비아타의 삼안 정예 덱. 광역 공격과 강력한 SS 카드를 넘어서야 합니다.',
-    enemy: { name: '라비아타 프로토타입', portrait: '3P_Labiata', hp: 15, level: 'hard',
+    enemy: { name: '라비아타 프로토타입', portrait: '3P_Labiata', hp: 19, level: 'hard',
       deck: ['3P_Labiata', '3P_Titania', '3P_Ajax', '3P_ConstantiaS2', '3P_Fenrir', '3P_BlackLilith', '3P_Sowan', '3P_Daphne', '3P_CSPerrault', '3P_Aqua', 'SK_3P_Rally', 'SK_3P_Barrage'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 8 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'rounds', v: 9 }],
     intro: [
       { who: 'PECS_LemonadeAlpha', text: '오렌지에이드. 결승 전에 하나만 말해 둘게요.' },
       { who: 'PECS_LemonadeAlpha', text: '이기든 지든, 오늘은 끝까지 당신답게 해요. …그거면 돼요.' },
@@ -257,9 +257,9 @@ const CAMPAIGN = [
   {
     id: 'ex1', no: 'EX1', chapter: 'ex', title: 'VR 훈련실의 이상', sub: '외전 1 · 모의 개체 레모네이드 제타', bg: 'vr', bgm: 'battle3',
     desc: '알렉산드라의 철충 모의 카드 데이터가 폭주해 VR 리그를 점거했습니다. 회복과 철충 무리를 섞은 덱입니다.',
-    enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 36, level: 'normal',
+    enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 30, level: 'hard',
       deck: ['IW_LemonadeZeta', 'IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'PECS_Sekhmet', 'PECS_Ignis', 'SK_IW_Swarm', 'SK_PECS_Blessing'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 9 }, { type: 'rounds', v: 13 }],
     intro: [
       { who: 'PECS_Orangeade', text: '시즌이 끝났는데 VR 훈련실에서 대국 신청이 계속 들어와요. 보낸 사람이… 없대요.' },
       { who: '3P_Alexandra', text: '후후, 미안해요. 제 철충 모의 카드 데이터가 멋대로 대국 상대를 만들어 내고 있군요.' },
@@ -280,10 +280,10 @@ const CAMPAIGN = [
   {
     id: 'ex2', no: 'EX2', chapter: 'ex', title: '강철 왕자의 성', sub: '외전 2 · 모의 개체 아이언 프린스', bg: 'offline', bgm: 'battle2',
     desc: '두꺼운 중장 철충과 AGS로 짠 방어 덱입니다. 작전 지시로 벽 너머 라이프를 노리세요.',
-    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 18, level: 'normal',
+    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 21, level: 'normal',
       deck: ['IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_Gigantes', 'SK_AGS_Barrier', 'SK_IW_Corrode'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
-    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 13 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'rounds', v: 12 }],
     intro: [
       { who: '3P_ConstantiaS2', text: '두 번째 구역은 방어 데이터가 몰려 있어. 철충 중장 기체를 본뜬 모의 개체란다.' },
       { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 이 성은 무너지지 않는다. 침입자는 돌아가라.' },
@@ -301,9 +301,9 @@ const CAMPAIGN = [
   {
     id: 'ex3', no: 'EX3', chapter: 'ex', title: '타락한 천사의 그림자', sub: '외전 3 · 모의 개체 타락한 아자젤', bg: 'red_boss2', bgm: 'boss1', boss: true,
     desc: '회피와 처치 효과로 무장한 덴세츠·철충 덱입니다. 상대는 어려움 인공지능입니다.',
-    enemy: { name: '모의 개체: 타락한 아자젤', portrait: 'IW_AzazelAlter', hp: 15, level: 'hard',
+    enemy: { name: '모의 개체: 타락한 아자젤', portrait: 'IW_AzazelAlter', hp: 20, level: 'hard',
       deck: ['IW_AzazelAlter', 'IW_Kidnapper', 'IW_Speaker', 'IW_NightChick', 'IW_RocC', 'DS_Saraqael', 'DS_Sarena', 'DS_Ramiel', 'DS_BunnySlayer', 'DS_Angel', 'SK_DS_Smoke', 'SK_IW_Swarm'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 11 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'rounds', v: 12 }],
     intro: [
       { who: 'DS_Azazel', text: '이게 무슨 재앙인가요. 제 모습을 한 데이터가 대국을 하고 있다니요.' },
       { who: 'PECS_Orangeade', text: '아자젤 씨! 와 주셨군요!' },
@@ -323,9 +323,9 @@ const CAMPAIGN = [
   {
     id: 'ex4', no: 'EX4', chapter: 'ex', title: '오메가', sub: '외전 결전 · 모의 개체 레모네이드 오메가', bg: 'red_boss', bgm: 'boss2', boss: true,
     desc: '외전의 마지막 상대. 비용 8의 오메가와 철충 보스를 모은 덱입니다. 어려움 인공지능이 상대합니다.',
-    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 16, level: 'hard',
+    enemy: { name: '모의 개체: 레모네이드 오메가', portrait: 'IW_LemonadeOmega', hp: 21, level: 'hard',
       deck: ['IW_LemonadeOmega', 'IW_LemonadeZeta', 'IW_AzazelAlter', 'IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_Stalker', 'PECS_LemonadeGamma', 'PECS_Empress', 'PECS_Hathor', 'SK_IW_Corrode', 'SK_IW_Swarm'] },
-    stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'rounds', v: 12 }],
+    stars: [{ type: 'win' }, { type: 'hp', v: 13 }, { type: 'rounds', v: 10 }],
     intro: [
       { who: 'IW_LemonadeOmega', text: '[모의 개체 레모네이드 오메가] 레모네이드 알파. 그리고 알파의 부하. 기다리고 있었다.' },
       { who: 'PECS_LemonadeAlpha', text: '제 얼굴을 닮은 데이터가 제 부하에게 말을 걸다니, 기분이 좋지 않네요.' },
@@ -369,6 +369,10 @@ const STAGE_REWARDS = {
   s6: ['AGS_Tyrant', 'BR_RoyalArsenal'],
   s7: ['3P_Titania', 'SK_3P_Rally'],
   s8: ['BR_Khan'],
+  ex1: ['SK_3P_Redeploy'],
+  ex2: ['SK_AGS_Bulwark'],
+  ex3: ['SK_DS_Flash'],
+  ex4: ['SK_PECS_Omega'],
 };
 // 별 누적 보상: 철충 보스를 로비 캐릭터로 선택 가능
 const STAR_REWARDS = [
