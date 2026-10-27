@@ -269,7 +269,7 @@ const CAMPAIGN = [
   {
     id: 'ex1', no: 'EX1', chapter: 'ex', title: 'VR 훈련실의 이상', sub: '외전 1 · 모의 개체 레모네이드 제타', bg: 'vr', bgm: 'battle3',
     desc: '알렉산드라의 철충 모의 카드 데이터가 폭주해 VR 리그를 점거했습니다. 회복과 철충 무리를 섞은 덱입니다.',
-    enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 30, level: 'hard', style: 'aggro',
+    enemy: { name: '모의 개체: 레모네이드 제타', portrait: 'IW_LemonadeZeta', hp: 34, level: 'hard', style: 'aggro',
       deck: ['IW_LemonadeZeta', 'IW_NightChick', 'IW_Parasite', 'IW_Stalker', 'IW_Speaker', 'IW_Kidnapper', 'PECS_LemonadeBeta', 'PECS_LemonadeGamma', 'PECS_Sekhmet', 'PECS_Ignis', 'SK_IW_Swarm', 'SK_PECS_Blessing'] },
     start: [{ lane: 1, id: 'IW_NightChick' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 9 }, { type: 'kills', v: 13 }],
@@ -293,7 +293,7 @@ const CAMPAIGN = [
   {
     id: 'ex2', no: 'EX2', chapter: 'ex', title: '강철 왕자의 성', sub: '외전 2 · 모의 개체 아이언 프린스', bg: 'offline', bgm: 'battle2',
     desc: '두꺼운 중장 철충과 AGS로 짠 방어 덱입니다. 작전 지시로 벽 너머 라이프를 노리세요.',
-    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 24, level: 'normal', style: 'control',
+    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 26, level: 'normal', style: 'control',
       deck: ['IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_Gigantes', 'SK_AGS_Barrier', 'SK_IW_Corrode'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'commands', v: 5 }],

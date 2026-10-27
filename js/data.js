@@ -77,7 +77,7 @@ const UNITS = [
   { id: 'PECS_Azaz', n: '아자즈', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['회피'], strike: [{ op: 'heal', tgt: 'self', v: 2 }], text: '공격 후: 자신의 체력 2 회복.' },
   { id: 'PECS_HighElven', n: '하이엘븐', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 4, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '공격 후: 무작위 적 유닛에게 1 피해.' },
   { id: 'PECS_DarkElf', n: '다크 엘프', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 5, h: 3, kw: ['회피'], strike: [{ op: 'slow', tgt: 'oppUnit' }], text: '공격 후: 마주한 적 유닛 둔화.' },
-  { id: 'PECS_Lumberjane', n: '럼버 제인', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: ['반격'], strike: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '공격 후: 마주한 적 유닛 공격력 -1.' },
+  { id: 'PECS_Lumberjane', n: '럼버 제인', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 7, kw: ['반격'], strike: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '공격 후: 마주한 적 유닛 공격력 -1.' },
   { id: 'PECS_Sekhmet', n: '세크메트', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 3, h: 10, kw: ['재생:2'], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
   { id: 'PECS_Spartoia', n: '스파르토이아', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 3, a: 3, h: 8, kw: ['방어막:3'] },
   { id: 'PECS_Triaina', n: '트리아이나', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 6, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
@@ -163,8 +163,8 @@ const UNITS = [
   { id: 'AGS_Tyrant', n: '타이런트', f: 'AGS', t: 'H', r: 'ATK', g: 'SS', c: 6, a: 7, h: 6, kw: ['관통', '반격'] },
   { id: 'AGS_Stronghold', n: '스트롱홀드', f: 'AGS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 4, h: 10, kw: ['방어막:3'] },
   { id: 'AGS_Fortress', n: '포트리스', f: 'AGS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 4, h: 9, kw: ['반격'], strike: [{ op: 'shield', tgt: 'self', v: 2 }], text: '공격 후: 자신에게 방어막 2.' },
-  { id: 'AGS_Gigantes', n: '기간테스', f: 'AGS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 7, h: 6, kw: ['방어막:2'] },
-  { id: 'AGS_Albatross', n: '알바트로스', f: 'AGS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 4, kw: ['돌격'], deploy: [{ op: 'dmg', tgt: 'enemyCmd', v: 2 }], text: '전개: 상대 라이프에 2 피해.' },
+  { id: 'AGS_Gigantes', n: '기간테스', f: 'AGS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 7, h: 7, kw: ['방어막:2'] },
+  { id: 'AGS_Albatross', n: '알바트로스', f: 'AGS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: ['돌격'], deploy: [{ op: 'dmg', tgt: 'enemyCmd', v: 1 }], text: '전개: 상대 라이프에 1 피해.' },
   { id: 'AGS_Deathstalker', n: '데스스토커', f: 'AGS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 3, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 2 }], text: '공격 후: 무작위 적 유닛에게 2 피해.' },
   { id: 'AGS_MrAlfred2', n: '미스터 알프레드', f: 'AGS', t: 'H', r: 'DEF', g: 'S', c: 4, a: 2, h: 8, kw: ['재생:2'] },
   { id: 'AGS_Rampart', n: '램파트', f: 'AGS', t: 'H', r: 'DEF', g: 'A', c: 3, a: 3, h: 7, kw: ['방어막:2'] },
@@ -233,7 +233,7 @@ const SKILLS = [
   // 외전 보상 카드
   { id: 'SK_3P_Redeploy', icon: 'Haze', art: '3P_Vanilla', n: '긴급 재배치', f: '3P', g: 'A', c: 3, fx: [{ op: 'shield', tgt: 'pickAllyUnit', v: 3 }, { op: 'evade', tgt: 'pickAllyUnit' }], text: '아군 유닛 하나에게 방어막 3과 회피 부여.' },
   { id: 'SK_AGS_Bulwark', icon: 'ShieldWall', art: 'AGS_Goltarion', n: '강철 장벽', f: 'AGS', g: 'S', c: 4, fx: [{ op: 'shield', tgt: 'allAllies', v: 3 }, { op: 'healAll', v: 2 }], text: '모든 아군 유닛에게 방어막 3, 체력 2 회복.' },
-  { id: 'SK_DS_Flash', icon: 'SwordAttk', art: 'DS_Azazel', n: '그림자 일섬', f: 'DS', g: 'A', c: 4, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 3 }], text: '적 유닛 하나에게 3 피해.' },
+  { id: 'SK_DS_Flash', icon: 'SwordAttk', art: 'DS_Azazel', n: '그림자 일섬', f: 'DS', g: 'A', c: 3, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 3 }], text: '적 유닛 하나에게 3 피해.' },
   { id: 'SK_PECS_Omega', icon: 'WideLightning', art: 'PECS_LemonadeAlpha', n: '오메가 프로토콜', f: 'PECS', g: 'SS', c: 6, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }, { op: 'dmg', tgt: 'enemyCmd', v: 3 }], text: '모든 적 유닛에게 2 피해, 상대 라이프에 3 피해.' },
 ];
 

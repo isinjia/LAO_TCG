@@ -492,3 +492,10 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .compact .cast-btn { font-size: 34px; }
 .compact .cast-btn small { font-size: 22px; }
 .compact .lanes { transform: translateX(-50%) scale(1.08); }
+/* 움직임 줄이기 설정: 화면 흔들림·번쩍임·멈춤 확대·빛줄기를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  #stage.hitstop > .screen.active { transform: none; filter: none; }
+  .screen-flash, .reveal.ss::before { display: none; }
+  .quake, .shake, .unit.hit, .cmd.hero.hit { animation: none !important; }
+  #scr-battle.overtime::after { animation: none; opacity: 0.6; }
+}

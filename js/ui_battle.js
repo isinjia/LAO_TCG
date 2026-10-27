@@ -957,7 +957,7 @@ async function finishBattle(surrendered) {
   const mvp = dmg.length ? CARDS[dmg[0][0]] : CARDS['PECS_Orangeade'];
   const st = me.stats;
   const box = h(`<div class="modal-box result">
-    <div class="rs-art"><div class="mvp">MVP<small>${esc(mvp.n)}${dmg.length ? ` — 피해 ${dmg[0][1]}` : ''}</small></div><img src="${fullOf(mvp.kind === 'unit' ? mvp : CARDS[mvp.art] || mvp)}" alt=""></div>
+    <div class="rs-art">${win ? '' : '<!-- 패배 화면에는 수훈 표시를 하지 않는다 -->'}<div class="mvp" ${win ? '' : 'style="display:none"'}>MVP<small>${esc(mvp.n)}${dmg.length ? ` — 피해 ${dmg[0][1]}` : ''}</small></div><img src="${fullOf(mvp.kind === 'unit' ? mvp : CARDS[mvp.art] || mvp)}" alt=""></div>
     <div class="rs-body">
       <h2 class="${win ? 'win' : 'lose'}">${win ? '승리' : '패배'}</h2>
       <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : esc(lossHint(cfg, game, me))}</div>
@@ -1036,7 +1036,7 @@ function battleKey(e) {
   const top = topModal();
   if (top) return false;
   if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); endMyTurn(); return true; }
-  if (e.key === 'Escape') { if (B.selected) { clearSelection(); renderHand(true); return true; } return false; }
+  if (e.key === 'Escape') { if (B.selected || B.moving) { clearSelection(); renderHand(true); return true; } return false; }
   if (e.key === 'l' || e.key === 'L') { $('.log-panel').classList.toggle('open'); return true; }
   if (/^[1-7]$/.test(e.key)) { const c = B.me.hand[+e.key - 1]; if (c) selectCard(c); return true; }
   return false;

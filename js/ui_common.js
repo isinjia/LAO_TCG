@@ -88,7 +88,9 @@ async function showScreen(id, opts = {}) {
 // 마우스가 없는 기기(휴대폰·태블릿)에서는 "마우스를 올리면"·"우클릭" 안내를 길게 누르기로 바꿔 보여 준다
 const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(hover: none)').matches;
 // 휴대폰 진동 (터치 기기에서만, 지원하지 않으면 무시)
-function vibrate(p) { try { if (IS_TOUCH && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+// 움직임 줄이기를 켠 사용자에게는 진동·흔들림·멈춤 연출을 하지 않는다
+const REDUCE_MOTION = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function vibrate(p) { try { if (IS_TOUCH && !REDUCE_MOTION && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 function touchText(s) { return IS_TOUCH ? String(s).replace(/마우스를 올리면/g, '길게 누르면').replace(/우클릭으로/g, '길게 눌러').replace(/우클릭/g, '길게 누르기') : s; }
 
 // ---------- 카드 텍스트 ----------
