@@ -131,8 +131,9 @@ screenHooks.deck = el => {
 
 function refreshPicker(el) {
   const sel = $('[data-a=pick]', el);
-  sel.innerHTML = `<optgroup label="프리셋">${Store.allDecks().filter(d => d.preset).map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}</optgroup>` +
-    `<optgroup label="내 덱">${Store.data.decks.map(d => `<option value="${d.id}">${esc(d.name)}${Store.deckProblem(d.cards) ? ' ⚠' : ''}</option>`).join('')}</optgroup>`;
+  // 내 덱을 먼저, 빌려 쓰는 프리셋 덱은 뒤에
+  sel.innerHTML = `<optgroup label="내 덱">${Store.data.decks.map(d => `<option value="${d.id}">${esc(d.name)}${Store.deckProblem(d.cards) ? ' ⚠' : ''}</option>`).join('')}</optgroup>` +
+    `<optgroup label="프리셋 (빠른 전투·도전 모드용)">${Store.allDecks().filter(d => d.preset).map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('')}</optgroup>`;
   sel.value = editing.id;
 }
 
@@ -173,7 +174,8 @@ function renderPool(el) {
   const grid = $('[data-v=pool]', el); grid.innerHTML = '';
   const facs = [...new Set(editing.cards.map(id => CARDS[id].f))];
   const own = c => (Store.isUnlocked(c.id) ? 0 : 1);
-  const list = filterCards(POOL, deckFilter).map((c, i) => [c, i]).sort((a, b) => own(a[0]) - own(b[0]) || a[1] - b[1]).map(x => x[0]); // 가진 카드를 앞에
+  // 덱에 넣은 카드는 오른쪽 목록에서 빼고(빼려면 왼쪽 덱 목록을 누른다), 가진 카드를 앞에 둔다
+  const list = filterCards(POOL, deckFilter).filter(c => !editing.cards.includes(c.id)).map((c, i) => [c, i]).sort((a, b) => own(a[0]) - own(b[0]) || a[1] - b[1]).map(x => x[0]); // 가진 카드를 앞에
   $('.pool-count', el).textContent = `${list.length}장 · 보유 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}`;
   list.forEach(c => {
     const ce = cardEl(c, { w: poolCardW(), lockCheck: true });
