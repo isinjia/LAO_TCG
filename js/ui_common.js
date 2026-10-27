@@ -229,6 +229,16 @@ function confirmBox(title, msg, okLabel = '확인', danger = false) {
 }
 
 // ---------- 카드 상세 ----------
+// 꾹 누르면(움직이지 않고 0.55초) 상세를 연다. 마우스는 우클릭으로도 열린다. 터치는 main.js가 길게 누르기를 우클릭으로 바꿔 보낸다
+// 열었으면 el._held를 켜 두어, 손을 뗄 때 따라오는 클릭 한 번을 무시할 수 있게 한다
+function holdForDetail(el, open) {
+  let t = null, sx = 0, sy = 0;
+  const fire = () => { t = null; el._held = true; open(); };
+  el.addEventListener('contextmenu', e => { e.preventDefault(); fire(); });
+  el.addEventListener('pointerdown', e => { el._held = false; if (e.pointerType === 'touch' || e.button !== 0) return; sx = e.clientX; sy = e.clientY; clearTimeout(t); t = setTimeout(fire, 550); });
+  const stop = e => { if (t && (e.type !== 'pointermove' || Math.hypot(e.clientX - sx, e.clientY - sy) > 12)) { clearTimeout(t); t = null; } };
+  ['pointerup', 'pointerleave', 'pointercancel', 'pointermove'].forEach(k => el.addEventListener(k, stop));
+}
 function openCardDetail(card, list) {
   const idx = list ? list.indexOf(card) : -1;
   const f = FACTIONS[card.f];
@@ -270,7 +280,7 @@ function openSettings(inBattle) {
       <span>캐릭터 음성</span><input type="range" min="0" max="1" step="0.05" value="${s.voice ?? 0.8}" data-k="voice">
       <span>전투 속도</span><div class="seg" data-k="speed">${[1, 1.5, 2, 3].map(v => `<button data-v="${v}" class="${s.speed === v ? 'on' : ''}">x${v}</button>`).join('')}</div>
       <span>공격 예측 화살표</span><div class="switch ${s.forecast ? 'on' : ''}" data-k="forecast"></div>
-      <span class="hint">턴 종료 버튼에 마우스를 올리면 이번 턴에 누가 누구를 공격하는지 화살표로 보여 줍니다.</span>
+      <span class="hint">내 차례에 이번 턴 전투에서 누가 누구를 공격하는지 화살표로 늘 보여 줍니다.</span>
       <span>다른 창을 볼 때도 소리</span><div class="switch ${s.bgAudio ? 'on' : ''}" data-k="bgAudio"></div>
       <span>전술 팁·실전 안내</span><div class="switch ${s.tips ? 'on' : ''}" data-k="tips"></div>
     </div>
@@ -347,7 +357,7 @@ const HOWTO = [
     <h4>레인 전투</h4>전장은 좌익·중앙·우익 3개 레인입니다. 전투원은 <b>마주 보는 적 전투원</b>을 공격하고, 앞이 비어 있으면 <b>상대 라이프</b>를 직접 공격합니다.
     <h4>소환 대기</h4>전투원은 배치된 턴에는 공격하지 않습니다. <b>돌격</b> 키워드가 있으면 바로 공격합니다.
     <h4>보호</h4>앞이 비어 상대 라이프를 치려던 공격은 옆 레인의 보호기가 대신 받습니다. 마주 선 전투원끼리의 공격은 막지 않습니다.
-    <h4>전투 예측</h4>턴 종료 버튼에 마우스를 올리면 이번 턴에 누가 누구를 공격하는지 화살표로 나타납니다. 설정에서 끌 수 있습니다.`],
+    <h4>전투 예측</h4>내 차례에는 이번 턴 전투에서 누가 누구를 공격하는지 화살표로 늘 나타납니다. 설정에서 끌 수 있습니다.`],
   ['상성과 역할', `
     <h4>병종 상성</h4>
     <div class="tri"><span class="tag type-L">경장</span> ▶ <span class="tag type-M">기동</span> ▶ <span class="tag type-H">중장</span> ▶ <span class="tag type-L">경장</span></div>

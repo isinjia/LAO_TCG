@@ -471,6 +471,27 @@ img { -webkit-user-drag: none; }
 .banner.mine .bn-main { color: var(--accent); text-shadow: 0 0 30px rgba(255,198,0,0.7); }
 .banner.theirs .bn-main { color: #ff6b75; text-shadow: 0 0 30px rgba(255,77,90,0.7); }
 @keyframes bannerIn { 0% { opacity: 0; transform: translateY(-50%) scaleY(0.2); } 15% { opacity: 1; transform: translateY(-50%) scaleY(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50%) scaleY(0.6); } }
+/* 선공·후공 결정 동전 */
+.coin-toss { position: absolute; inset: 0; z-index: 505; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; background: radial-gradient(ellipse at center, rgba(11,11,14,0.88) 30%, rgba(11,11,14,0.55) 75%); animation: ctIn calc(0.3s / var(--spd)) both; perspective: 1400px; }
+.coin-toss.out { animation: ctOut calc(0.4s / var(--spd)) forwards; }
+.ct-title { margin-bottom: 100px; font-family: "Exo 2", sans-serif; font-size: 30px; font-weight: 800; letter-spacing: 0.4em; color: #c9c9cf; }
+.ct-glow { perspective: 1400px; }
+.ct-coin { position: relative; width: 260px; height: 300px; transform-style: preserve-3d; }
+.ct-face { position: absolute; inset: 0; backface-visibility: hidden; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); padding: 9px; }
+.ct-face.mine { background: linear-gradient(160deg, #fff1a8, var(--accent) 45%, #8a6400); }
+.ct-face.theirs { background: linear-gradient(160deg, #ffb3b9, #ff4d5a 45%, #7a1820); transform: rotateY(180deg); }
+.ct-portrait { width: 100%; height: 100%; background-size: cover; background-position: center 10%; background-color: #212124; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.ct-result { height: 90px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ct-result b { font-family: "Exo 2", sans-serif; font-size: 56px; font-weight: 900; letter-spacing: 0.12em; animation: ctPop calc(0.35s / var(--spd)) both; }
+.ct-result small { font-size: 22px; color: #e0e0e3; letter-spacing: 0.08em; font-weight: 700; }
+.coin-toss.mine .ct-result b { color: var(--accent); text-shadow: 0 0 30px rgba(255,198,0,0.7); }
+.coin-toss.theirs .ct-result b { color: #ff6b75; text-shadow: 0 0 30px rgba(255,77,90,0.7); }
+/* 빛은 바깥 틀에 준다: 동전 자체에 filter를 걸면 3D가 납작해져 뒷면이 보이지 않는다 */
+.coin-toss.done .ct-glow { filter: drop-shadow(0 0 28px rgba(255,198,0,0.55)); }
+.coin-toss.done.theirs .ct-glow { filter: drop-shadow(0 0 28px rgba(255,77,90,0.55)); }
+@keyframes ctIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ctOut { to { opacity: 0; } }
+@keyframes ctPop { 0% { opacity: 0; transform: scale(1.6); } 100% { opacity: 1; transform: scale(1); } }
 .reveal { position: absolute; left: 50%; top: 46%; z-index: 480; pointer-events: none; transform: translate(-50%, -50%); animation: revealIn calc(1.1s / var(--spd)) forwards; }
 .reveal .card { --w: 260px; box-shadow: 0 0 60px rgba(255,255,255,0.25), 0 30px 80px rgba(0,0,0,0.9); }
 .reveal .card:hover { transform: none; }
@@ -499,7 +520,19 @@ img { -webkit-user-drag: none; }
 .quake { animation: quake 0.35s; }
 @keyframes quake { 25% { translate: 6px -4px; } 50% { translate: -6px 4px; } 75% { translate: 4px 2px; } }
 .fc-svg { position: absolute; inset: 0; pointer-events: none; z-index: 9; width: 100%; height: 100%; }
-.fc-svg path { fill: none; stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(0,0,0,0.8)); }
+.fc-svg .arrow { animation: arrowIn 0.35s ease-out both; }
+.fc-svg .arrow .a-glow { opacity: 0.5; animation: arrowGlow 1.6s ease-in-out infinite; }
+.fc-svg .arrow .a-body { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7)); }
+.fc-svg .arrow .a-core { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 10 22; opacity: 0.9; animation: arrowFlow 0.7s linear infinite; }
+.fc-svg .arrow .a-head { stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.75)); animation: arrowHead 0.4s 0.15s cubic-bezier(.3,1.6,.5,1) both; }
+.fc-svg .arrow .a-src { fill: none; stroke-width: 3; opacity: 0.8; }
+.fc-svg .arrow .a-tgt circle { fill: none; stroke-width: 3; stroke-dasharray: 16 10; opacity: 0.85; }
+.fc-svg .arrow .a-tgt { animation: arrowSpin 4s linear infinite; }
+@keyframes arrowIn { from { opacity: 0; } }
+@keyframes arrowGlow { 50% { opacity: 0.85; } }
+@keyframes arrowFlow { to { stroke-dashoffset: -32; } }
+@keyframes arrowHead { from { transform: scale(0.2); opacity: 0; } }
+@keyframes arrowSpin { to { transform: rotate(360deg); } }
 
 /* 레벨업 / 멀리건 */
 .lv-wrap { display: flex; gap: 22px; margin-top: 14px; }
@@ -520,8 +553,7 @@ img { -webkit-user-drag: none; }
 .mull-hand .card.mull-new::after { content: "새 카드"; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-12deg); font-size: 1.6em; font-weight: 900; color: var(--accent); border: 0.12em solid var(--accent); padding: 0.05em 0.4em; z-index: 6; background: rgba(0,0,0,0.55); white-space: nowrap; animation: mullStamp 0.3s 0.35s both; }
 @keyframes mullStamp { from { transform: translate(-50%, -50%) rotate(-12deg) scale(1.8); opacity: 0; } }
 @keyframes mullFlip { 0% { transform: translateY(-40px) rotateY(90deg); opacity: 0; filter: brightness(2.5); } 60% { transform: translateY(0) rotateY(0); opacity: 1; filter: brightness(1.6); } 100% { filter: none; } }
-.mull-ghost { position: absolute; z-index: 620; pointer-events: none; transform-origin: 50% 50%; }
-.mull-ghost > .card { transform-origin: 50% 50%; }
+.card-ghost { position: absolute; z-index: 620; pointer-events: none; transform-origin: 50% 50%; } /* 교체·뽑기 때 날아가는 카드 */
 .mull-hand.full .card:not(.marked) { cursor: not-allowed; opacity: 0.85; }
 .mull-hand .card.marked { filter: grayscale(0.9) brightness(0.45); transform: translateY(14px); }
 .mull-hand .card.marked::after { content: "교체"; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-12deg); font-size: 2.2em; font-weight: 900; color: #ff6b75; border: 0.12em solid #ff6b75; padding: 0.05em 0.4em; z-index: 6; background: rgba(0,0,0,0.5); }

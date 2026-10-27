@@ -95,7 +95,7 @@ screenHooks.battle = async el => {
     </div>
     <div class="lanes enemy">${[0, 1, 2].map(i => `<div class="slot" data-side="enemy" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
     <div class="lanes me">${[0, 1, 2].map(i => `<div class="slot" data-side="me" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
-    <svg class="fc-svg"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
+    <svg class="fc-svg"><defs><filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs></svg>
     ${cmdHtml('me', me)}
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
     <div class="round-info"></div>
@@ -142,8 +142,44 @@ function modeLabel(cfg) {
   if (cfg.mode === 'daily') return '오늘의 대국';
   return '자유 대국';
 }
+// 선공·후공 결정 연출: 양쪽 얼굴이 새겨진 동전을 던져 위로 나온 쪽이 선공
+// 무작위가 아닌 대국(스테이지 규칙·직접 지정)은 돌리지 않고 정해진 면만 보여 준다
+async function coinToss() {
+  const myB = B; const { me, ai, cfg, meFirst } = B;
+  const spin = cfg.first === 'random' && !REDUCE_MOTION;
+  const face = (p, side) => `<div class="ct-face ${side}"><div class="ct-portrait" style="background-image:url('${p.portrait ? artOf(CARDS[p.portrait]) : ''}')"></div></div>`;
+  const el = h(`<div class="coin-toss"><div class="ct-title">${spin ? '선공 결정' : '선공 지정'}</div>
+    <div class="ct-glow"><div class="ct-coin">${face(me, 'mine')}${face(ai, 'theirs')}</div></div>
+    <div class="ct-result"></div></div>`);
+  $('#stage').appendChild(el);
+  const coin = $('.ct-coin', el);
+  if (spin) {
+    Audio2.play('swing');
+    const end = 360 * 6 + (meFirst ? 0 : 180);
+    const dur = 1500 / (Store.settings.speed || 1);
+    // 위로 솟았다가 떨어지며 점점 느리게 돈다
+    coin.animate([
+      { transform: 'translateY(0) rotateY(0deg) scale(0.8)' },
+      { transform: `translateY(-90px) rotateY(${end * 0.55}deg) scale(1.1)`, offset: 0.45 },
+      { transform: `translateY(0) rotateY(${end}deg) scale(1)` },
+    ], { duration: dur, easing: 'cubic-bezier(.25,.7,.35,1)', fill: 'forwards' });
+    await sleepRaw(dur); alive(myB);
+  } else {
+    coin.style.transform = `rotateY(${meFirst ? 0 : 180}deg)`;
+    await sleep(250); alive(myB);
+  }
+  Audio2.play(meFirst ? 'rankup' : 'place');
+  vibrate(60);
+  el.classList.add('done', meFirst ? 'mine' : 'theirs');
+  $('.ct-result', el).innerHTML = `<b>${esc(meFirst ? me.name : ai.name)} 선공</b><small>${meFirst ? '첫 턴에는 카드를 뽑지 않습니다' : `오렌지에이드 후공 — 카드 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}, 라이프 +${RULES.SECOND_HP_BONUS}`}</small>`;
+  await sleep(1300); alive(myB);
+  el.classList.add('out');
+  setTimeout(() => el.remove(), 400);
+  await sleepRaw(250); alive(myB);
+}
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
+  if (!cfg.tutorial) { await coinToss(); alive(myB); }
   showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);
@@ -154,6 +190,7 @@ async function battleIntro() {
   else game.mulligan(me, []);
   renderAll(true);
   if (cfg.tutorial) { await Tutorial.start(); alive(myB); }
+  game.events = game.events.filter(e => e.type !== 'draw'); // 첫 패 뽑기는 교체 창과 패로 날아가는 연출로 이미 보여 줬다
   game.start();
   await processEvents(); alive(myB);
   onTurnBegin();
@@ -173,8 +210,10 @@ function mulliganPrompt() {
     me.hand.forEach(c => {
       const ce = cardEl(c); // 크기는 CSS(.mull-hand .card)가 정한다: 화면 크기가 바뀌어도 바로 맞춰진다
       ce._card = c;
+      holdForDetail(ce, () => openCardDetail(c, me.hand));
       ce.onclick = () => {
-        if (done) return;
+        if (ce._held) { ce._held = false; return; }
+        if (done) return; // 꾹 눌러 상세를 연 뒤 손을 뗄 때의 클릭은 교체 선택으로 치지 않는다
         if (!marked.has(c) && marked.size >= MAX) { toast(`최대 ${MAX}장까지 교체할 수 있습니다.`, true); return; }
         marked.has(c) ? marked.delete(c) : marked.add(c);
         ce.classList.toggle('marked', marked.has(c)); Audio2.play('card');
@@ -226,7 +265,7 @@ async function mulliganToHand(m, row) {
   $('.hand').style.visibility = '';
   const stage = $('#stage');
   const ghosts = $$('.card', row).map(ce => {
-    const r = stageRect(ce), g = h('<div class="mull-ghost"></div>');
+    const r = stageRect(ce), g = h('<div class="card-ghost"></div>');
     const gc = cardEl(ce._card, { noHover: true }); gc.style.setProperty('--w', ce.offsetWidth + 'px'); g.appendChild(gc);
     g.style.left = r.x + 'px'; g.style.top = r.y + 'px';
     stage.appendChild(g);
@@ -329,9 +368,6 @@ function bindBattleInputs(el) {
   mySk.onclick = e => { e.stopPropagation(); const sk = heroSkillOf(B.me); if (B.selected === sk && skillTargetKind(sk) !== 'none') { clearSelection(); renderAll(); return; } selectCard(sk); renderAll(); };
   mySk.addEventListener('contextmenu', e => { e.preventDefault(); openCardDetail(heroSkillOf(B.me)); });
   $('#cmd-enemy .hero-skill', el).onclick = e => { if (B.selected && B.pending === 'any') return; e.stopPropagation(); openCardDetail(heroSkillOf(B.ai)); };
-  $('.end-btn', el).onmouseenter = () => drawArrows();
-  $('.end-btn', el).addEventListener('contextmenu', e => { e.preventDefault(); drawArrows(); setTimeout(clearArrows, 2500); });
-  $('.end-btn', el).onmouseleave = () => clearArrows();
   $('[data-a=log]', el).onclick = () => $('.log-panel', el).classList.toggle('open');
   $('[data-a=help]', el).onclick = () => openHowTo(1);
   $('[data-a=settings]', el).onclick = () => openSettings(true);
@@ -516,8 +552,8 @@ function attachHandDrag(ce, card) {
     if (e.button !== 0 || !B || B.drag) return;
     e.preventDefault();
     B.drag = { card, start: stagePoint(e.clientX, e.clientY), moved: false, ghost: null };
-    // 터치: 길게 누르면 카드 상세 (마우스의 우클릭 대신)
-    if (e.pointerType === 'touch') B.drag.timer = setTimeout(() => { const d = B && B.drag; if (d && !d.moved && d.card === card) { d.long = true; openCardDetail(card, B.me.hand); } }, 550);
+    // 움직이지 않고 꾹 누르고 있으면 카드 상세 (터치·마우스 모두. 마우스는 우클릭으로도 열린다)
+    B.drag.timer = setTimeout(() => { const d = B && B.drag; if (d && !d.moved && d.card === card) { d.long = true; openCardDetail(card, B.me.hand); } }, 550);
     const move = ev => onDragMove(ev);
     const up = ev => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); onDragEnd(ev); };
     const cancel = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); if (B && B.drag) { if (B.drag.ghost) B.drag.ghost.remove(); B.drag = null; clearSelection(); renderHand(true); } };
@@ -635,7 +671,7 @@ function renderAll(forceHand) {
   renderRoundInfo();
   $('[data-v=deck]').textContent = me.deck.length; $('[data-v=grave]').textContent = me.grave.length;
   $('[data-v=edeck]').textContent = ai.deck.length; $('[data-v=egrave]').textContent = ai.grave.length;
-  const eh = $('.enemy-hand'); const n = ai.hand.length;
+  const eh = $('.enemy-hand'); const n = ai.hand.length - (B.holdDrawAi || 0);
   if (eh.childElementCount !== n) eh.innerHTML = ai.hand.map((_, i) => `<div class="card-back" style="--r:${(i - (n - 1) / 2) * -5}deg;--y:${Math.abs(i - (n - 1) / 2) * 5}px"></div>`).join('');
   for (const [p, side] of [[me, 'me'], [ai, 'enemy']]) {
     p.lanes.forEach((u, i) => {
@@ -666,17 +702,18 @@ function renderHand(force) {
   const { me } = B;
   const hand = $('.hand'); if (!hand) return;
   const myMain = canAct();
-  const sig = me.hand.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.placeableLanes(B.game.turn).length;
+  const cards = shownHand();
+  const sig = cards.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.placeableLanes(B.game.turn).length;
   if (!force && sig === B.handSig) return;
   B.handSig = sig;
   hand.innerHTML = '';
-  const n = me.hand.length;
+  const n = cards.length;
   // 휴대폰(.compact)은 카드를 크게(240) 그리고 간격도 넓혀 이름·능력치가 읽히게 한다
   const compact = document.body.classList.contains('compact'), cw = compact ? 240 : 170;
   const spacing = Math.min(compact ? 170 : 130, (compact ? 860 : 760) / Math.max(1, n));
   const total = spacing * (n - 1) + cw;
   const start = (1000 - total) / 2;
-  me.hand.forEach((c, i) => {
+  cards.forEach((c, i) => {
     const ce = cardEl(c);
     const off = i - (n - 1) / 2;
     // 받침(.hslot)이 부채꼴 위치/회전과 호버 영역을 담당하고, 카드는 그 안에서 떠오른다
@@ -697,6 +734,50 @@ function renderHand(force) {
     slot.appendChild(ce);
     hand.appendChild(slot);
   });
+}
+
+// 엔진은 결과를 미리 계산하므로, 손패에는 아직 뽑기 연출이 나오지 않은 카드가 들어 있을 수 있다. 그런 카드는 연출 때까지 숨긴다
+function shownHand() { return B.holdDraw && B.holdDraw.size ? B.me.hand.filter(c => !B.holdDraw.has(c)) : B.me.hand; }
+// 카드 뽑기 연출: 덱 더미에서 카드가 뒤집히며 날아와 패 자리에 들어간다
+async function drawFly(card) {
+  renderAll(true);
+  const sl = $$('.hand .hslot')[shownHand().indexOf(card)], ce = sl && $('.card', sl), deck = $('.stack.me .st-deck');
+  if (!ce || !deck) return;
+  sl.style.visibility = 'hidden';
+  const t = stageRect(ce), d = stageRect(deck), w = ce.offsetWidth, hh = ce.offsetHeight, k = Store.settings.speed || 1;
+  const g = h('<div class="card-ghost"></div>'), gc = cardEl(card, { noHover: true });
+  gc.style.setProperty('--w', w + 'px'); g.appendChild(gc);
+  g.style.left = (t.cx - w / 2) + 'px'; g.style.top = (t.cy - hh / 2) + 'px';
+  $('#stage').appendChild(g);
+  const rot = parseFloat(sl.style.getPropertyValue('--r')) || 0, s0 = d.w / w, dur = 420 / k;
+  Audio2.play('card', 0.6);
+  await new Promise(res => {
+    let done = false; const fin = () => { if (done) return; done = true; g.remove(); sl.style.visibility = ''; res(); };
+    g.animate([
+      { transform: `translate(${d.cx - t.cx}px, ${d.cy - t.cy}px) scale(${s0}) rotateY(180deg)`, filter: 'brightness(0.2)' },
+      { transform: `translate(${(d.cx - t.cx) * 0.45}px, ${(d.cy - t.cy) * 0.45 - 80}px) scale(${(s0 + 1) / 2 * 1.1}) rotateY(0deg)`, filter: 'brightness(1.4)', offset: 0.5 },
+      { transform: `translate(0,0) scale(1) rotate(${rot}deg)`, filter: 'none' },
+    ], { duration: dur, easing: 'cubic-bezier(.3,.6,.35,1)', fill: 'forwards' }).onfinish = fin;
+    setTimeout(fin, dur + 150);
+  });
+}
+// 적 카드 뽑기: 뒷면 카드가 적 덱에서 적 손패로 날아간다
+async function drawFlyAi() {
+  const deck = $('.stack.enemy .st-deck'), eh = $('.enemy-hand');
+  B.holdDrawAi = Math.max(0, (B.holdDrawAi || 0) - 1);
+  if (!deck || !eh) { renderAll(); return; }
+  const d = stageRect(deck), e = stageRect(eh), k = Store.settings.speed || 1, dur = 340 / k;
+  const g = h('<div class="card-ghost"><div class="card-back"></div></div>');
+  g.style.left = (d.cx - 37) + 'px'; g.style.top = (d.cy - 52) + 'px';
+  $('#stage').appendChild(g);
+  Audio2.play('card', 0.35);
+  await new Promise(res => {
+    let done = false; const fin = () => { if (done) return; done = true; g.remove(); res(); };
+    g.animate([{ transform: 'translate(0,0) rotate(0deg)' }, { transform: `translate(${e.x + e.w - d.cx}px, ${e.cy - d.cy}px) rotate(-12deg)` }],
+      { duration: dur, easing: 'ease-in-out', fill: 'forwards' }).onfinish = fin;
+    setTimeout(fin, dur + 150);
+  });
+  renderAll();
 }
 
 function unitEl(u) {
@@ -750,14 +831,18 @@ function refreshForecast() {
   $$('.unit .u-fc').forEach(f => { f.className = 'u-fc'; f.textContent = ''; });
   $$('.cmd .cm-fc').forEach(f => { f.className = 'cm-fc'; f.textContent = ''; });
   // 카드와 사령관 위에 예측 문구(피해량·빗나감·격파)를 띄우지 않는다. 화면을 가린다는 의견에 따라 모두 뺐다.
-  // 예측은 턴 종료 버튼에 마우스를 올렸을 때의 공격 화살표로만 보여 준다 (설정 > 공격 예측 화살표)
+  // 예측은 공격 화살표로만 보여 준다. 내 차례에는 늘 그려 두고, 화면이 바뀔 때마다 다시 그린다 (설정 > 공격 예측 화살표)
+  if (Store.settings.forecast && canAct()) drawArrows(); else clearArrows();
+  // 막 배치된 카드는 등장 연출로 잠깐 자리가 어긋나 있으니, 연출이 끝난 뒤 한 번 더 맞춰 그린다
+  clearTimeout(B.arrowTimer);
+  B.arrowTimer = setTimeout(() => { if (B && Store.settings.forecast && canAct()) drawArrows(); }, 500);
 }
 
 function drawArrows() {
   if (!Store.settings.forecast || !canAct()) return;
-  const svg = $('.fc-svg'); clearArrows();
+  const svg = $('.fc-svg');
   const fc = B.game.forecast(B.me);
-  const seen = new Set();
+  const seen = new Set(), list = [];
   fc.hits.forEach(hh => {
     const fromEl = B.unitEls.get(hh.fromUid); if (!fromEl) return;
     const key = hh.fromUid + '>' + hh.toUid; if (seen.has(key)) return; seen.add(key);
@@ -765,12 +850,50 @@ function drawArrows() {
     if (!toEl || toEl === fromEl) return;
     if (B.me.lanes.some(u => u && u.uid === hh.toUid)) return; // 반격 화살표 생략
     const a = stageRect(fromEl), b = stageRect(toEl);
-    const x1 = a.cx, y1 = a.y + 20, x2 = b.cx, y2 = b.y + b.h - 30;
-    const mx = (x1 + x2) / 2, my = Math.min(y1, y2) - 40;
-    svg.insertAdjacentHTML('beforeend', `<path class="arrow" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" stroke="${hh.toUid === 'cmd' ? '#ffb13b' : '#ff5a64'}" marker-end="url(#ah)" stroke-dasharray="14 8"/>`);
+    // 공격하는 카드의 가운데에서 출발해 표적 카드의 가운데 조금 아래에 꽂힌다
+    list.push({ x1: a.cx, y1: a.cy, x2: b.cx, y2: b.cy + b.h * 0.12, cmd: hh.toUid === 'cmd' });
   });
+  // 화살표가 그대로면 다시 그리지 않는다 (화면이 바뀔 때마다 등장 연출이 반복되어 깜빡이지 않게)
+  const sig = list.map(l => [l.x1, l.y1, l.x2, l.y2].map(Math.round).join(',')).join('|');
+  if (sig === B.arrowSig) return;
+  clearArrows(); B.arrowSig = sig;
+  list.forEach((l, i) => svg.insertAdjacentHTML('beforeend', arrowSvg(l, i)));
 }
-function clearArrows() { $$('.fc-svg .arrow').forEach(p => p.remove()); }
+// 공격 화살표 한 개: 꼬리가 가늘고 끝으로 갈수록 굵어지는 곡선 몸통 + 번지는 빛 + 흐르는 빛줄기 + 화살촉 + 표적 표시
+function arrowSvg({ x1, y1, x2, y2, cmd }, i) {
+  const col = cmd ? '#ffc04a' : '#ff4655', hot = cmd ? '#fff2c4' : '#ffd2d6';
+  // 조절점: 두 점의 가운데에서 옆으로 비켜 활처럼 휘게 한다. 대각선은 위쪽으로, 바로 앞(세로)은 오른쪽으로 휜다
+  const dx = x2 - x1, dy = y2 - y1, dist = Math.hypot(dx, dy) || 1;
+  let px = -dy / dist, py = dx / dist; if (py > 0 || (Math.abs(py) < 0.01 && px < 0)) { px = -px; py = -py; }
+  const bend = Math.min(130, Math.max(34, dist * 0.22));
+  const cx = (x1 + x2) / 2 + px * bend, cy = (y1 + y2) / 2 + py * bend;
+  const at = t => ({ x: (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2, y: (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2 });
+  const tan = t => { const dx = 2 * (1 - t) * (cx - x1) + 2 * t * (x2 - cx), dy = 2 * (1 - t) * (cy - y1) + 2 * t * (y2 - cy), m = Math.hypot(dx, dy) || 1; return { x: dx / m, y: dy / m }; };
+  // 화살촉 길이만큼 앞에서 몸통을 끝낸다
+  const N = 40, HEAD = 40, pts = [];
+  let len = 0; for (let k = 0; k <= N; k++) { const p = at(k / N); if (k) len += Math.hypot(p.x - pts[k - 1].x, p.y - pts[k - 1].y); pts.push({ ...p, s: len }); }
+  const sEnd = Math.max(len * 0.3, len - HEAD + 6);
+  const L = [], R = [];
+  for (let k = 0; k <= N; k++) {
+    const p = pts[k]; if (p.s > sEnd) break;
+    const t = k / N, d = tan(t), w = 2 + 8 * Math.pow(p.s / sEnd, 1.4);
+    L.push(`${(p.x - d.y * w).toFixed(1)},${(p.y + d.x * w).toFixed(1)}`); R.unshift(`${(p.x + d.y * w).toFixed(1)},${(p.y - d.x * w).toFixed(1)}`);
+  }
+  const body = `M${L.join(' L')} L${R.join(' L')} Z`;
+  const d = tan(1), n = { x: -d.y, y: d.x }, bx = x2 - d.x * HEAD, by = y2 - d.y * HEAD, nx = x2 - d.x * (HEAD - 12), ny = y2 - d.y * (HEAD - 12);
+  const head = `M${x2},${y2} L${(bx + n.x * 22).toFixed(1)},${(by + n.y * 22).toFixed(1)} L${nx.toFixed(1)},${ny.toFixed(1)} L${(bx - n.x * 22).toFixed(1)},${(by - n.y * 22).toFixed(1)} Z`;
+  const end = at(sEnd / len), core = `M${x1},${y1} Q${cx},${cy} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
+  return `<g class="arrow${cmd ? ' cmd' : ''}">
+    <defs><linearGradient id="ag${i}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${col}" stop-opacity="0.15"/><stop offset="0.55" stop-color="${col}" stop-opacity="0.85"/><stop offset="1" stop-color="${col}"/></linearGradient></defs>
+    <path class="a-glow" d="${body} ${head}" fill="${col}" filter="url(#arrowGlow)"/>
+    <path class="a-body" d="${body}" fill="url(#ag${i})"/>
+    <path class="a-core" d="${core}" stroke="${hot}"/>
+    <circle class="a-src" cx="${x1}" cy="${y1}" r="10" stroke="${col}"/>
+    <g class="a-tgt" style="transform-origin:${x2}px ${y2}px"><circle cx="${x2}" cy="${y2}" r="30" stroke="${col}"/></g>
+    <path class="a-head" d="${head}" fill="${col}" stroke="${hot}" style="transform-origin:${x2}px ${y2}px"/>
+  </g>`;
+}
+function clearArrows() { $$('.fc-svg .arrow').forEach(p => p.remove()); if (B) B.arrowSig = ''; }
 
 // ---------- 전술 팁 (설정 > 전술 팁) ----------
 function tacticalTip() {
@@ -836,7 +959,9 @@ async function processEvents() {
   const evs = game.events.splice(0);
   const holdDie = new Set(evs.filter(e => e.type === 'die' || e.type === 'withdraw').map(e => e.unit.uid));
   const holdSpawn = new Set(evs.filter(e => e.type === 'summon').map(e => e.unit.uid));
-  B.holdDie = holdDie; B.holdSpawn = holdSpawn;
+  const holdDraw = new Set(evs.filter(e => e.type === 'draw' && e.player === B.me).map(e => e.card));
+  B.holdDie = holdDie; B.holdSpawn = holdSpawn; B.holdDraw = holdDraw;
+  B.holdDrawAi = evs.filter(e => e.type === 'draw' && e.player === B.ai).length;
   try { for (const ev of evs) {
     alive(myB);
     if (ev.type === 'summon') holdSpawn.delete(ev.unit.uid);
@@ -873,7 +998,7 @@ async function processEvents() {
         if (ev.v) floatOn(r, `AP +${ev.v}`, 'buff');
         break;
       }
-      case 'draw': renderAll(); if (ev.player === B.me && game.phase !== 'mulligan') { Audio2.play('card', 0.5); await sleep(120); } break;
+      case 'draw': if (ev.player === B.me) { holdDraw.delete(ev.card); await drawFly(ev.card); } else await drawFlyAi(); break;
       case 'burn': if (ev.player === B.me) toast(`패가 가득 차 ${josa(ev.card.n, '이', '가')} 소각되었습니다.`, true); break;
       case 'reshuffle': toast(`${ev.player.name}: 묘지를 섞어 덱을 재구성했습니다.`); break;
       case 'summon': {
@@ -971,6 +1096,7 @@ async function processEvents() {
   } } finally {
     if (myB.holdDie === holdDie) myB.holdDie = null;
     if (myB.holdSpawn === holdSpawn) myB.holdSpawn = null;
+    if (myB.holdDraw === holdDraw) { myB.holdDraw = null; myB.holdDrawAi = 0; }
   }
   renderAll();
 }
