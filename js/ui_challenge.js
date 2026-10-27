@@ -335,7 +335,7 @@ function openSupply(onChange) {
       const wrap = h(`<div class="sp-item"><div class="sp-cost">${SUPPLY_COST[c.g]}</div></div>`);
       const ce = cardEl(c, { w: 170 }); wrap.prepend(ce);
       ce.onclick = async () => {
-        if (!await confirmBox('보급 해금', `${c.n}을(를) 보급 포인트 ${SUPPLY_COST[c.g]}로 해금할까요? (보유 ${Store.data.bp || 0})`, '해금')) return;
+        if (!await confirmBox('보급 해금', `${josa(c.n, '을', '를')} 보급 포인트 ${SUPPLY_COST[c.g]}로 해금할까요? (보유 ${Store.data.bp || 0})`, '해금')) return;
         if (buySupply(c)) { render(); onChange && onChange(); }
       };
       ce.oncontextmenu = e => { e.preventDefault(); openCardDetail(c); };

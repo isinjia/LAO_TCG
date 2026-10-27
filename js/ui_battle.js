@@ -817,7 +817,7 @@ async function processEvents() {
         break;
       }
       case 'draw': renderAll(); if (ev.player === B.me && game.phase !== 'mulligan') { Audio2.play('card', 0.5); await sleep(120); } break;
-      case 'burn': if (ev.player === B.me) toast(`패가 가득 차 ${ev.card.n}이(가) 소각되었습니다.`, true); break;
+      case 'burn': if (ev.player === B.me) toast(`패가 가득 차 ${josa(ev.card.n, '이', '가')} 소각되었습니다.`, true); break;
       case 'reshuffle': toast(`${ev.player.name}: 묘지를 섞어 덱을 재구성했습니다.`); break;
       case 'summon': {
         if (!ev.token) pushHistory(ev.unit.card, ev.player);

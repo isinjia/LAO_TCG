@@ -5,6 +5,12 @@ let _uid = 1;
 function uid() { return _uid++; }
 
 // rnd: 0 이상 1 미만 난수 함수. 대국 중에는 game.random을 넘겨 저장·복원 뒤에도 같은 결과가 나오게 한다
+// 받침에 맞춰 조사를 고른다: josa('하치코', '이', '가') → '하치코가' (숫자·영문 끝은 받침 없음으로 본다)
+function josa(word, withBatchim, without) {
+  const c = String(word).charCodeAt(String(word).length - 1);
+  const has = c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0;
+  return word + (has ? withBatchim : without);
+}
 function shuffle(arr, rnd = Math.random) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(rnd() * (i + 1));
@@ -69,7 +75,7 @@ class Player {
       const c = this.deck.pop();
       if (this.hand.length >= RULES.HAND_MAX) {
         this.grave.push(c);
-        game.log(`${this.name}의 패가 가득 차 ${c.n}이(가) 소각됩니다.`, 'sys');
+        game.log(`${this.name}의 패가 가득 차 ${josa(c.n, '이', '가')} 소각됩니다.`, 'sys');
         game.emit({ type: 'burn', player: this, card: c });
       } else { this.hand.push(c); game.emit({ type: 'draw', player: this, card: c }); }
     }
@@ -341,7 +347,7 @@ class Game {
           const us = o.units().filter(u => !e.v || u.hp <= e.v); if (!us.length) { this.log('처치할 대상이 없습니다.', 'sys'); break; }
           const low = us.reduce((a, b) => (b.hp < a.hp ? b : a));
           this.emit({ type: 'fx', op: 'destroy', src: ctx.src, player: p, from: ctx.unit, targets: [{ unit: low }] });
-          this.log(`${low.card.n}이(가) 처치됩니다.`);
+          this.log(`${josa(low.card.n, '이', '가')} 처치됩니다.`);
           this.killUnit(low, ctx.src, p);
           break;
         }
@@ -384,7 +390,7 @@ class Game {
     if (u.hp <= 0 || !u.owner.lanes.includes(u)) return 0;
     let d = dmg;
     if (d <= 0) return 0; // 공격력 0은 피해가 없다 (회피도 쓰지 않고, 보호기 최소 피해 1 규칙보다 먼저)
-    if (u.evade) { u.evade = false; this.emit({ type: 'evade', unit: u }); this.log(`${u.card.n}이(가) 회피!`); return 0; }
+    if (u.evade) { u.evade = false; this.emit({ type: 'evade', unit: u }); this.log(`${josa(u.card.n, '이', '가')} 회피!`); return 0; }
     if (attacker && u.role === 'DEF' && RULES.DEF_ROLE_ARMOR) d = Math.max(1, d - RULES.DEF_ROLE_ARMOR);
     if (u.shield > 0) { const ab = Math.min(u.shield, d); u.shield -= ab; d -= ab; this.emit({ type: 'shieldHit', unit: u, v: ab }); }
     const dealt = Math.min(d, Math.max(0, u.hp));
@@ -463,7 +469,7 @@ class Game {
       const u = p.lanes[lane];
       if (!u || u.hp <= 0) continue;
       if (!this.canAttack(u)) continue;
-      if (u.slowed) { u.slowed = false; this.emit({ type: 'skip', unit: u }); this.log(`${u.card.n}은(는) 둔화로 공격하지 못합니다.`); continue; }
+      if (u.slowed) { u.slowed = false; this.emit({ type: 'skip', unit: u }); this.log(`${josa(u.card.n, '은', '는')} 둔화로 공격하지 못합니다.`); continue; }
       this.attack(u, lane);
       // 공격 후 효과: 공격한 유닛이 살아 있으면 발동한다
       if (u.card.strike && u.hp > 0 && p.lanes[lane] === u && this.phase !== 'over') {
@@ -486,7 +492,7 @@ class Game {
     let target = o.lanes[lane];
     if (!target) {
       const guards = [lane - 1, lane + 1].filter(l => l >= 0 && l < 3 && o.lanes[l] && o.lanes[l].role === 'DEF');
-      if (guards.length) { target = o.lanes[guards[0]]; this.log(`${target.card.n}이(가) 보호합니다.`); this.emit({ type: 'guard', unit: target }); o.stats.guards = (o.stats.guards || 0) + 1; }
+      if (guards.length) { target = o.lanes[guards[0]]; this.log(`${josa(target.card.n, '이', '가')} 보호합니다.`); this.emit({ type: 'guard', unit: target }); o.stats.guards = (o.stats.guards || 0) + 1; }
     }
     if (target) {
       const dmg = atk + this.typeBonus(u, target);
