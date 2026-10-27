@@ -141,8 +141,44 @@ function modeLabel(cfg) {
   if (cfg.mode === 'daily') return '오늘의 대국';
   return '자유 대국';
 }
+// 선공·후공 결정 연출: 양쪽 얼굴이 새겨진 동전을 던져 위로 나온 쪽이 선공
+// 무작위가 아닌 대국(스테이지 규칙·직접 지정)은 돌리지 않고 정해진 면만 보여 준다
+async function coinToss() {
+  const myB = B; const { me, ai, cfg, meFirst } = B;
+  const spin = cfg.first === 'random' && !REDUCE_MOTION;
+  const face = (p, side) => `<div class="ct-face ${side}"><div class="ct-portrait" style="background-image:url('${p.portrait ? artOf(CARDS[p.portrait]) : ''}')"></div></div>`;
+  const el = h(`<div class="coin-toss"><div class="ct-title">${spin ? '선공 결정' : '선공 지정'}</div>
+    <div class="ct-glow"><div class="ct-coin">${face(me, 'mine')}${face(ai, 'theirs')}</div></div>
+    <div class="ct-result"></div></div>`);
+  $('#stage').appendChild(el);
+  const coin = $('.ct-coin', el);
+  if (spin) {
+    Audio2.play('swing');
+    const end = 360 * 6 + (meFirst ? 0 : 180);
+    const dur = 1500 / (Store.settings.speed || 1);
+    // 위로 솟았다가 떨어지며 점점 느리게 돈다
+    coin.animate([
+      { transform: 'translateY(0) rotateY(0deg) scale(0.8)' },
+      { transform: `translateY(-90px) rotateY(${end * 0.55}deg) scale(1.1)`, offset: 0.45 },
+      { transform: `translateY(0) rotateY(${end}deg) scale(1)` },
+    ], { duration: dur, easing: 'cubic-bezier(.25,.7,.35,1)', fill: 'forwards' });
+    await sleepRaw(dur); alive(myB);
+  } else {
+    coin.style.transform = `rotateY(${meFirst ? 0 : 180}deg)`;
+    await sleep(250); alive(myB);
+  }
+  Audio2.play(meFirst ? 'rankup' : 'place');
+  vibrate(60);
+  el.classList.add('done', meFirst ? 'mine' : 'theirs');
+  $('.ct-result', el).innerHTML = `<b>${esc(meFirst ? me.name : ai.name)} 선공</b><small>${meFirst ? '첫 턴에는 카드를 뽑지 않습니다' : `오렌지에이드 후공 — 카드 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}, 라이프 +${RULES.SECOND_HP_BONUS}`}</small>`;
+  await sleep(1300); alive(myB);
+  el.classList.add('out');
+  setTimeout(() => el.remove(), 400);
+  await sleepRaw(250); alive(myB);
+}
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
+  if (!cfg.tutorial) { await coinToss(); alive(myB); }
   showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);

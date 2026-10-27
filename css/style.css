@@ -471,6 +471,27 @@ img { -webkit-user-drag: none; }
 .banner.mine .bn-main { color: var(--accent); text-shadow: 0 0 30px rgba(255,198,0,0.7); }
 .banner.theirs .bn-main { color: #ff6b75; text-shadow: 0 0 30px rgba(255,77,90,0.7); }
 @keyframes bannerIn { 0% { opacity: 0; transform: translateY(-50%) scaleY(0.2); } 15% { opacity: 1; transform: translateY(-50%) scaleY(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-50%) scaleY(0.6); } }
+/* 선공·후공 결정 동전 */
+.coin-toss { position: absolute; inset: 0; z-index: 505; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; background: radial-gradient(ellipse at center, rgba(11,11,14,0.88) 30%, rgba(11,11,14,0.55) 75%); animation: ctIn calc(0.3s / var(--spd)) both; perspective: 1400px; }
+.coin-toss.out { animation: ctOut calc(0.4s / var(--spd)) forwards; }
+.ct-title { margin-bottom: 100px; font-family: "Exo 2", sans-serif; font-size: 30px; font-weight: 800; letter-spacing: 0.4em; color: #c9c9cf; }
+.ct-glow { perspective: 1400px; }
+.ct-coin { position: relative; width: 260px; height: 300px; transform-style: preserve-3d; }
+.ct-face { position: absolute; inset: 0; backface-visibility: hidden; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); padding: 9px; }
+.ct-face.mine { background: linear-gradient(160deg, #fff1a8, var(--accent) 45%, #8a6400); }
+.ct-face.theirs { background: linear-gradient(160deg, #ffb3b9, #ff4d5a 45%, #7a1820); transform: rotateY(180deg); }
+.ct-portrait { width: 100%; height: 100%; background-size: cover; background-position: center 10%; background-color: #212124; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.ct-result { height: 90px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ct-result b { font-family: "Exo 2", sans-serif; font-size: 56px; font-weight: 900; letter-spacing: 0.12em; animation: ctPop calc(0.35s / var(--spd)) both; }
+.ct-result small { font-size: 22px; color: #e0e0e3; letter-spacing: 0.08em; font-weight: 700; }
+.coin-toss.mine .ct-result b { color: var(--accent); text-shadow: 0 0 30px rgba(255,198,0,0.7); }
+.coin-toss.theirs .ct-result b { color: #ff6b75; text-shadow: 0 0 30px rgba(255,77,90,0.7); }
+/* 빛은 바깥 틀에 준다: 동전 자체에 filter를 걸면 3D가 납작해져 뒷면이 보이지 않는다 */
+.coin-toss.done .ct-glow { filter: drop-shadow(0 0 28px rgba(255,198,0,0.55)); }
+.coin-toss.done.theirs .ct-glow { filter: drop-shadow(0 0 28px rgba(255,77,90,0.55)); }
+@keyframes ctIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ctOut { to { opacity: 0; } }
+@keyframes ctPop { 0% { opacity: 0; transform: scale(1.6); } 100% { opacity: 1; transform: scale(1); } }
 .reveal { position: absolute; left: 50%; top: 46%; z-index: 480; pointer-events: none; transform: translate(-50%, -50%); animation: revealIn calc(1.1s / var(--spd)) forwards; }
 .reveal .card { --w: 260px; box-shadow: 0 0 60px rgba(255,255,255,0.25), 0 30px 80px rgba(0,0,0,0.9); }
 .reveal .card:hover { transform: none; }
