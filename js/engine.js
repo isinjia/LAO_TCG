@@ -98,6 +98,14 @@ class Game {
     // 양쪽 모두 같은 장수로 시작한다. 후공 보정 카드는 교체가 끝난 뒤 start()에서 준다.
     p0.draw(RULES.START_HAND, this);
     p1.draw(RULES.START_HAND, this);
+    // 시작 패에 비용 2 이하가 한 장도 없으면, 가장 비싼 카드를 덱의 싼 카드와 바꿔 첫 턴이 통째로 비지 않게 한다
+    for (const p of [p0, p1]) {
+      if (p.hand.some(c => c.c <= 2)) continue;
+      const di = p.deck.findIndex(c => c.c <= 2); if (di < 0) continue;
+      const hi = p.hand.reduce((m, c, i) => (c.c > p.hand[m].c ? i : m), 0);
+      const cheap = p.deck.splice(di, 1)[0], dear = p.hand.splice(hi, 1, cheap)[0];
+      p.deck.splice(Math.floor(this.random() * (p.deck.length + 1)), 0, dear);
+    }
   }
   get cur() { return this.players[this.current]; }
   get opp() { return this.players[1 - this.current]; }

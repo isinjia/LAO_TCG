@@ -137,6 +137,9 @@ t('튜토리얼 대본: 정해 둔 시작 패와 2·3턴 드로우가 지켜진�
     g.endTurn(); g.endTurn(); ok(me.hand.some(c => c.id === st.openingHand[5]), '3턴 드로우');
   }
 });
+t('시작 패에 비용 2 이하가 보장된다 (덱에 있을 때)', () => {
+  for (let k = 0; k < 50; k++) { const { a, b } = fresh(D0, D1); for (const p of [a, b]) if (p.deckIds.some(id => CARDS[id].c <= 2)) ok(p.hand.some(c => c.c <= 2), '싼 카드'); }
+});
 t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); const g = new Game(a, new Player('X', D1)); const s = makeUnit(CARDS['3P_Vanilla'], a); const u = makeUnit(CARDS['3P_Alice'], a); a.lanes = [u, s, null]; eq(g.effectiveAtk(u), CARDS['3P_Alice'].a + 1); });
 t('격파 효과 발동 (메탈 패러사이트)', () => { const { a, b, g } = fresh(D0, D1); const u = makeUnit(CARDS['IW_Parasite'], b); b.lanes[0] = u; const hp = a.hp; g.damageUnit(u, 10, null); eq(a.hp, hp - 2); });
 t('소환 효과 (철충 무리)', () => { const { a, b } = fresh(D0, D1); const p = new Player('I', CAMPAIGN[5].enemy.deck); const g2 = new Game(p, a); g2.start(); p.ap = 9; p.hand.push(CARDS['SK_IW_Swarm']); g2.play(CARDS['SK_IW_Swarm']); eq(p.units().length, 3); });

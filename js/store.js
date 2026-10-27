@@ -70,6 +70,12 @@ const Store = {
     if (typeof ACHIEVEMENTS !== 'undefined') { const ids = new Set(ACHIEVEMENTS.map(a => a.id)); for (const k of Object.keys(d.ach)) if (!ids.has(k)) delete d.ach[k]; }
     for (const k of Object.keys(d.mastery)) { if (!CARDS[k]) delete d.mastery[k]; else d.mastery[k] = num(d.mastery[k], 0, 999); }
     for (const k of ['w', 'l', 'streak']) d.record[k] = num(d.record[k], 0, 99999);
+    // 스토리 별·클리어 기록은 실제 스테이지만, 별은 길이 3의 참/거짓 배열로 (잘못된 값이면 로비가 깨지거나 보상이 풀리지 않게)
+    const sids = new Set(CAMPAIGN.map(s => s.id));
+    const stars = {}; for (const [k, v] of Object.entries(d.campaign.stars || {})) if (sids.has(k) && Array.isArray(v)) stars[k] = [0, 1, 2].map(i => !!v[i]);
+    d.campaign.stars = stars;
+    for (const key of ['cleared', 'hardCleared']) { const o = {}; for (const [k, v] of Object.entries(d.campaign[key] || {})) if (sids.has(k) && v) o[k] = true; d.campaign[key] = o; }
+    if (!['easy', 'normal', 'hard'].includes(d.campaign.difficulty)) d.campaign.difficulty = 'normal';
     this.data = d;
     return d;
   },

@@ -314,7 +314,7 @@ const CAMPAIGN = [
   {
     id: 'ex3', no: 'EX3', chapter: 'ex', title: '타락한 천사의 그림자', sub: '외전 3 · 모의 개체 타락한 아자젤', bg: 'red_boss2', bgm: 'boss1', boss: true,
     desc: '회피와 처치 효과로 무장한 덴세츠·철충 덱입니다. 상대는 어려움 인공지능입니다.',
-    enemy: { name: '모의 개체: 타락한 아자젤', portrait: 'IW_AzazelAlter', hp: 20, level: 'hard', style: 'aggro',
+    enemy: { name: '모의 개체: 타락한 아자젤', portrait: 'IW_AzazelAlter', hp: 23, level: 'hard', style: 'aggro',
       deck: ['IW_AzazelAlter', 'IW_Kidnapper', 'IW_Speaker', 'IW_NightChick', 'IW_RocC', 'DS_Saraqael', 'DS_Sarena', 'DS_Ramiel', 'DS_BunnySlayer', 'DS_Angel', 'SK_DS_Smoke', 'SK_IW_Swarm'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 10 }, { type: 'units', v: 10 }],
     intro: [

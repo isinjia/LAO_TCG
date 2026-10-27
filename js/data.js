@@ -75,7 +75,7 @@ const UNITS = [
   { id: 'PECS_Hathor', n: '하토르', f: 'PECS', t: 'M', r: 'SUP', g: 'S', c: 5, a: 2, h: 6, kw: [], deploy: [{ op: 'buffAll', a: 1, h: 1 }], text: '전개: 모든 아군 유닛 +1/+1.' },
   { id: 'PECS_BlindPrincess', n: '블라인드 프린세스', f: 'PECS', t: 'L', r: 'DEF', g: 'S', c: 4, a: 3, h: 7, kw: ['회피'] },
   { id: 'PECS_Azaz', n: '아자즈', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['회피'], strike: [{ op: 'heal', tgt: 'self', v: 2 }], text: '공격 후: 자신의 체력 2 회복.' },
-  { id: 'PECS_HighElven', n: '하이엘븐', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 4, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '공격 후: 무작위 적 유닛에게 1 피해.' },
+  { id: 'PECS_HighElven', n: '하이엘븐', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '공격 후: 무작위 적 유닛에게 1 피해.' },
   { id: 'PECS_DarkElf', n: '다크 엘프', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 5, h: 3, kw: ['회피'], strike: [{ op: 'slow', tgt: 'oppUnit' }], text: '공격 후: 마주한 적 유닛 둔화.' },
   { id: 'PECS_Lumberjane', n: '럼버 제인', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 7, kw: ['반격'], strike: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '공격 후: 마주한 적 유닛 공격력 -1.' },
   { id: 'PECS_Sekhmet', n: '세크메트', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 3, h: 10, kw: ['재생:2'], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
@@ -140,7 +140,7 @@ const UNITS = [
   // ---------- 덴세츠사 ----------
   { id: 'DS_Azazel', n: '아자젤', f: 'DS', t: 'L', r: 'ATK', g: 'SS', c: 6, a: 8, h: 4, kw: ['돌격', '회피'] },
   { id: 'DS_Saraqael', n: '사라콰엘', f: 'DS', t: 'H', r: 'ATK', g: 'SS', c: 7, a: 7, h: 6, kw: ['관통'], deploy: [{ op: 'destroyLowest', v: 4 }], text: '전개: 체력 4 이하인 적 유닛 중 가장 약한 하나를 처치.' },
-  { id: 'DS_Sarena', n: '사레나', f: 'DS', t: 'H', r: 'DEF', g: 'SS', c: 6, a: 4, h: 11, kw: ['회피', '방어막:2'] },
+  { id: 'DS_Sarena', n: '사레나', f: 'DS', t: 'H', r: 'DEF', g: 'SS', c: 6, a: 4, h: 10, kw: ['회피', '방어막:2'] },
   { id: 'DS_Arman', n: '아르망', f: 'DS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 5, kw: ['회피'], strike: [{ op: 'slow', tgt: 'oppUnit' }], text: '공격 후: 마주한 적 유닛 둔화.' },
   { id: 'DS_Atalanta', n: '아탈란테', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 3, kw: ['돌격', '회피'] },
   { id: 'DS_BunnySlayer', n: '버니 슬레이어', f: 'DS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 7, kw: ['회피'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '공격 후: 무작위 적 유닛에게 1 피해.' },
