@@ -189,6 +189,7 @@ async function battleIntro() {
   else game.mulligan(me, []);
   renderAll(true);
   if (cfg.tutorial) { await Tutorial.start(); alive(myB); }
+  game.events = game.events.filter(e => e.type !== 'draw'); // 첫 패 뽑기는 교체 창과 패로 날아가는 연출로 이미 보여 줬다
   game.start();
   await processEvents(); alive(myB);
   onTurnBegin();
@@ -261,7 +262,7 @@ async function mulliganToHand(m, row) {
   $('.hand').style.visibility = '';
   const stage = $('#stage');
   const ghosts = $$('.card', row).map(ce => {
-    const r = stageRect(ce), g = h('<div class="mull-ghost"></div>');
+    const r = stageRect(ce), g = h('<div class="card-ghost"></div>');
     const gc = cardEl(ce._card, { noHover: true }); gc.style.setProperty('--w', ce.offsetWidth + 'px'); g.appendChild(gc);
     g.style.left = r.x + 'px'; g.style.top = r.y + 'px';
     stage.appendChild(g);
@@ -360,9 +361,6 @@ function bindBattleInputs(el) {
   $('#cmd-enemy').onclick = () => { if (B.selected && (B.pending === 'any')) playSelected(null, { cmd: B.ai }); };
   $('.end-btn', el).onclick = endMyTurn;
   $('.cmd-power', el).onclick = () => { if (B.selected === COMMAND_CARD) { clearSelection(); renderAll(); return; } selectCard(COMMAND_CARD); renderAll(); };
-  $('.end-btn', el).onmouseenter = () => drawArrows();
-  $('.end-btn', el).addEventListener('contextmenu', e => { e.preventDefault(); drawArrows(); setTimeout(clearArrows, 2500); });
-  $('.end-btn', el).onmouseleave = () => clearArrows();
   $('[data-a=log]', el).onclick = () => $('.log-panel', el).classList.toggle('open');
   $('[data-a=help]', el).onclick = () => openHowTo(1);
   $('[data-a=settings]', el).onclick = () => openSettings(true);
@@ -662,7 +660,7 @@ function renderAll(forceHand) {
   $('[data-v=deck]').textContent = me.deck.length; $('[data-v=grave]').textContent = me.grave.length;
   $('[data-v=edeck]').textContent = ai.deck.length; $('[data-v=egrave]').textContent = ai.grave.length;
   const cc = $('[data-v=cmdcost]'); if (cc) { cc.textContent = game.commandCost(me); cc.classList.toggle('syn', game.commandCost(me) < RULES.COMMAND.cost); }
-  const eh = $('.enemy-hand'); const n = ai.hand.length;
+  const eh = $('.enemy-hand'); const n = ai.hand.length - (B.holdDrawAi || 0);
   if (eh.childElementCount !== n) eh.innerHTML = ai.hand.map((_, i) => `<div class="card-back" style="--r:${(i - (n - 1) / 2) * -5}deg;--y:${Math.abs(i - (n - 1) / 2) * 5}px"></div>`).join('');
   for (const [p, side] of [[me, 'me'], [ai, 'enemy']]) {
     p.lanes.forEach((u, i) => {
@@ -693,17 +691,18 @@ function renderHand(force) {
   const { me } = B;
   const hand = $('.hand'); if (!hand) return;
   const myMain = canAct();
-  const sig = me.hand.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.placeableLanes(B.game.turn).length;
+  const cards = shownHand();
+  const sig = cards.map(c => c.id).join(',') + '|' + me.ap + '|' + (B.selected ? B.selected.id : '') + '|' + myMain + '|' + me.placeableLanes(B.game.turn).length;
   if (!force && sig === B.handSig) return;
   B.handSig = sig;
   hand.innerHTML = '';
-  const n = me.hand.length;
+  const n = cards.length;
   // 휴대폰(.compact)은 카드를 크게(240) 그리고 간격도 넓혀 이름·능력치가 읽히게 한다
   const compact = document.body.classList.contains('compact'), cw = compact ? 240 : 170;
   const spacing = Math.min(compact ? 170 : 130, (compact ? 860 : 760) / Math.max(1, n));
   const total = spacing * (n - 1) + cw;
   const start = (1000 - total) / 2;
-  me.hand.forEach((c, i) => {
+  cards.forEach((c, i) => {
     const ce = cardEl(c);
     const off = i - (n - 1) / 2;
     // 받침(.hslot)이 부채꼴 위치/회전과 호버 영역을 담당하고, 카드는 그 안에서 떠오른다
@@ -724,6 +723,50 @@ function renderHand(force) {
     slot.appendChild(ce);
     hand.appendChild(slot);
   });
+}
+
+// 엔진은 결과를 미리 계산하므로, 손패에는 아직 뽑기 연출이 나오지 않은 카드가 들어 있을 수 있다. 그런 카드는 연출 때까지 숨긴다
+function shownHand() { return B.holdDraw && B.holdDraw.size ? B.me.hand.filter(c => !B.holdDraw.has(c)) : B.me.hand; }
+// 카드 뽑기 연출: 덱 더미에서 카드가 뒤집히며 날아와 패 자리에 들어간다
+async function drawFly(card) {
+  renderAll(true);
+  const sl = $$('.hand .hslot')[shownHand().indexOf(card)], ce = sl && $('.card', sl), deck = $('.stack.me .st-deck');
+  if (!ce || !deck) return;
+  sl.style.visibility = 'hidden';
+  const t = stageRect(ce), d = stageRect(deck), w = ce.offsetWidth, hh = ce.offsetHeight, k = Store.settings.speed || 1;
+  const g = h('<div class="card-ghost"></div>'), gc = cardEl(card, { noHover: true });
+  gc.style.setProperty('--w', w + 'px'); g.appendChild(gc);
+  g.style.left = (t.cx - w / 2) + 'px'; g.style.top = (t.cy - hh / 2) + 'px';
+  $('#stage').appendChild(g);
+  const rot = parseFloat(sl.style.getPropertyValue('--r')) || 0, s0 = d.w / w, dur = 420 / k;
+  Audio2.play('card', 0.6);
+  await new Promise(res => {
+    let done = false; const fin = () => { if (done) return; done = true; g.remove(); sl.style.visibility = ''; res(); };
+    g.animate([
+      { transform: `translate(${d.cx - t.cx}px, ${d.cy - t.cy}px) scale(${s0}) rotateY(180deg)`, filter: 'brightness(0.2)' },
+      { transform: `translate(${(d.cx - t.cx) * 0.45}px, ${(d.cy - t.cy) * 0.45 - 80}px) scale(${(s0 + 1) / 2 * 1.1}) rotateY(0deg)`, filter: 'brightness(1.4)', offset: 0.5 },
+      { transform: `translate(0,0) scale(1) rotate(${rot}deg)`, filter: 'none' },
+    ], { duration: dur, easing: 'cubic-bezier(.3,.6,.35,1)', fill: 'forwards' }).onfinish = fin;
+    setTimeout(fin, dur + 150);
+  });
+}
+// 적 카드 뽑기: 뒷면 카드가 적 덱에서 적 손패로 날아간다
+async function drawFlyAi() {
+  const deck = $('.stack.enemy .st-deck'), eh = $('.enemy-hand');
+  B.holdDrawAi = Math.max(0, (B.holdDrawAi || 0) - 1);
+  if (!deck || !eh) { renderAll(); return; }
+  const d = stageRect(deck), e = stageRect(eh), k = Store.settings.speed || 1, dur = 340 / k;
+  const g = h('<div class="card-ghost"><div class="card-back"></div></div>');
+  g.style.left = (d.cx - 37) + 'px'; g.style.top = (d.cy - 52) + 'px';
+  $('#stage').appendChild(g);
+  Audio2.play('card', 0.35);
+  await new Promise(res => {
+    let done = false; const fin = () => { if (done) return; done = true; g.remove(); res(); };
+    g.animate([{ transform: 'translate(0,0) rotate(0deg)' }, { transform: `translate(${e.x + e.w - d.cx}px, ${e.cy - d.cy}px) rotate(-12deg)` }],
+      { duration: dur, easing: 'ease-in-out', fill: 'forwards' }).onfinish = fin;
+    setTimeout(fin, dur + 150);
+  });
+  renderAll();
 }
 
 function unitEl(u) {
@@ -777,7 +820,11 @@ function refreshForecast() {
   $$('.unit .u-fc').forEach(f => { f.className = 'u-fc'; f.textContent = ''; });
   $$('.cmd .cm-fc').forEach(f => { f.className = 'cm-fc'; f.textContent = ''; });
   // 카드와 사령관 위에 예측 문구(피해량·빗나감·격파)를 띄우지 않는다. 화면을 가린다는 의견에 따라 모두 뺐다.
-  // 예측은 턴 종료 버튼에 마우스를 올렸을 때의 공격 화살표로만 보여 준다 (설정 > 공격 예측 화살표)
+  // 예측은 공격 화살표로만 보여 준다. 내 차례에는 늘 그려 두고, 화면이 바뀔 때마다 다시 그린다 (설정 > 공격 예측 화살표)
+  if (Store.settings.forecast && canAct()) drawArrows(); else clearArrows();
+  // 막 배치된 카드는 등장 연출로 잠깐 자리가 어긋나 있으니, 연출이 끝난 뒤 한 번 더 맞춰 그린다
+  clearTimeout(B.arrowTimer);
+  B.arrowTimer = setTimeout(() => { if (B && Store.settings.forecast && canAct()) drawArrows(); }, 500);
 }
 
 function drawArrows() {
@@ -863,7 +910,9 @@ async function processEvents() {
   const evs = game.events.splice(0);
   const holdDie = new Set(evs.filter(e => e.type === 'die' || e.type === 'withdraw').map(e => e.unit.uid));
   const holdSpawn = new Set(evs.filter(e => e.type === 'summon').map(e => e.unit.uid));
-  B.holdDie = holdDie; B.holdSpawn = holdSpawn;
+  const holdDraw = new Set(evs.filter(e => e.type === 'draw' && e.player === B.me).map(e => e.card));
+  B.holdDie = holdDie; B.holdSpawn = holdSpawn; B.holdDraw = holdDraw;
+  B.holdDrawAi = evs.filter(e => e.type === 'draw' && e.player === B.ai).length;
   try { for (const ev of evs) {
     alive(myB);
     if (ev.type === 'summon') holdSpawn.delete(ev.unit.uid);
@@ -900,7 +949,7 @@ async function processEvents() {
         if (ev.v) floatOn(r, `AP +${ev.v}`, 'buff');
         break;
       }
-      case 'draw': renderAll(); if (ev.player === B.me && game.phase !== 'mulligan') { Audio2.play('card', 0.5); await sleep(120); } break;
+      case 'draw': if (ev.player === B.me) { holdDraw.delete(ev.card); await drawFly(ev.card); } else await drawFlyAi(); break;
       case 'burn': if (ev.player === B.me) toast(`패가 가득 차 ${josa(ev.card.n, '이', '가')} 소각되었습니다.`, true); break;
       case 'reshuffle': toast(`${ev.player.name}: 묘지를 섞어 덱을 재구성했습니다.`); break;
       case 'summon': {
@@ -998,6 +1047,7 @@ async function processEvents() {
   } } finally {
     if (myB.holdDie === holdDie) myB.holdDie = null;
     if (myB.holdSpawn === holdSpawn) myB.holdSpawn = null;
+    if (myB.holdDraw === holdDraw) { myB.holdDraw = null; myB.holdDrawAi = 0; }
   }
   renderAll();
 }

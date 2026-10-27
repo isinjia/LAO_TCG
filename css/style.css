@@ -541,8 +541,7 @@ img { -webkit-user-drag: none; }
 .mull-hand .card.mull-new::after { content: "새 카드"; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-12deg); font-size: 1.6em; font-weight: 900; color: var(--accent); border: 0.12em solid var(--accent); padding: 0.05em 0.4em; z-index: 6; background: rgba(0,0,0,0.55); white-space: nowrap; animation: mullStamp 0.3s 0.35s both; }
 @keyframes mullStamp { from { transform: translate(-50%, -50%) rotate(-12deg) scale(1.8); opacity: 0; } }
 @keyframes mullFlip { 0% { transform: translateY(-40px) rotateY(90deg); opacity: 0; filter: brightness(2.5); } 60% { transform: translateY(0) rotateY(0); opacity: 1; filter: brightness(1.6); } 100% { filter: none; } }
-.mull-ghost { position: absolute; z-index: 620; pointer-events: none; transform-origin: 50% 50%; }
-.mull-ghost > .card { transform-origin: 50% 50%; }
+.card-ghost { position: absolute; z-index: 620; pointer-events: none; transform-origin: 50% 50%; } /* 교체·뽑기 때 날아가는 카드 */
 .mull-hand.full .card:not(.marked) { cursor: not-allowed; opacity: 0.85; }
 .mull-hand .card.marked { filter: grayscale(0.9) brightness(0.45); transform: translateY(14px); }
 .mull-hand .card.marked::after { content: "교체"; position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-12deg); font-size: 2.2em; font-weight: 900; color: #ff6b75; border: 0.12em solid #ff6b75; padding: 0.05em 0.4em; z-index: 6; background: rgba(0,0,0,0.5); }
