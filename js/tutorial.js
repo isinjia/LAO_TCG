@@ -5,7 +5,7 @@ const TUTORIAL_STEPS = [
   { text: '아래쪽 초상화가 너야. 숫자가 네 <b>라이프</b>란다.', spot: '#cmd-me', box: [1090, 600] },
   { text: '<b>손패</b>야. 왼쪽 위가 <b>AP 비용</b>, 가운데 두 숫자가 <b>공격력·체력</b>이지.', spot: '.hand', box: [1380, 140] },
   { trigger: 'myTurn', text: '오른쪽 아래가 <b>AP</b>야. 턴마다 1씩 늘어나고(최대 10), 지금은 1이란다.', spot: '#ap-me', box: [1080, 560] },
-  { text: '비용 1인 <b>피</b>를 <b>레인</b>에 끌어다 놓아 보렴.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed' },
+  { text: '비용 1인 <b>포이</b>를 <b>레인</b>에 끌어다 놓아 보렴.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed' },
   { text: '잘했어. 낸 턴에는 공격하지 않아(<b>돌격</b>이 있으면 바로 공격).', spot: '.lanes.me', box: [1380, 140] },
   { text: '<b>턴 종료</b>를 눌러 보렴. 그러면 네 전투원이 공격해.', spot: '.end-btn', box: [1380, 560], wait: 'turnEnded' },
   { trigger: 'myTurn', text: '이번 턴 AP는 2야. 남긴 AP는 <b>2까지 다음 턴으로 넘어가</b>.', spot: '#ap-me', box: [1080, 560] },

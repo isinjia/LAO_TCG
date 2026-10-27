@@ -66,7 +66,7 @@ const UNITS = [
   { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 5, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
-  { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 3, kw: [] },
+  { id: '3P_Poi', n: '포이', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 3, kw: [] },
   { id: '3P_Maria', n: '마리아', f: '3P', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '전개: 내 라이프 1 회복.' },
 
   // ---------- PECS ----------
