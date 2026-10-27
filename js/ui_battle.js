@@ -679,17 +679,7 @@ function refreshForecast() {
   if (!Store.settings.forecast || !canAct()) return;
   const { game, me, ai } = B;
   const mine = game.forecast(me);
-  const sum = new Map();
-  mine.hits.forEach(hh => { if (hh.toUid !== 'cmd') { const e = sum.get(hh.toUid) || { v: 0, miss: false }; e.v += hh.v; if (hh.evaded) e.miss = true; sum.set(hh.toUid, e); } });
-  sum.forEach((e, uid) => {
-    const el = B.unitEls.get(uid); if (!el) return;
-    const isMine = me.lanes.some(u => u && u.uid === uid);
-    const f = $('.u-fc', el);
-    if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '빗나감'; return; }
-    if (!e.v) return; // 방어막에 다 막히는 공격은 '-0'으로 적지 않는다 // 회피 상태 표시와 겹치지 않게 결과로 적는다
-    f.className = `u-fc show ${isMine ? 'self' : 'opp'}${mine.deadUids.has(uid) ? ' kill' : ''}`;
-    f.textContent = isMine ? `받는 피해 -${e.v}` : `-${e.v}`; // 내 전투원이 받는 피해는 반격·격파 효과 등 여러 가지라 이름을 붙이지 않는다
-  });
+  // 카드 위에는 예측 문구(피해량·빗나감)를 띄우지 않는다. 카드 그림과 상태 표시를 가린다는 의견에 따라 뺐다
   if (mine.cmdDmg > 0) {
     const f = $('#cmd-enemy .cm-fc'); f.className = `cm-fc show${mine.lethal ? ' lethal' : ''}`; f.textContent = mine.lethal ? `-${mine.cmdDmg} 격파!` : `-${mine.cmdDmg}`;
   }
