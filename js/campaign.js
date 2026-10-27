@@ -420,6 +420,8 @@ const STAGE_REWARDS = {
   ex3: ['SK_DS_Flash'],
   ex4: ['SK_PECS_Omega'],
 };
+// 처음 받는 내 덱. 스토리 난이도를 맞춘 프리셋 덱(오르카호 정예)과 같은 카드로 시작해, 보상 카드를 넣어 가며 고친다
+const STARTER_DECK = { id: 'deck_starter', name: '오렌지에이드의 덱', cards: PRESET_DECKS[0].cards.slice() };
 // 별 누적 보상: 철충 보스를 로비 캐릭터로 선택 가능
 const STAR_REWARDS = [
   { stars: 9, secretary: 'IW_LemonadeZeta' },

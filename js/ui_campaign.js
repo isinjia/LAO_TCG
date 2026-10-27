@@ -101,8 +101,8 @@ function renderStagePanel(el) {
   const en = stageEnemy(s);
   const stars = Store.stageStars(s.id);
   const panel = $('.stage-panel', el);
-  const decks = Store.allDecks().filter(d => !Store.deckProblem(d.cards));
-  const curDeck = decks.some(d => d.id === Store.data.activeDeck) ? Store.data.activeDeck : decks[0].id;
+  const decks = Store.storyDecks(); // 스토리는 내 덱으로만 한다 (프리셋 덱은 빠른 전투용)
+  const curDeck = decks.some(d => d.id === Store.data.activeDeck) ? Store.data.activeDeck : decks.length ? decks[0].id : null;
   panel.innerHTML = `
     <div class="stage-hero" style="background-image:url('assets/bg/${s.bg}.jpg')">
       <img src="${fullOf(CARDS[en.portrait])}" alt="">
@@ -114,7 +114,8 @@ function renderStagePanel(el) {
       <div class="stage-info"><span>적 제작사 ${[...new Set(en.deck.map(id => CARDS[id].f))].map(f => `<span class="chip" style="background:${FACTIONS[f].color}">${FACTIONS[f].name}</span>`).join(' ')}</span></div>
       <div class="star-list">${s.stars.map((st, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="lo-star ${stars[i] ? 'on' : ''}"></span> ${starLabel(st)}</div>`).join('')}</div>
       ${(STAGE_REWARDS[s.id] || []).length ? `<div class="stage-reward">첫 클리어 보상 <span data-v="rw"></span>${Store.data.campaign.cleared[s.id] ? '<span class="done">✔ 획득 완료</span>' : ''}</div>` : ''}
-      ${s.playerDeck ? '<div class="stage-info">이 대국은 콘스탄챠가 빌려준 연습용 덱으로 진행합니다.</div>' : `<div class="stage-deck">사용할 덱 <select data-a="deck">${decks.map(d => `<option value="${d.id}" ${d.id === curDeck ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select></div>`}
+      ${s.playerDeck ? '<div class="stage-info">이 대국은 콘스탄챠가 빌려준 연습용 덱으로 진행합니다.</div>' : decks.length ? `<div class="stage-deck">내 덱 <select data-a="deck">${decks.map(d => `<option value="${d.id}" ${d.id === curDeck ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select><button class="btn small" data-a="editdeck">덱 고치기</button></div>`
+        : '<div class="stage-deck">규칙에 맞는 내 덱이 없습니다. <button class="btn small" data-a="editdeck">덱 고치기</button></div>'}
       <div class="stage-go"><button class="btn small" data-a="enemydeck">상대 덱 보기</button><span class="spacer"></span><button class="btn primary big" data-a="go">대국 시작</button></div>
     </div>`;
   const rw = $('[data-v=rw]', panel);
@@ -128,12 +129,18 @@ function renderStagePanel(el) {
     list.forEach(c => { const ce = cardEl(c, { w: 170 }); ce.onclick = () => openCardDetail(c, list); $('.pile-view', box).appendChild(ce); });
     openModal(box);
   };
-  $('[data-a=go]', panel).onclick = () => launchStage(selStage, sel ? sel.value : null);
+  const ed = $('[data-a=editdeck]', panel);
+  if (ed) ed.onclick = () => { if (sel) Store.data.activeDeck = sel.value; Store.save(); deckReturn = 'campaign'; showScreen('deck'); };
+  $('[data-a=go]', panel).onclick = () => {
+    if (!s.playerDeck && !decks.length) { toast('덱 편성에서 내 덱을 먼저 고쳐 주세요.', true); return; }
+    launchStage(selStage, sel ? sel.value : null);
+  };
 }
 
 async function launchStage(idx, deckId) {
   const s = CAMPAIGN[idx];
-  const deck = s.playerDeck ? { cards: s.playerDeck, name: '훈련용 덱' } : Store.getDeck(deckId || Store.data.activeDeck);
+  const deck = s.playerDeck ? { cards: s.playerDeck, name: '훈련용 덱' } : Store.storyDecks().find(d => d.id === (deckId || Store.data.activeDeck)) || Store.storyDecks()[0];
+  if (!deck) { toast('덱 편성에서 내 덱을 먼저 고쳐 주세요.', true); return; }
   if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
   if (!await confirmAbandon()) return;
   Audio2.play('start');

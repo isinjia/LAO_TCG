@@ -64,9 +64,10 @@ function commitEditing() {
   Store.saveDeck({ id: editing.id, name: editing.name, cards: editing.cards.slice() });
 }
 
+let deckReturn = null; // 덱 편성에서 「뒤로」를 눌렀을 때 돌아갈 화면
 screenHooks.deck = el => {
   Audio2.bgm('lobby');
-  if (!editing || !Store.allDecks().some(d => d.id === editing.id)) loadEditing(Store.data.activeDeck);
+  if (!editing || deckReturn || !Store.allDecks().some(d => d.id === editing.id)) loadEditing(Store.data.activeDeck);
   el.innerHTML = `
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>덱 편성</h2><span class="sub">${touchText('카드를 클릭해 추가·제거 · 우클릭으로 상세 정보')}</span><span class="spacer"></span><button class="btn small" data-a="howto">덱 규칙</button><button class="btn primary" data-a="battle">이 덱으로 빠른 전투</button></div>
     <div class="deck-left">
@@ -85,7 +86,9 @@ screenHooks.deck = el => {
     </div>
     <div class="pool-wrap">${filterBarHtml(deckFilter, false)}<div class="pool-grid scroll" data-v="pool"></div></div>`;
   bindFilterBar(el, deckFilter, () => renderPool(el));
-  $('[data-a=back]', el).onclick = () => showScreen('lobby');
+  const back = deckReturn; deckReturn = null; // 스토리에서 「덱 고치기」로 들어왔으면 스토리로 돌아간다
+  $('[data-a=back]', el).innerHTML = back === 'campaign' ? '← 스토리' : '← 로비';
+  $('[data-a=back]', el).onclick = () => showScreen(back || 'lobby');
   $('[data-a=howto]', el).onclick = () => openHowTo(0);
   $('[data-a=battle]', el).onclick = () => {
     if (Store.deckProblem(editing.cards)) { toast(Store.deckProblem(editing.cards), true); return; }
@@ -208,6 +211,8 @@ screenHooks.collection = el => {
   bindFilterBar(el, colFilter, render);
   $('[data-a=supply]', el).onclick = () => openSupply(() => { render(); $('[data-v=bp]', el).textContent = Store.data.bp || 0; });
   $('[data-a=enemy]', el).onclick = e => { colFilter.enemy = !colFilter.enemy; e.currentTarget.classList.toggle('on', colFilter.enemy); render(); };
-  $('[data-a=back]', el).onclick = () => showScreen('lobby');
+  const back = deckReturn; deckReturn = null; // 스토리에서 「덱 고치기」로 들어왔으면 스토리로 돌아간다
+  $('[data-a=back]', el).innerHTML = back === 'campaign' ? '← 스토리' : '← 로비';
+  $('[data-a=back]', el).onclick = () => showScreen(back || 'lobby');
   render();
 };

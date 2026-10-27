@@ -102,6 +102,7 @@ img { -webkit-user-drag: none; }
 .detail .d-lock { color: #ffd48a; font-weight: 700; font-size: 18px; background: rgba(255,198,0,0.1); border: 1px solid rgba(255,198,0,0.4); padding: 10px 14px; }
 .rs-reward { background: rgba(255,198,0,0.08); border: 1px solid rgba(255,198,0,0.45); padding: 10px 14px; }
 .rs-reward .rr-title { color: var(--accent); font-weight: 900; font-size: 18px; margin-bottom: 8px; }
+.rs-reward .rr-title small { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 10px; }
 .rs-reward .rr-list { display: flex; gap: 12px; align-items: center; }
 .rr-sec { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #e0e0e3; }
 .rr-face { width: 84px; height: 112px; background-size: cover; background-position: center 10%; border: 2px solid var(--accent); }

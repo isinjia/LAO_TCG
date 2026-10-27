@@ -27,6 +27,7 @@ const Store = {
       draft: { run: null, best: 0, clears: 0, runs: 0 },          // 보급 원정 (드래프트)
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
       lessons: {},               // 튜토리얼 뒤 실전에서 한 번씩 보여 주는 규칙 안내 (id → true)
+      starterGiven: false,       // 처음 받는 내 덱(오렌지에이드의 덱)을 받았는지
     };
   },
   load() {
@@ -76,6 +77,12 @@ const Store = {
     d.campaign.stars = stars;
     for (const key of ['cleared', 'hardCleared']) { const o = {}; for (const [k, v] of Object.entries(d.campaign[key] || {})) if (sids.has(k) && v) o[k] = true; d.campaign[key] = o; }
     if (!['easy', 'normal', 'hard'].includes(d.campaign.difficulty)) d.campaign.difficulty = 'normal';
+    // 처음 받는 내 덱: 스토리는 이 덱(또는 직접 만든 덱)으로 하고, 클리어 보상으로 얻은 카드를 넣어 고쳐 나간다
+    if (!d.starterGiven) {
+      d.starterGiven = true;
+      if (!d.decks.some(x => x.id === STARTER_DECK.id)) d.decks.unshift({ id: STARTER_DECK.id, name: STARTER_DECK.name, cards: STARTER_DECK.cards.slice() });
+      if (String(d.activeDeck).startsWith('preset:')) d.activeDeck = STARTER_DECK.id;
+    }
     this.data = d;
     return d;
   },
@@ -94,6 +101,8 @@ const Store = {
     return [...presets, ...this.data.decks];
   },
   getDeck(id) { return this.allDecks().find(d => d.id === id) || this.allDecks()[0]; },
+  // 스토리에 쓸 수 있는 덱: 프리셋은 빼고 내 덱 중 규칙에 맞는 것만
+  storyDecks() { return this.data.decks.filter(d => !this.deckProblem(d.cards)); },
   saveDeck(deck) {
     const i = this.data.decks.findIndex(d => d.id === deck.id);
     if (i >= 0) this.data.decks[i] = deck; else this.data.decks.push(deck);
@@ -101,7 +110,7 @@ const Store = {
   },
   deleteDeck(id) {
     this.data.decks = this.data.decks.filter(d => d.id !== id);
-    if (this.data.activeDeck === id) this.data.activeDeck = 'preset:0';
+    if (this.data.activeDeck === id) this.data.activeDeck = this.data.decks.length ? this.data.decks[0].id : 'preset:0';
     this.save();
   },
   newDeckId() { return 'deck_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },

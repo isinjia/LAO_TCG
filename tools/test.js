@@ -310,6 +310,7 @@ t('직렬화 → 복원 후 동일하게 진행', () => {
   const fa = g.forecast(g.cur), fb = r.forecast(r.cur); eq(fa.cmdDmg, fb.cmdDmg, 'forecast same');
 });
 t('잠금 카드는 프리셋·튜토리얼에 없음', () => { [...LOCKED].forEach(id => { ok(CARDS[id], id); ok(!PRESET_DECKS.some(d => d.cards.includes(id)), 'preset ' + id); ok(!CAMPAIGN[0].playerDeck.includes(id), 'tut ' + id); }); });
+t('처음 받는 내 덱은 규칙에 맞고 잠긴 카드가 없음', () => { ok(!validateDeck(STARTER_DECK.cards), validateDeck(STARTER_DECK.cards)); ok(!STARTER_DECK.cards.some(id => LOCKED.has(id)), 'locked'); });
 
 // ---------- AI 안정성 ----------
 t('AI 대전 300판: 예외·무한루프 없음', () => {
