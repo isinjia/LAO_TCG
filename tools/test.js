@@ -238,6 +238,25 @@ t('작전 지시: 턴당 1회, AP 차감, 대상 피해, 아군 대상 불가', 
   ok(!g.canCommand(), '두 번째 불가');
   g.endTurn(); g.endTurn(); ok(g.cur === p && (p.ap < RULES.COMMAND.cost || g.canCommand()), '다음 내 턴엔 다시 가능');
 });
+t('특성 스킬: 지휘관마다 다르고, 대상 종류에 맞게 쓴다', () => {
+  Object.entries(HERO_SKILLS).forEach(([id, sk]) => { ok(CARDS[id] && sk.hero && sk.icon && sk.fx.length && sk.c > 0, id); ok(fs.existsSync(path.join(ROOT, 'assets/skill', sk.icon + '.png')), id + ' 아이콘'); });
+  eq(heroSkillOf({ portrait: 'PECS_Orangeade' }), COMMAND_CARD); eq(heroSkillOf({ portrait: 'AGS_SpartanA' }), COMMAND_CARD, '표에 없으면 포격 지원');
+  const { g, p, o } = setup([], ['DS_Angel'], ['AGS_Rampart']);
+  p.portrait = 'AGS_Stronghold'; // 방벽 전개: 모든 아군 방어막 2, 상대 라이프 2 피해 (대상 없음)
+  const ap = p.ap, hp = o.hp; ok(g.command(null)); eq(p.lanes[0].shield, 2); eq(o.hp, hp - 2); eq(p.ap, ap - HERO_SKILLS.AGS_Stronghold.c);
+  ok(!g.canCommand(), '턴당 1회');
+  const t2 = setup([], ['DS_Angel'], ['AGS_Rampart']); t2.p.portrait = 'IW_AzazelAlter'; // 타락한 일섬: 적 유닛만
+  ok(!t2.g.canCommand({ cmd: t2.o }), '라이프 대상 불가'); ok(!t2.g.canCommand({ unit: t2.p.lanes[0] }), '아군 대상 불가'); ok(t2.g.canCommand({ unit: t2.o.lanes[0] }));
+  const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g)))); eq(heroSkillOf(r.cur), HERO_SKILLS.AGS_Stronghold, '저장 뒤에도 같은 특성 스킬');
+});
+t('특성 스킬: 대상이 없는 스킬도 AI가 합법적으로 쓴다', () => {
+  for (const id of Object.keys(HERO_SKILLS)) for (const lv of ['easy', 'normal', 'hard']) {
+    const { g, p } = setup([], ['DS_Angel', 'BR_Io'], ['AGS_Rampart', 'PECS_Muse']); p.portrait = id; p.hand = []; p.lanes[0].hp = 1;
+    const act = AI.nextAction(g, p, lv);
+    ok(!act || act.move || (act.command ? g.canCommand(act.target) && act.card === heroSkillOf(p) : g.canPlay(act.card, act.lane, act.target)), id + ' ' + lv);
+    if (act) ok(g.act(act), id + ' ' + lv + ' 실행');
+  }
+});
 t('후공 라이프 보정', () => { const { a, b, g } = fresh(D0, D1); g.start(); eq(b.maxHp, RULES.CMD_HP + RULES.SECOND_HP_BONUS); eq(a.maxHp, RULES.CMD_HP); });
 t('대국 난수: 저장 → 복원 뒤 무작위 결과가 같음', () => {
   const { g } = setup(['3P_SnowFeather'], ['DS_Angel', 'PECS_Muse', 'AGS_Stronghold']);

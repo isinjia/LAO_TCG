@@ -247,22 +247,27 @@ class Game {
     return true;
   }
 
-  // ---- 작전 지시 (사령관 능력): 턴당 1회, AP를 써서 적 유닛이나 상대 라이프에 피해 ----
+  // ---- 지휘관 특성 스킬 (작전 지시): 턴당 1회, AP를 써서 지휘관마다 다른 효과. 없으면 포격 지원 ----
   // target을 생략하면 지금 쓸 수 있는지만 확인한다
   canCommand(target) {
-    const p = this.cur, c = RULES.COMMAND;
-    if (!c || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < this.commandCost(p)) return false;
+    const p = this.cur, sk = heroSkillOf(p);
+    if (!RULES.COMMAND || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < this.commandCost(p)) return false;
     if (target === undefined) return true;
-    return !!(target && ((target.unit && target.unit.owner !== p && p.lanes.indexOf(target.unit) < 0) || (target.cmd && target.cmd !== p)));
+    const need = skillTargetKind(sk), o = this.other(p);
+    if (need === 'none') return true;
+    if (need === 'allyUnit') return !!(target && target.unit && p.lanes.includes(target.unit));
+    if (need === 'enemyUnit') return !!(target && target.unit && o.lanes.includes(target.unit));
+    return !!(target && ((target.unit && o.lanes.includes(target.unit)) || (target.cmd && target.cmd !== p)));
   }
   command(target) {
     if (!this.canCommand(target)) return false;
-    const p = this.cur;
+    const p = this.cur, sk = heroSkillOf(p);
+    if (skillTargetKind(sk) === 'none') target = null;
     p.ap -= this.commandCost(p); p.cmdUsed = this.turn; p.stats.commands = (p.stats.commands || 0) + 1;
-    this.emit({ type: 'skill', card: COMMAND_CARD, player: p, target });
-    this.log(`${p.name}: 작전 지시 — 포격 지원`, 'skill');
-    // 삼안 결속(함대 지휘): 포격 피해 +1
-    const fx = this.synergy(p, '3P') ? COMMAND_CARD.fx.map(e => (e.op === 'dmg' ? { ...e, v: e.v + 1 } : e)) : COMMAND_CARD.fx;
+    this.emit({ type: 'skill', card: sk, player: p, target });
+    this.log(`${p.name}: 특성 스킬 — ${sk.n}`, 'skill');
+    // 삼안 결속(함대 지휘): 특성 스킬 피해 +1
+    const fx = this.synergy(p, '3P') ? sk.fx.map(e => (e.op === 'dmg' ? { ...e, v: e.v + 1 } : e)) : sk.fx;
     this.runEffects(fx, p, { target, src: null });
     return true;
   }
@@ -439,8 +444,8 @@ class Game {
   }
 
   // ---- 공격력 계산 (지원기 오라) ----
-  // 포격 지원 AP: 삼안 결속(함대 지휘)이면 1 싸다
-  commandCost(p) { return RULES.COMMAND.cost - (this.synergy(p, '3P') ? 1 : 0); }
+  // 특성 스킬 AP: 삼안 결속(함대 지휘)이면 1 싸다
+  commandCost(p) { return heroSkillOf(p).c - (this.synergy(p, '3P') ? 1 : 0); }
   // 제작사 결속이 켜져 있는가 (같은 제작사 전투원이 SYNERGY_MIN기 이상)
   synergy(p, f) { return !!RULES.SYNERGY_MIN && !p.noSynergy && p.units().filter(u => u.card.f === f).length >= RULES.SYNERGY_MIN; }
   effectiveAtk(u) {

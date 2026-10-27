@@ -56,14 +56,20 @@ const AI = {
     return [...skills, ...units].sort((a, b) => b.value - a.value);
   },
 
-  // 카드를 다 낸 뒤 남은 AP로 작전 지시: 마무리 > 처치 가능한 가장 비싼 유닛 > 상대 라이프
+  // 카드를 다 낸 뒤 남은 AP로 특성 스킬. 적 유닛·상대 라이프에 피해를 주는 스킬(포격 지원 등): 마무리 > 처치 가능한 가장 비싼 유닛 > 상대 라이프
+  // 다른 특성 스킬은 지원 카드처럼 값어치를 따진다. 남는 AP로 쓰는 것이라 비용은 1로 보고, 실제로 쓸지는 앞을 내다본 평가가 고른다
   commandAction(game, p) {
     if (game.cur !== p || !game.canCommand()) return null;
-    const o = game.other(p), dmg = RULES.COMMAND.dmg;
-    if (o.hp <= dmg || p.style === 'aggro') return { command: true, card: COMMAND_CARD, target: { cmd: o } };
+    const sk = heroSkillOf(p), o = game.other(p), e = sk.fx[0];
+    if (e.op !== 'dmg' || e.tgt !== 'pickAny') {
+      const ev = this.evalSkill(game, p, o, { ...sk, c: 1 });
+      return ev.value > 0 ? { command: true, card: sk, target: ev.target } : null;
+    }
+    const dmg = e.v;
+    if (o.hp <= dmg || p.style === 'aggro') return { command: true, card: sk, target: { cmd: o } };
     const kill = o.units().filter(u => !u.evade && u.hp + u.shield <= dmg).sort((a, b) => b.card.c - a.card.c)[0];
-    if (kill) return { command: true, card: COMMAND_CARD, target: { unit: kill } };
-    return { command: true, card: COMMAND_CARD, target: { cmd: o } };
+    if (kill) return { command: true, card: sk, target: { unit: kill } };
+    return { command: true, card: sk, target: { cmd: o } };
   },
 
   evalSkill(game, p, o, c) {
@@ -135,8 +141,11 @@ const AI = {
       }
     }
     if (game.cur === p && game.canCommand()) {
-      o.units().forEach(u => acts.push({ command: true, card: COMMAND_CARD, target: { unit: u } }));
-      acts.push({ command: true, card: COMMAND_CARD, target: { cmd: o } });
+      const sk = heroSkillOf(p), k = skillTargetKind(sk);
+      if (k === 'none') acts.push({ command: true, card: sk, target: null });
+      if (k === 'enemyUnit' || k === 'any') o.units().forEach(u => acts.push({ command: true, card: sk, target: { unit: u } }));
+      if (k === 'allyUnit') p.units().forEach(u => acts.push({ command: true, card: sk, target: { unit: u } }));
+      if (k === 'any') acts.push({ command: true, card: sk, target: { cmd: o } });
     }
     return acts;
   },
@@ -242,12 +251,7 @@ const AI = {
     for (const a of cands) { const s = this.shallowScore(game, p, a); if (s > bestScore) { bestScore = s; best = a; } }
     if (!best) return null;
     if (best.move) { const u = rp.lanes.find(x => x && x.uid === best.unit.uid); return u ? { move: true, unit: u, lane: best.lane } : null; }
-    if (best.command) { const t = best.target.cmd ? { cmd: real.players[game.players.indexOf(best.target.cmd)] } : (() => { for (const q of real.players) for (const u of q.lanes) if (u && u.uid === best.target.unit.uid) return { unit: u }; return null; })(); return t ? { command: true, card: COMMAND_CARD, target: t } : null; }
-    const card = rp.hand.find(c => c.id === best.card.id);
-    let target = best.target;
-    if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };
-    else if (target && target.unit) { const uid = target.unit.uid; target = null; for (const q of real.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u }; }
-    return card ? { card, lane: best.lane, target } : null;
+    return this.toReal(real, game, rp, best);
   },
 
   // 확정 승리 탐색: 이번 턴 행동 최대 depth개와 내 전투로 상대 라이프를 0으로 만드는 수순을 찾는다 (없으면 null, 행동 없이 이기면 [])
@@ -303,11 +307,11 @@ const AI = {
   // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
   toReal(real, game, rp, best) {
     if (best.move) { const u = rp.lanes.find(x => x && x.uid === best.unit.uid); return u ? { move: true, unit: u, lane: best.lane } : null; }
-    const card = best.command ? COMMAND_CARD : rp.hand.find(c => c.id === best.card.id);
+    const card = best.command ? heroSkillOf(rp) : rp.hand.find(c => c.id === best.card.id);
     let target = best.target;
     if (target && target.cmd) target = { cmd: real.players[game.players.indexOf(target.cmd)] };
     else if (target && target.unit) { const uid = target.unit.uid; target = null; for (const q of real.players) for (const u of q.lanes) if (u && u.uid === uid) target = { unit: u }; }
-    if (best.command) return target ? { command: true, card, target } : null;
+    if (best.command) return target || skillTargetKind(card) === 'none' ? { command: true, card, target } : null;
     return card ? { card, lane: best.lane, target } : null;
   },
 

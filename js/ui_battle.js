@@ -100,7 +100,6 @@ screenHooks.battle = async el => {
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
     <div class="round-info"></div>
     <div class="end-turn"><button class="end-btn" disabled>턴 종료<small>Space</small></button><div class="phase-label"></div></div>
-    <button class="cmd-power" title="작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해. 카드를 다 내고 남은 AP를 쓰기 좋습니다."><span class="cp-icon" style="background-image:url('assets/skill/${COMMAND_CARD.icon}.png')"></span><span class="cp-name">포격 지원<small>작전 지시 · 턴당 1회</small></span><span class="cp-cost" data-v="cmdcost">${RULES.COMMAND.cost}</span></button>
     <div class="ap-bar" id="ap-me" title="AP: 매 턴 최대치가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 남은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다."><div class="ap-num"></div><div class="ap-gems"></div></div>
     <div class="hand"></div>
     <div class="log-panel"><h4>전투 기록</h4><div class="log-list scroll"></div></div>`;
@@ -115,9 +114,11 @@ screenHooks.battle = async el => {
 
 function cmdHtml(side, p) {
   const portrait = p.portrait ? artOf(CARDS[p.portrait]) : '';
+  const sk = heroSkillOf(p);
   return `<div class="cmd hero ${side}" id="cmd-${side}">
     <div class="hero-frame"><div class="cm-portrait" style="background-image:url('${portrait}')"></div></div>
     <div class="hero-hp"><span class="num">0</span></div>
+    <button class="hero-skill" title="특성 스킬 「${esc(sk.n)}」 — 턴당 1회. ${esc(sk.text.replace(/^[^.]*턴당 1회\. /, ''))}${side === 'me' ? ' (누르면 사용, 우클릭은 상세)' : ''}"><span class="hs-icon" style="background-image:url('${iconOf(sk)}')"></span><b class="hs-cost">${sk.c}</b></button>
     ${side === 'enemy' ? '<div class="hero-ap" title="적 AP"></div>' : ''}
     <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? '카드 마스터 지망생' : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
     <div class="cm-fc"></div></div>`;
@@ -362,7 +363,11 @@ function bindBattleInputs(el) {
   });
   $('#cmd-enemy').onclick = () => { if (B.selected && (B.pending === 'any')) playSelected(null, { cmd: B.ai }); };
   $('.end-btn', el).onclick = endMyTurn;
-  $('.cmd-power', el).onclick = () => { if (B.selected === COMMAND_CARD) { clearSelection(); renderAll(); return; } selectCard(COMMAND_CARD); renderAll(); };
+  // 지휘관 특성 스킬: 내 초상 왼쪽 아이콘을 누르면 사용(대상이 필요하면 대상 선택), 상대 것은 누르면 상세
+  const mySk = $('#cmd-me .hero-skill', el);
+  mySk.onclick = e => { e.stopPropagation(); const sk = heroSkillOf(B.me); if (B.selected === sk && skillTargetKind(sk) !== 'none') { clearSelection(); renderAll(); return; } selectCard(sk); renderAll(); };
+  mySk.addEventListener('contextmenu', e => { e.preventDefault(); openCardDetail(heroSkillOf(B.me)); });
+  $('#cmd-enemy .hero-skill', el).onclick = e => { if (B.selected && B.pending === 'any') return; e.stopPropagation(); openCardDetail(heroSkillOf(B.ai)); };
   $('[data-a=log]', el).onclick = () => $('.log-panel', el).classList.toggle('open');
   $('[data-a=help]', el).onclick = () => openHowTo(1);
   $('[data-a=settings]', el).onclick = () => openSettings(true);
@@ -399,7 +404,7 @@ function canAct() { return B && !B.busy && !B.over && B.game.cur === B.me && B.g
 // 휴대폰: 손패에서 고른 카드를 왼쪽에 크게 띄워 효과 글을 읽을 수 있게 한다 (선택을 풀면 사라진다)
 function showSelPreview(card) {
   $$('.sel-preview').forEach(e => e.remove());
-  if (!document.body.classList.contains('compact') || card === COMMAND_CARD) return;
+  if (!document.body.classList.contains('compact') || card.hero) return;
   const box = h('<div class="sel-preview"></div>');
   box.appendChild(cardEl(card, { w: 320, noHover: true })); // 전장 왼쪽 빈 곳(기록 줄 위)에 들어가는 크기
   $('#scr-battle').appendChild(box);
@@ -460,8 +465,8 @@ function selectCard(card) {
     clearSelection(); renderHand(true); return false;
   }
   clearSelection();
-  if (card === COMMAND_CARD && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '작전 지시는 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${B.game.commandCost(me)})`, true); return false; }
-  if (!me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
+  if (card.hero && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '특성 스킬은 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${B.game.commandCost(me)})`, true); return false; }
+  if (!card.hero && !me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
   hidePreview(); // 마우스를 올렸던 카드의 큰 그림은 닫는다
   showSelPreview(card);
@@ -518,7 +523,7 @@ async function playSelected(lane, target, fromRect) {
   const card = B.selected;
   if (!card) return;
   const { game } = B;
-  const isCmd = card === COMMAND_CARD;
+  const isCmd = !!card.hero;
   if (isCmd ? !game.canCommand(target) : !game.canPlay(card, lane, target)) { toast('사용할 수 없습니다.', true); return; }
   const handEl = $(`.hand .card[data-id="${card.id}"]`);
   const from = fromRect || (handEl ? stageRect(handEl) : null);
@@ -632,11 +637,16 @@ function renderCmd(side, p) {
   $$('.hero-facs i', el).forEach(i => i.classList.toggle('on', syn.includes(i.dataset.f)));
   const sl = $('.hero-syn', el); if (sl) { const t = syn.map(f => `결속 · ${SYNERGY[f].name}`).join(' / '); if (sl.textContent !== t) { sl.textContent = t; if (t) retrigger(sl, 'pop'); } sl.title = syn.map(f => `${SYNERGY[f].name}: ${SYNERGY[f].text}`).join(' / '); }
   const ap = $('.hero-ap', el); if (ap) ap.textContent = p.ap > p.maxAp ? `AP ${p.ap} (이월 +${p.ap - p.maxAp})` : `AP ${p.ap}/${p.maxAp}`;
+  // 특성 스킬 아이콘: AP 표시(결속으로 싸지면 노랗게), 이번 턴에 썼으면 어둡게, 지금 쓸 수 있으면 빛난다
+  const hs = $('.hero-skill', el); if (!hs) return;
+  const sk = heroSkillOf(p), cost = B.game.commandCost(p), used = p.cmdUsed === B.game.turn;
+  const cb = $('.hs-cost', hs); cb.textContent = cost; cb.classList.toggle('syn', cost < sk.c);
+  hs.classList.toggle('used', used);
+  hs.classList.toggle('ready', p === B.me && canAct() && B.game.canCommand());
+  hs.classList.toggle('selected', B.selected === sk);
 }
 function renderAp() {
   const { me } = B; const bar = $('#ap-me'); if (!bar) return;
-  const cp = $('.cmd-power');
-  if (cp) { const can = canAct() && B.game.canCommand(); cp.disabled = !can; cp.classList.toggle('used', me.cmdUsed === B.game.turn); cp.classList.toggle('selected', B.selected === COMMAND_CARD); }
   $('.ap-num', bar).innerHTML = me.ap > me.maxAp ? `${me.ap}<small> 이월 +${me.ap - me.maxAp}</small>` : `${me.ap}<small>/${me.maxAp}</small>`;
   const sig = me.ap + ':' + me.maxAp;
   if (bar.dataset.sig === sig) return; bar.dataset.sig = sig;
@@ -661,7 +671,6 @@ function renderAll(forceHand) {
   renderRoundInfo();
   $('[data-v=deck]').textContent = me.deck.length; $('[data-v=grave]').textContent = me.grave.length;
   $('[data-v=edeck]').textContent = ai.deck.length; $('[data-v=egrave]').textContent = ai.grave.length;
-  const cc = $('[data-v=cmdcost]'); if (cc) { cc.textContent = game.commandCost(me); cc.classList.toggle('syn', game.commandCost(me) < RULES.COMMAND.cost); }
   const eh = $('.enemy-hand'); const n = ai.hand.length - (B.holdDrawAi || 0);
   if (eh.childElementCount !== n) eh.innerHTML = ai.hand.map((_, i) => `<div class="card-back" style="--r:${(i - (n - 1) / 2) * -5}deg;--y:${Math.abs(i - (n - 1) / 2) * 5}px"></div>`).join('');
   for (const [p, side] of [[me, 'me'], [ai, 'enemy']]) {
@@ -919,7 +928,7 @@ function showBanner(main, sub, side) {
 }
 async function revealCard(card, mine) {
   const ss = card.kind === 'unit' && card.g === 'SS';
-  const r = h(`<div class="reveal ${mine ? 'mine' : ''} ${ss ? 'ss' : ''}"><div class="rv-who">${mine ? '오렌지에이드' : esc(B.ai.name)} — ${card.kind === 'unit' ? '배치' : '지원 카드'}</div></div>`);
+  const r = h(`<div class="reveal ${mine ? 'mine' : ''} ${ss ? 'ss' : ''}"><div class="rv-who">${mine ? '오렌지에이드' : esc(B.ai.name)} — ${card.kind === 'unit' ? '배치' : card.hero ? '특성 스킬' : '지원 카드'}</div></div>`);
   r.appendChild(cardEl(card, { noHover: true }));
   $('#stage').appendChild(r);
   Audio2.play('card');

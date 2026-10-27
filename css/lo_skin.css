@@ -209,15 +209,6 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .node .n-hard { display: inline-block; margin-top: 2px; font-size: 13px; font-weight: 900; color: #17181b; background: #ff6b75; padding: 1px 8px; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 
 /* ---------- 작전 지시 버튼 ---------- */
-.cmd-power { position: absolute; right: 30px; bottom: calc(108px); z-index: 8; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 10px; min-width: 250px; background: linear-gradient(90deg, rgba(20,21,24,0.95), rgba(40,42,48,0.95)); border: 1px solid var(--lo-edge); border-left: 4px solid var(--lo-yellow); color: #fff; cursor: pointer; font-family: inherit; text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); transition: filter 0.15s; }
-.cmd-power:hover:not(:disabled) { filter: brightness(1.25); }
-.cmd-power.selected { background: linear-gradient(90deg, rgba(255,198,0,0.35), rgba(40,42,48,0.95)); box-shadow: 0 0 20px rgba(255,198,0,0.5); }
-.cmd-power:disabled { filter: grayscale(1) brightness(0.6); cursor: default; }
-.cmd-power.used .cp-name small::after { content: " — 사용함"; color: var(--lo-yellow); }
-.cmd-power .cp-icon { width: 44px; height: 44px; background: center / contain no-repeat; flex-shrink: 0; }
-.cmd-power .cp-name { flex: 1; font-size: 19px; font-weight: 900; line-height: 1.15; }
-.cmd-power .cp-name small { display: block; font-size: 13px; font-weight: 700; color: var(--muted); }
-.cmd-power .cp-cost { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-weight: 900; font-size: 22px; color: #032; background: linear-gradient(180deg, #bff0ff, #1aa7e0); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
 .bg-pick { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 6px 0 16px; }
 .bgp { height: 96px; background: center / cover; position: relative; cursor: pointer; border: 2px solid transparent; }
 .bgp span { position: absolute; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); font-size: 14px; font-weight: 700; padding: 4px 8px; line-height: 1.3; }
@@ -240,7 +231,6 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .tip { font-size: 22px; max-width: 520px; }
 .compact .hero-name { font-size: 24px; }
 .compact .hero-name small { font-size: 17px; }
-.compact .cmd-power .cp-name small { font-size: 16px; }
 .compact .st-grave, .compact .hs-title { font-size: 18px; }
 .compact .coach .ch-box { font-size: 24px; width: 640px; }
 .compact .dialogue .dl-text { font-size: 34px; }
@@ -357,10 +347,6 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .compact .end-btn { width: 300px; height: 124px; border-radius: 62px; font-size: 40px; }
 .compact .end-btn small { font-size: 18px; }
 .compact .end-turn { width: 310px; }
-.compact .cmd-power { min-width: 360px; min-height: 128px; padding: 14px 18px 14px 14px; gap: 14px; }
-.compact .cmd-power .cp-icon { width: 64px; height: 64px; }
-.compact .cmd-power .cp-name { font-size: 28px; }
-.compact .cmd-power .cp-cost { width: 58px; height: 58px; font-size: 32px; }
 .compact #scr-battle .round-info { right: auto; left: calc(150px + var(--ox, 0px)); top: 18px; text-align: left; }
 /* SS 전투원 등장: 카드를 크게, 금빛 테두리와 빛줄기, 잠깐 멈춘다 */
 .screen-flash.gold { background: radial-gradient(ellipse at center, rgba(255,214,90,0.55), rgba(255,170,0,0.15) 60%, transparent); }
@@ -386,7 +372,6 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .compact .unit .u-name { font-size: 28px; bottom: 52px; }
 .compact .unit .u-tags { font-size: 23px; }
 .compact .end-btn small { font-size: 24px; }
-.compact .cmd-power .cp-name small { font-size: 22px; }
 .compact .hero-ap { font-size: 32px; }
 /* 보급 원정 선택 창 */
 .draft-pick { width: 1100px; max-width: 94%; }
@@ -475,7 +460,6 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .hero-facs i.on { opacity: 1; box-shadow: 0 0 10px currentColor, 0 0 0 2px #fff; }
 .hero-syn { display: block; font-size: 14px; color: var(--lo-yellow); font-weight: 800; min-height: 0; }
 .compact .hero-syn { font-size: 24px; }
-.cmd-power .cp-cost.syn { background: linear-gradient(180deg, #fff3b0, #ffc600); }
 .coach.under-modal { display: none !important; }
 
 /* 이동 안내 버튼은 전장 가운데 줄을 가리지 않게 전장 아래쪽 바깥에 둔다 */

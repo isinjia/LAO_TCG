@@ -17,7 +17,7 @@ const TUTORIAL_STEPS = [
     cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },
   { trigger: 'myTurn', text: '<b>이동</b>이야. 내 전투원을 누르고 빛나는 옆 레인을 누르렴(턴마다 한 번, AP 2).', spot: '.lanes.me', wait: 'moved',
     can: () => B.me.units().some(u => [0, 1, 2].some(l => B.game.canMove(u, l))) },
-  { trigger: 'myTurn', text: '<b>포격 지원</b>이야. 버튼을 누르고 <b>상대 초상화</b>를 누르렴(턴마다 한 번).', spot: '.cmd-power', wait: 'cardPlayed',
+  { trigger: 'myTurn', text: '<b>포격 지원</b>이야. 내 초상화 왼쪽 아이콘을 누르고 <b>상대 초상화</b>를 누르렴(턴마다 한 번).', spot: '#cmd-me .hero-skill', wait: 'cardPlayed',
     cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // AP가 모자라거나 내 전장이 비었으면 건너뛴다
   { text: '같은 제작사 2기가 모여 <b>결속</b>이 켜졌어. 초상 아래 이름을 보렴.', spot: '#cmd-me', when: () => B.me.factions.some(f => SYNERGY[f] && B.game.synergy(B.me, f)) },
   { text: '레인이 차면 내 전투원 위에 겹쳐 내는 <b>교체 배치</b>도 돼(AP 1 더). 규칙은 오른쪽 위 <b>?</b>에 있어. 끝까지 해 보렴!', spot: null },
@@ -125,8 +125,8 @@ function tutAllowsEndTurn() {
 // ===== 실전 규칙 안내 =====
 // 튜토리얼에서 다루지 않은 규칙을, 실제 대국에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
 const LESSONS = [
-  { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '.cmd-power',
-    text: () => `오른쪽 아래 <b>포격 지원</b>은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 준단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },
+  { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '#cmd-me .hero-skill',
+    text: () => `내 초상화 왼쪽 아이콘이 특성 스킬 <b>포격 지원</b>이야. 지휘관마다 특성 스킬이 다르단다. 포격 지원은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 준단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },
   { id: 'skill', when: b => b.me.hand.some(c => c.kind === 'skill' && b.me.canAfford(c)), spot: '.hand',
     text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 낸단다. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 되고, 끌어다 놓아도 쓸 수 있어.' },
   { id: 'guard', when: b => b.ai.units().some(u => u.role === 'DEF'), spot: '.lanes.enemy',
