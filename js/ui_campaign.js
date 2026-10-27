@@ -141,7 +141,7 @@ async function launchStage(idx, deckId) {
   const s = CAMPAIGN[idx];
   const deck = s.playerDeck ? { cards: s.playerDeck, name: '훈련용 덱' } : Store.storyDecks().find(d => d.id === (deckId || Store.data.activeDeck)) || Store.storyDecks()[0];
   if (!deck) { toast('덱 편성에서 내 덱을 먼저 고쳐 주세요.', true); return; }
-  if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+  if (Store.deckProblem(deck.cards, !!s.playerDeck)) { toast(Store.deckProblem(deck.cards, !!s.playerDeck), true); return; } // 튜토리얼 덱은 빌려 쓰는 덱이라 보유 여부를 보지 않는다
   if (!await confirmAbandon()) return;
   Audio2.play('start');
   await playDialogue(s.intro, { bg: s.bg, title: [stageLabel(s), s.title] });

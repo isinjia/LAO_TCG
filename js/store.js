@@ -28,6 +28,7 @@ const Store = {
       daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
       lessons: {},               // 튜토리얼 뒤 실전에서 한 번씩 보여 주는 규칙 안내 (id → true)
       starterGiven: false,       // 처음 받는 내 덱(오렌지에이드의 덱)을 받았는지
+      ownV: 1,                   // 카드 보유 도입 표시 (도입 전 저장은 그때 쓰던 카드를 모두 가진 것으로 친다)
     };
   },
   load() {
@@ -42,6 +43,12 @@ const Store = {
       const played = d.tutorialDone || (d.record && (d.record.w + d.record.l) > 0);
       d.supplyV = 1;
       if (played) d.unlocked = [...new Set([...(Array.isArray(d.unlocked) ? d.unlocked : []), ...SUPPLY_CARDS])];
+    }
+    // 카드 보유 도입 전부터 하던 저장이면, 그때 자유롭게 쓰던 카드를 빼앗지 않는다
+    if (d !== def && d.ownV === undefined) {
+      d.ownV = 1;
+      const played = d.tutorialDone || (d.record && (d.record.w + d.record.l) > 0) || (Array.isArray(d.decks) && d.decks.length > 0);
+      if (played) d.unlocked = [...new Set([...(Array.isArray(d.unlocked) ? d.unlocked : []), ...LEGACY_FREE])];
     }
     // 누락 필드 보정
     for (const k of Object.keys(def)) if (d[k] === undefined) d[k] = def[k];
@@ -118,7 +125,8 @@ const Store = {
   // ---- 해금 ----
   isUnlocked(id) { return !LOCKED.has(id) || this.data.unlocked.includes(id); },
   lockedIn(cards) { return cards.filter(id => !this.isUnlocked(id)); },
-  deckProblem(cards) { const e = validateDeck(cards); if (e) return e; const l = this.lockedIn(cards); return l.length ? `잠긴 카드 포함: ${l.map(id => CARDS[id].n).join(', ')}` : null; },
+  // preset이 참이면 미리 만든 덱(빠른 전투·도전 모드에서 빌려 쓰는 덱)이라 보유 여부는 보지 않는다
+  deckProblem(cards, preset) { const e = validateDeck(cards); if (e) return e; if (preset) return null; const l = this.lockedIn(cards); return l.length ? `가지지 않은 카드 포함: ${l.map(id => CARDS[id].n).join(', ')}` : null; },
   secretaryUnlocked(id) { return !LOCKED_SECRETARIES.has(id) || this.data.secretaries.includes(id); },
   // 스테이지 결과 반영 후 새로 해금된 보상 목록을 돌려준다
   grantRewards(stageId, won) {

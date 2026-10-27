@@ -91,7 +91,7 @@ screenHooks.deck = el => {
   $('[data-a=back]', el).onclick = () => showScreen(back || 'lobby');
   $('[data-a=howto]', el).onclick = () => openHowTo(0);
   $('[data-a=battle]', el).onclick = () => {
-    if (Store.deckProblem(editing.cards)) { toast(Store.deckProblem(editing.cards), true); return; }
+    if (Store.deckProblem(editing.cards, editing.preset)) { toast(Store.deckProblem(editing.cards, editing.preset), true); return; }
     Store.data.activeDeck = editing.id; Store.save(); setupState.myDeck = editing.id; showScreen('setup');
   };
   $('[data-a=pick]', el).onchange = e => { loadEditing(e.target.value); Store.data.activeDeck = editing.id; Store.save(); renderDeck(el); renderPool(el); };
@@ -115,11 +115,15 @@ screenHooks.deck = el => {
     ensureEditable();
     let facs = [...new Set(editing.cards.map(id => CARDS[id].f))];
     const pool = POOL.filter(c => Store.isUnlocked(c.id)).sort(() => Math.random() - 0.5);
-    while (facs.length < RULES.MAX_FACTIONS && facs.length < 2) { const f = PLAYER_FACTIONS[Math.floor(Math.random() * 5)]; if (!facs.includes(f)) facs.push(f); }
+    // 제작사가 모자라면 가진 카드가 많은 제작사부터 고른다 (처음에는 가진 카드가 적어 무작위로 고르면 덱이 다 차지 않는다)
+    const owned = f => pool.filter(c => c.f === f && !editing.cards.includes(c.id)).length;
+    const order = PLAYER_FACTIONS.filter(f => !facs.includes(f)).sort((a, b) => owned(b) - owned(a));
+    while (facs.length < RULES.MAX_FACTIONS && facs.length < 2 && order.length) facs.push(order.shift());
     // 비용 곡선을 고려해 저·중·고비용을 고르게 채운다
     const want = c => { const n = editing.cards.filter(id => Math.abs(CARDS[id].c - c.c) <= 1).length; return n < 4; };
     for (const c of pool) { if (editing.cards.length >= RULES.DECK_SIZE) break; if (facs.includes(c.f) && !editing.cards.includes(c.id) && want(c)) editing.cards.push(c.id); }
     for (const c of pool) { if (editing.cards.length >= RULES.DECK_SIZE) break; if (facs.includes(c.f) && !editing.cards.includes(c.id)) editing.cards.push(c.id); }
+    if (editing.cards.length < RULES.DECK_SIZE) toast('가진 카드가 모자라 덱을 다 채우지 못했습니다. 스토리 보상이나 보급소로 카드를 늘려 보세요.', true);
     commitEditing(); renderDeck(el); renderPool(el); Audio2.play('buff');
   };
   renderDeck(el); renderPool(el);
@@ -159,7 +163,7 @@ function renderDeck(el) {
     list.appendChild(row);
   });
   for (let i = cards.length; i < RULES.DECK_SIZE; i++) list.appendChild(h('<div class="deck-row empty">빈 슬롯</div>'));
-  const err = Store.deckProblem(editing.cards);
+  const err = Store.deckProblem(editing.cards, editing.preset);
   const msg = $('[data-v=msg]', el);
   msg.className = 'deck-msg ' + (err ? 'err' : 'ok');
   msg.textContent = err || (editing.preset ? '✔ 프리셋 덱 (수정하면 사본이 만들어집니다)' : '✔ 사용 가능 · 자동 저장됨');
@@ -168,8 +172,9 @@ function renderDeck(el) {
 function renderPool(el) {
   const grid = $('[data-v=pool]', el); grid.innerHTML = '';
   const facs = [...new Set(editing.cards.map(id => CARDS[id].f))];
-  const list = filterCards(POOL, deckFilter);
-  $('.pool-count', el).textContent = `${list.length}장 · 해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}`;
+  const own = c => (Store.isUnlocked(c.id) ? 0 : 1);
+  const list = filterCards(POOL, deckFilter).map((c, i) => [c, i]).sort((a, b) => own(a[0]) - own(b[0]) || a[1] - b[1]).map(x => x[0]); // 가진 카드를 앞에
+  $('.pool-count', el).textContent = `${list.length}장 · 보유 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}`;
   list.forEach(c => {
     const ce = cardEl(c, { w: poolCardW(), lockCheck: true });
     const inDeck = editing.cards.includes(c.id);

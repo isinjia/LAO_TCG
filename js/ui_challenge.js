@@ -111,7 +111,8 @@ const Gauntlet = {
     abandonSavedBattle();
     if (!this.run) return;
     const deck = r.cards ? { cards: r.cards, name: r.deckName, preset: false } : Store.getDeck(r.deckId);
-    if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+    const pre = String(r.deckId).startsWith('preset:');
+    if (Store.deckProblem(deck.cards, pre)) { toast(Store.deckProblem(deck.cards, pre), true); return; }
     const st = CAMPAIGN.find(s => s.id === r.stages[r.idx]);
     startBattle({
       mode: 'gauntlet', myDeck: deck.cards, myDeckName: deck.name, myHp: r.hp, userDeck: !String(r.deckId).startsWith('preset:'),
@@ -273,7 +274,7 @@ const Daily = {
   async play(deckId) {
     if (!await confirmAbandon()) return;
     const deck = Store.getDeck(deckId);
-    if (Store.deckProblem(deck.cards)) { toast(Store.deckProblem(deck.cards), true); return; }
+    if (Store.deckProblem(deck.cards, deck.preset)) { toast(Store.deckProblem(deck.cards, deck.preset), true); return; }
     const cfg = this.config(todayKey(), deck);
     Store.data.daily.tries++; Store.save();
     startBattle(cfg);
@@ -326,7 +327,7 @@ function openSupply(onChange) {
   const render = () => {
     const left = supplyLocked().sort((a, b) => SUPPLY_COST[a.g] - SUPPLY_COST[b.g] || a.f.localeCompare(b.f) || a.c - b.c);
     box.innerHTML = `<h3>보급소 <small class="sp-bp">보급 포인트 <b>${Store.data.bp || 0}</b></small></h3>
-      <p>대국에서 이기거나 별·업적을 얻으면 보급 포인트가 쌓입니다. 카드를 골라 해금하거나, ${SUPPLY_RANDOM_COST}포인트로 무작위 보급을 받을 수 있습니다. (A ${SUPPLY_COST.A} · S ${SUPPLY_COST.S} · SS ${SUPPLY_COST.SS})</p>
+      <p>대국에서 이기거나 별·업적을 얻으면 보급 포인트가 쌓입니다. 카드를 골라 해금하거나, ${SUPPLY_RANDOM_COST}포인트로 무작위 보급을 받을 수 있습니다. (B ${SUPPLY_COST.B} · A ${SUPPLY_COST.A} · S ${SUPPLY_COST.S} · SS ${SUPPLY_COST.SS})</p>
       <div class="sp-top"><span>남은 보급 카드 <b>${left.length}</b> / ${SUPPLY_CARDS.size}</span><span class="spacer"></span>${left.length ? `<button class="btn primary" data-a="rand">무작위 보급 (${SUPPLY_RANDOM_COST})</button>` : ''}</div>
       <div class="pile-view scroll sp-grid"></div>`;
     const grid = $('.sp-grid', box);
@@ -359,7 +360,7 @@ function openSupply(onChange) {
 const challengeState = { deck: null };
 screenHooks.challenge = el => {
   Audio2.bgm('lobby');
-  const decks = Store.allDecks().filter(d => !Store.deckProblem(d.cards));
+  const decks = Store.allDecks().filter(d => !Store.deckProblem(d.cards, d.preset));
   if (!challengeState.deck || !decks.some(d => d.id === challengeState.deck)) challengeState.deck = decks.some(d => d.id === Store.data.activeDeck) ? Store.data.activeDeck : decks[0].id;
   const g = Store.data.gauntlet, run = g.run;
   const dly = Daily.info(), done = Daily.doneToday();
