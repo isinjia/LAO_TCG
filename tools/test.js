@@ -257,6 +257,20 @@ t('특성 스킬: 대상이 없는 스킬도 AI가 합법적으로 쓴다', () =
     if (act) ok(g.act(act), id + ' ' + lv + ' 실행');
   }
 });
+t('공격 예측: 무작위 대상 피해는 표시만 하고, 화면 예측은 실제 난수를 쓰지 않음', () => {
+  const { g, p } = setup([], ['DS_Angel', 'BR_Io', 'PECS_Muse'], ['3P_Daphne']);
+  const seed = g.seed, fc = g.forecast(p, true);
+  eq(g.seed, seed, '예측이 실제 난수를 건드리지 않음');
+  ok(fc.hits.some(h => h.rnd) && fc.hits.some(h => !h.rnd), '공격은 일반, 공격 후 무작위 피해는 rnd');
+  // 화면 예측의 무작위 대상이 실제 결과와 늘 같지는 않다 (여러 시드에서 한 번이라도 다르면 통과)
+  let differ = false;
+  for (let i = 0; i < 30 && !differ; i++) {
+    const t2 = setup([], ['DS_Angel', 'BR_Io', 'PECS_Muse'], ['3P_Daphne']);
+    const pick = f => f.hits.filter(h => h.rnd).map(h => h.toUid).join();
+    if (pick(t2.g.forecast(t2.p, true)) !== pick(t2.g.forecast(t2.p))) differ = true;
+  }
+  ok(differ, '화면 예측이 실제 무작위 결과를 드러냄');
+});
 t('후공 라이프 보정', () => { const { a, b, g } = fresh(D0, D1); g.start(); eq(b.maxHp, RULES.CMD_HP + RULES.SECOND_HP_BONUS); eq(a.maxHp, RULES.CMD_HP); });
 t('대국 난수: 저장 → 복원 뒤 무작위 결과가 같음', () => {
   const { g } = setup(['3P_SnowFeather'], ['DS_Angel', 'PECS_Muse', 'AGS_Stronghold']);

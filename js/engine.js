@@ -303,7 +303,7 @@ class Game {
       const targets = this.resolveTargets(e.tgt, p, ctx);
       switch (e.op) {
         case 'dmg':
-          this.emit({ type: 'fx', op: 'dmg', src: ctx.src, player: p, from: ctx.unit, targets });
+          this.emit({ type: 'fx', op: 'dmg', src: ctx.src, player: p, from: ctx.unit, targets, rnd: e.tgt === 'randomEnemyUnit' });
           targets.forEach(t => t.unit ? this.damageUnit(t.unit, e.v, null, ctx.src) : this.damageCmd(t.cmd, e.v, ctx.src));
           break;
         case 'heal':
@@ -543,20 +543,23 @@ class Game {
 
   // 지정 플레이어가 지금 전투를 치르면 어떻게 되는지 예측 (UI 표시용)
   // 반환: { hits: [{ fromUid, toUid | 'cmd', v, evaded }], cmdDmg(시간 초과 피해 포함), overtime, lethal, deadUids:Set }
-  forecast(player) {
+  // blind: 화면 예측용. 실제 대국과 다른 난수로 돌려 무작위 대상이 미리 드러나지 않게 한다 (무작위 피해는 rnd 표시)
+  forecast(player, blind) {
     const g = this.clone();
+    if (blind) g.seed = (g.seed ^ 0x5BD1E995) >>> 0;
     const idx = this.players.indexOf(player);
     if (g.current !== idx) { g.current = idx; g.turn += 1; }
     g.phase = 'combat'; g.noEvents = false;
     const opp = g.players[1 - idx];
     const hpBefore = opp.hp;
     g.resolveCombat();
-    const hits = []; let curFrom = null;
+    const hits = []; let curFrom = null, rnd = false;
     const dead = new Set();
     for (const e of g.events) {
-      if (e.type === 'attack') curFrom = e.unit.uid;
-      else if (e.type === 'dmg') hits.push({ fromUid: curFrom, toUid: e.unit.uid, v: e.v });
-      else if (e.type === 'evade') hits.push({ fromUid: curFrom, toUid: e.unit.uid, v: 0, evaded: true });
+      if (e.type === 'attack') { curFrom = e.unit.uid; rnd = false; }
+      else if (e.type === 'fx') rnd = !!e.rnd;
+      else if (e.type === 'dmg') hits.push({ fromUid: curFrom, toUid: e.unit.uid, v: e.v, rnd });
+      else if (e.type === 'evade') hits.push({ fromUid: curFrom, toUid: e.unit.uid, v: 0, evaded: true, rnd });
       else if (e.type === 'dmgCmd') hits.push({ fromUid: curFrom, toUid: 'cmd', v: e.v });
       else if (e.type === 'die') dead.add(e.unit.uid);
     }
