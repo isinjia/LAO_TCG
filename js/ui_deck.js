@@ -157,10 +157,11 @@ function renderDeck(el) {
   cards.forEach(c => {
     const row = h(`<div class="deck-row" style="--fc:${FACTIONS[c.f].color}"><div class="r-art" style="background-image:url('${artOf(c)}')"></div><span class="r-cost">${c.c}</span><span class="r-name">${esc(c.n)}</span><span class="r-grade" style="color:${GRADE_COLOR[c.g]}">${c.g}</span></div>`);
     row.title = '클릭하여 제거';
-    row.onclick = () => { ensureEditable(); editing.cards.splice(editing.cards.indexOf(c.id), 1); commitEditing(); Audio2.play('card'); renderDeck(el); renderPool(el); };
+    row.onclick = () => { hidePreview(); ensureEditable(); editing.cards.splice(editing.cards.indexOf(c.id), 1); commitEditing(); Audio2.play('card'); renderDeck(el); renderPool(el); };
     row.oncontextmenu = e => { e.preventDefault(); openCardDetail(c, cards); };
-    row.onmouseenter = () => showPreview(c, 'right');
-    row.onmouseleave = hidePreview;
+    // 큰 카드 미리보기는 마우스를 올렸을 때만. 휴대폰은 탭할 때도 '올림' 신호가 오는데 '떠남' 신호가 없어 큰 카드가 남아 목록을 가린다
+    row.onpointerenter = e => { if (e.pointerType === 'mouse') showPreview(c, 'right'); };
+    row.onpointerleave = hidePreview;
     list.appendChild(row);
   });
   for (let i = cards.length; i < RULES.DECK_SIZE; i++) list.appendChild(h('<div class="deck-row empty">빈 슬롯</div>'));

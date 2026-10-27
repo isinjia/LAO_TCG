@@ -647,8 +647,8 @@ function renderAp() {
 function pushHistory(card, player) {
   const list = $('.hs-list'); if (!list) return;
   const it = h(`<div class="hs-item ${player === B.me ? 'mine' : 'theirs'}" style="background-image:url('${artOf(card)}')"><span>${card.c}</span></div>`);
-  it.onmouseenter = () => showPreview(card, 'left', `${player === B.me ? '오렌지에이드' : esc(B.ai.name)} 사용`);
-  it.onmouseleave = hidePreview;
+  it.onpointerenter = e => { if (e.pointerType === 'mouse') showPreview(card, 'left', `${player === B.me ? '오렌지에이드' : esc(B.ai.name)} 사용`); };
+  it.onpointerleave = hidePreview;
   it.onclick = () => openCardDetail(card);
   list.prepend(it);
   while (list.children.length > 8) list.lastChild.remove();
