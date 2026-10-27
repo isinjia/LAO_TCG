@@ -25,6 +25,7 @@ class NoCache(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
+    # 포트를 따로 주지 않으면 PORT 환경 변수(미리보기 도구가 빈 포트를 넘겨줌), 그것도 없으면 8765
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT", 8765))
     print(f"serving http://localhost:{port}  (Ctrl+C to stop)", flush=True)
     http.server.ThreadingHTTPServer(("127.0.0.1", port), NoCache).serve_forever()
