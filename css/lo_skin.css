@@ -229,6 +229,7 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .menu-item .mi-sub { font-size: 20px; }
 .compact .menu-item .mi-title { font-size: 34px; }
 .compact .lobby-foot { font-size: 22px; }
+.compact .lobby-ver { font-size: 22px; }
 .compact .card .c-text { font-size: 0.72em; }
 .compact .card .c-name { font-size: 1.12em; }
 .compact .tag { font-size: 0.72em; }

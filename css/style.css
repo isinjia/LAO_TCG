@@ -146,6 +146,7 @@ img { -webkit-user-drag: none; }
 .speech .who { color: var(--accent); font-weight: 900; font-size: 16px; margin-bottom: 4px; }
 .lobby-foot { position: absolute; left: 70px; bottom: 40px; display: flex; gap: 30px; color: var(--muted); font-size: 18px; align-items: center; }
 .lobby-foot b { color: var(--text); font-family: "Exo 2", sans-serif; }
+.lobby-ver { position: absolute; right: 24px; bottom: 16px; z-index: 5; font-family: "Exo 2", sans-serif; font-size: 16px; font-weight: 700; color: rgba(205,208,215,0.55); text-shadow: 0 1px 3px #000; pointer-events: none; letter-spacing: 0.05em; }
 .lobby-top { position: absolute; right: 40px; top: 36px; display: flex; gap: 12px; z-index: 3; }
 
 /* ---------- 덱 편성 ---------- */

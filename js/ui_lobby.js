@@ -99,7 +99,8 @@ screenHooks.lobby = el => {
       <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}장 · 보급 포인트 ${Store.data.bp || 0}</div></div></div>
       <div class="menu-item" data-go="howto"><div class="mi-icon">📘</div><div><div class="mi-title">게임 방법</div><div class="mi-sub">규칙 · 상성 · 키워드</div></div></div>
     </div>
-    <div class="lobby-foot"><span>전적 <b>${rec.w}</b>승 <b>${rec.l}</b>패</span><span>연승 <b>${rec.streak}</b></span><span style="font-size:14px">${touchText('마우스를 올리면 카드 정보 · 우클릭 상세 보기')}</span></div>`;
+    <div class="lobby-foot"><span>전적 <b>${rec.w}</b>승 <b>${rec.l}</b>패</span><span>연승 <b>${rec.streak}</b></span><span style="font-size:14px">${touchText('마우스를 올리면 카드 정보 · 우클릭 상세 보기')}</span></div>
+    <div class="lobby-ver">${GAME_VER}</div>`;
   const speech = $('.speech', el);
   let speechTimer = null;
   const say = line => {
