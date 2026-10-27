@@ -22,7 +22,8 @@ const Audio2 = {
     window.addEventListener('pointerdown', unlock, { once: false });
     window.addEventListener('keydown', unlock, { once: false });
     // 창이 포커스를 잃거나(다른 창 클릭·알트탭) 탭이 숨겨지면 소리를 끄고, 돌아오면 다시 켠다
-    const sync = () => this.setMuted(document.hidden || !document.hasFocus());
+    // 창이 가려지면 끄고, 「다른 창에서도 소리」를 켜 두면 포커스만 잃었을 때는 계속 낸다
+    const sync = () => this.setMuted(document.hidden || (!document.hasFocus() && !Store.settings.bgAudio));
     window.addEventListener('blur', sync);
     window.addEventListener('focus', sync);
     document.addEventListener('visibilitychange', sync);

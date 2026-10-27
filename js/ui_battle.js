@@ -123,6 +123,16 @@ function cmdHtml(side, p) {
     <div class="cm-fc"></div></div>`;
 }
 
+// 패배 결과 화면의 한마디: 이번 판에서 드러난 문제에 맞춘 힌트
+function lossHint(cfg, game, me) {
+  const ot = RULES.OVERTIME_ROUND && game.round() >= RULES.OVERTIME_ROUND;
+  const st = cfg.enemy.style;
+  if (ot) return '시간 초과까지 갔어요. 관통·돌격 전투원이나 포격 지원으로 라이프를 더 빨리 깎아 봐요.';
+  if (me.stats.unitsPlayed <= game.round() / 2) return '전장이 자주 비었어요. 비용이 낮은 전투원을 더 넣어 레인을 채워 봐요.';
+  if (st === 'aggro') return '공격형 상대예요. 보호기로 빈 레인을 지키고, 회복 카드로 버티면 반격할 틈이 생겨요.';
+  if (st === 'control') return '제어형 상대예요. 관통 전투원과 포격 지원으로 라이프를 직접 노려 봐요.';
+  return '아깝다! 상성이 유리한 레인을 고르고, 같은 제작사 2기로 결속을 켜 봐요.';
+}
 // 대국 시작 배너에 쓰는 모드 이름
 function modeLabel(cfg) {
   if (cfg.mode === 'campaign') return CAMPAIGN[cfg.stageIdx].title;
@@ -950,7 +960,7 @@ async function finishBattle(surrendered) {
     <div class="rs-art"><div class="mvp">MVP<small>${esc(mvp.n)}${dmg.length ? ` — 피해 ${dmg[0][1]}` : ''}</small></div><img src="${fullOf(mvp.kind === 'unit' ? mvp : CARDS[mvp.art] || mvp)}" alt=""></div>
     <div class="rs-body">
       <h2 class="${win ? 'win' : 'lose'}">${win ? '승리' : '패배'}</h2>
-      <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : '아깝다! 덱을 다듬어서 다시 도전해 봐요.'}</div>
+      <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : esc(lossHint(cfg, game, me))}</div>
       ${stage && !win && stage.lose ? `<div class="rs-lose"><b>${esc(CARDS[stage.lose.who].n)}</b>“${esc(stage.lose.text)}”</div>` : ''}
       <div class="rs-stats">
         <div><span>라운드</span><b>${game.round()}</b></div>

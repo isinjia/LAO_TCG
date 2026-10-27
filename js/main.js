@@ -12,6 +12,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   fitStage();
   applySpeedVar();
   window.addEventListener('resize', fitStage);
+  // 중간 크기 화면(1280x720 등, 배율 0.6~0.8): 보조 글자를 조금 키운다 (lo_skin.css의 .mid)
+  const markMid = () => document.body.classList.toggle('mid', stageScale >= 0.6 && stageScale < 0.8);
+  markMid(); window.addEventListener('resize', markMid);
   // 포커스·scrollIntoView 등으로 화면이 밀리지 않도록 스크롤을 고정한다
   const lockScroll = () => {
     if (window.scrollX || window.scrollY) window.scrollTo(0, 0);

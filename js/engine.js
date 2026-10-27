@@ -517,7 +517,7 @@ class Game {
       map.set(p, q);
       return q;
     });
-    g.players.forEach((q, i) => { q.lanes = this.players[i].lanes.map(u => (u ? { ...u, owner: q } : null)); });
+    g.players.forEach((q, i) => { q.lanes = this.players[i].lanes.map(u => (u ? { ...u, owner: q, kw: { ...u.kw } } : null)); }); // 키워드도 복사해 탐색이 원본을 바꾸지 않게
     g.winner = this.winner ? map.get(this.winner) : null;
     return g;
   }

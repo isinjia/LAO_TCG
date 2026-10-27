@@ -479,3 +479,16 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .compact .cmd.hero.me { z-index: 25; }
 .compact .lobby-top .icon-btn { width: 116px; height: 116px; font-size: 46px; }
 .compact .setup-opts select { font-size: 28px; min-height: 84px; }
+/* 중간 크기 화면(.mid): 지도 설명·별 조건·전술 팁·유닛 표시를 실제 화면 약 11px 이상으로 */
+.mid .stage-body p, .mid .stage-info, .mid .star-list { font-size: 20px; }
+.mid .tip { font-size: 19px; }
+.mid .unit .u-tags { font-size: 21px; }
+.mid .round-info span { font-size: 17px; }
+.mid .slot .adv { font-size: 19px; }
+.mid .ch-col p, .mid .ach span { font-size: 18px; }
+.mid .coach .ch-box { font-size: 20px; }
+/* 휴대폰: 레인 위 상성·이동 라벨과 이동 안내 글을 키우고, 전장 확대는 가운데 선을 넘지 않게 조금 줄인다 */
+.compact .slot .adv { font-size: 28px; padding: 4px 12px; }
+.compact .cast-btn { font-size: 34px; }
+.compact .cast-btn small { font-size: 22px; }
+.compact .lanes { transform: translateX(-50%) scale(1.08); }

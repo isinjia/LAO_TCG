@@ -92,7 +92,7 @@ const CAMPAIGN = [
   {
     id: 's3', no: '3', title: '그림자 대국', sub: '리그 3차전 · 쿠노이치 제로', bg: 'corridor_dark', bgm: 'battle3',
     desc: '회피와 암살에 능한 덴세츠 덱. 회피는 한 번만 막아 준다는 점을 이용하세요.',
-    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 19, level: 'normal', style: 'aggro',
+    enemy: { name: '쿠노이치 제로', portrait: 'DS_KunoichiZero', hp: 22, level: 'normal', style: 'aggro',
       deck: ['DS_Saraqael', 'DS_Sarena', 'DS_BunnySlayer', 'DS_Ramiel', 'DS_Baekto', 'DS_Faucre', 'DS_KunoichiZero', 'DS_Angel', 'DS_KunoichiShiden', 'DS_KunoichiEnrai', 'SK_DS_Smoke', 'SK_DS_Shuriken'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 12 }, { type: 'commands', v: 5 }],
     intro: [
@@ -293,7 +293,7 @@ const CAMPAIGN = [
   {
     id: 'ex2', no: 'EX2', chapter: 'ex', title: '강철 왕자의 성', sub: '외전 2 · 모의 개체 아이언 프린스', bg: 'offline', bgm: 'battle2',
     desc: '두꺼운 중장 철충과 AGS로 짠 방어 덱입니다. 작전 지시로 벽 너머 라이프를 노리세요.',
-    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 21, level: 'normal', style: 'control',
+    enemy: { name: '모의 개체: 아이언 프린스', portrait: 'IW_IronPrince', hp: 24, level: 'normal', style: 'control',
       deck: ['IW_IronPrince', 'IW_MetalGuard', 'IW_Robert', 'IW_RocC', 'IW_Stalker', 'IW_Parasite', 'AGS_Goltarion', 'AGS_Stronghold', 'AGS_Rampart', 'AGS_Gigantes', 'SK_AGS_Barrier', 'SK_IW_Corrode'] },
     start: [{ lane: 1, id: 'IW_Stalker' }],
     stars: [{ type: 'win' }, { type: 'hp', v: 8 }, { type: 'commands', v: 5 }],

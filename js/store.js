@@ -8,7 +8,7 @@ const Store = {
       v: 1,
       decks: [],                 // { id, name, cards }
       activeDeck: 'preset:0',    // 'preset:N' | 사용자 덱 id
-      settings: { bgm: 0.45, sfx: 0.7, voice: 0.8, speed: 1, forecast: true, autoLevel: false, tips: true },
+      settings: { bgm: 0.45, sfx: 0.7, voice: 0.8, bgAudio: false, speed: 1, forecast: true, autoLevel: false, tips: true },
       campaign: { stars: {}, difficulty: 'normal', cleared: {}, hardCleared: {} },
       record: { w: 0, l: 0, streak: 0 },
       secretary: 'PECS_Orangeade',  // 로비 캐릭터 (기본: 주인공 오렌지에이드)

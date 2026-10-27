@@ -269,6 +269,7 @@ function openSettings(inBattle) {
       <span>전투 속도</span><div class="seg" data-k="speed">${[1, 1.5, 2, 3].map(v => `<button data-v="${v}" class="${s.speed === v ? 'on' : ''}">x${v}</button>`).join('')}</div>
       <span>전투 예측 표시</span><div class="switch ${s.forecast ? 'on' : ''}" data-k="forecast"></div>
       <span class="hint">이번 턴 전투 결과(피해·격파)를 유닛 위에 미리 표시합니다.</span>
+      <span>다른 창을 볼 때도 소리</span><div class="switch ${s.bgAudio ? 'on' : ''}" data-k="bgAudio"></div>
       <span>전술 팁·실전 안내</span><div class="switch ${s.tips ? 'on' : ''}" data-k="tips"></div>
     </div>
     <div class="modal-actions">${inBattle ? '' : '<button class="btn danger small" data-a="reset">저장 데이터 초기화</button><button class="btn small" data-a="export">저장 내보내기</button><button class="btn small" data-a="import">저장 불러오기</button><span class="spacer"></span>'}<button class="btn primary" data-a="ok">닫기</button></div></div>`);
