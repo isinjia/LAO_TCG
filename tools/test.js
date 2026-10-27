@@ -240,14 +240,24 @@ t('작전 지시: 턴당 1회, AP 차감, 대상 피해, 아군 대상 불가', 
 });
 t('특성 스킬: 지휘관마다 다르고, 대상 종류에 맞게 쓴다', () => {
   Object.entries(HERO_SKILLS).forEach(([id, sk]) => { ok(CARDS[id] && sk.hero && sk.icon && sk.fx.length && sk.c > 0, id); ok(fs.existsSync(path.join(ROOT, 'assets/skill', sk.icon + '.png')), id + ' 아이콘'); });
-  eq(heroSkillOf({ portrait: 'PECS_Orangeade' }), COMMAND_CARD); eq(heroSkillOf({ portrait: 'AGS_SpartanA' }), COMMAND_CARD, '표에 없으면 포격 지원');
-  const { g, p, o } = setup([], ['DS_Angel'], ['AGS_Rampart']);
-  p.portrait = 'AGS_Stronghold'; // 방벽 전개: 모든 아군 방어막 2, 상대 라이프 2 피해 (대상 없음)
-  const ap = p.ap, hp = o.hp; ok(g.command(null)); eq(p.lanes[0].shield, 2); eq(o.hp, hp - 2); eq(p.ap, ap - HERO_SKILLS.AGS_Stronghold.c);
+  eq(heroSkillOf({ portrait: 'PECS_Orangeade' }), COMMAND_CARD); eq(heroSkillOf({ portrait: 'DS_Angel' }), DEFAULT_HERO_SKILL, '표에 없으면 포격 지원');
+  // 회로 간섭: 방어막·회피를 먼저 없애고 2 피해
+  const { g, p, o } = setup([], ['AGS_Rampart'], ['DS_Angel']);
+  p.portrait = 'PECS_Orangeade'; const u = o.lanes[0]; u.shield = 3; u.evade = true; const uh = u.hp, ap = p.ap;
+  ok(!g.canCommand({ unit: p.lanes[0] }), '아군 대상 불가');
+  ok(g.command({ unit: u })); eq(u.shield, 0); eq(u.evade, false); eq(u.hp, uh - 2); eq(p.ap, ap - COMMAND_CARD.c);
   ok(!g.canCommand(), '턴당 1회');
-  const t2 = setup([], ['DS_Angel'], ['AGS_Rampart']); t2.p.portrait = 'IW_AzazelAlter'; // 타락한 일섬: 적 유닛만
-  ok(!t2.g.canCommand({ cmd: t2.o }), '라이프 대상 불가'); ok(!t2.g.canCommand({ unit: t2.p.lanes[0] }), '아군 대상 불가'); ok(t2.g.canCommand({ unit: t2.o.lanes[0] }));
-  const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g)))); eq(heroSkillOf(r.cur), HERO_SKILLS.AGS_Stronghold, '저장 뒤에도 같은 특성 스킬');
+  // 나를 따르라!: 고른 적 2 피해, 양옆 1 피해
+  const t2 = setup([], ['BR_Io', 'AGS_Rampart', 'PECS_Muse'], []); t2.p.portrait = 'BR_RedHood';
+  const hs = t2.o.lanes.map(x => x.hp); t2.o.lanes.forEach(x => { x.shield = 0; x.evade = false; });
+  ok(!t2.g.canCommand({ cmd: t2.o }), '라이프 대상 불가'); ok(t2.g.command({ unit: t2.o.lanes[1] }));
+  eq(t2.o.lanes[1] ? t2.o.lanes[1].hp : 0, Math.max(0, hs[1] - 2)); eq(t2.o.lanes[0].hp, hs[0] - 1); eq(t2.o.lanes[2].hp, hs[2] - 1);
+  // 회로 침식: 상대는 다음 턴 특성 스킬 봉인, 저장 뒤에도 유지
+  const t3 = setup([], [], []); t3.p.portrait = 'PECS_LemonadeAlpha'; ok(t3.g.command({ cmd: t3.o }));
+  t3.g.endTurn(); const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(t3.g))));
+  ok(r.phase !== 'main' || r.cur !== r.players[t3.g.players.indexOf(t3.o)] || (r.cur.ap = 10, !r.canCommand()), '봉인된 턴에는 못 씀');
+  ok(t3.g.cur === t3.o && (t3.o.ap = 10, !t3.g.canCommand()), '봉인');
+  t3.g.endTurn(); t3.g.endTurn(); t3.o.ap = 10; ok(t3.g.cur !== t3.o || t3.g.canCommand(), '그다음 턴엔 다시 가능');
 });
 t('특성 스킬: 대상이 없는 스킬도 AI가 합법적으로 쓴다', () => {
   for (const id of Object.keys(HERO_SKILLS)) for (const lv of ['easy', 'normal', 'hard']) {

@@ -300,7 +300,7 @@ const CAMPAIGN = [
     intro: [
       { who: '3P_ConstantiaS2', text: '두 번째 구역은 방어 데이터가 몰려 있어. 철충 중장 기체를 본뜬 모의 개체란다.' },
       { who: 'IW_IronPrince', text: '[모의 개체 아이언 프린스] 이 성은 무너지지 않는다. 침입자는 돌아가라.' },
-      { who: 'PECS_Orangeade', text: '벽이 두꺼우면 포격 지원으로 넘기면 되죠! 스트롱홀드 씨한테 배운 거예요.' },
+      { who: 'PECS_Orangeade', text: '벽이 두꺼우면 회로 간섭으로 뚫으면 되죠! 스트롱홀드 씨한테 배운 거예요.' },
       { who: 'PECS_LemonadeAlpha', text: '서두르지 말아요, 오렌지에이드. 벽은 먼저 지치는 쪽이 지는 거예요.' },
     ],
     outro: [

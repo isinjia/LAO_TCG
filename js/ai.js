@@ -60,14 +60,14 @@ const AI = {
   // 다른 특성 스킬은 지원 카드처럼 값어치를 따진다. 남는 AP로 쓰는 것이라 비용은 1로 보고, 실제로 쓸지는 앞을 내다본 평가가 고른다
   commandAction(game, p) {
     if (game.cur !== p || !game.canCommand()) return null;
-    const sk = heroSkillOf(p), o = game.other(p), e = sk.fx[0];
-    if (e.op !== 'dmg' || e.tgt !== 'pickAny') {
+    const sk = heroSkillOf(p), o = game.other(p), e = sk.fx.find(x => x.op === 'dmg' && x.tgt === 'pickAny');
+    if (!e) {
       const ev = this.evalSkill(game, p, o, { ...sk, c: 1 });
       return ev.value > 0 ? { command: true, card: sk, target: ev.target } : null;
     }
-    const dmg = e.v;
+    const dmg = e.v, strip = sk.fx.some(x => x.op === 'strip');
     if (o.hp <= dmg || p.style === 'aggro') return { command: true, card: sk, target: { cmd: o } };
-    const kill = o.units().filter(u => !u.evade && u.hp + u.shield <= dmg).sort((a, b) => b.card.c - a.card.c)[0];
+    const kill = o.units().filter(u => strip ? u.hp <= dmg : !u.evade && u.hp + u.shield <= dmg).sort((a, b) => b.card.c - a.card.c)[0];
     if (kill) return { command: true, card: sk, target: { unit: kill } };
     return { command: true, card: sk, target: { cmd: o } };
   },
@@ -76,18 +76,21 @@ const AI = {
     const kind = skillTargetKind(c);
     const eu = o.units(), au = p.units();
     // 대상을 고르는 효과가 있으면 그것을 주 효과로, 나머지 효과는 덤으로 더한다 (예: 피해+둔화, 드로우+AP)
-    const e = c.fx.find(x => /^pick/.test(x.tgt || '')) || c.fx[0];
+    const e = c.fx.find(x => x.op === 'dmg' && /^pick/.test(x.tgt || '')) || c.fx.find(x => /^pick/.test(x.tgt || '')) || c.fx[0];
     let value = 0, target = null;
     switch (e.op) {
       case 'dmg':
         if (e.tgt === 'allEnemyUnits') { value = eu.reduce((s, u) => s + Math.min(u.hp, e.v) + (u.hp <= e.v ? 2 : 0), 0) - c.c; }
         else if (kind === 'enemyUnit' || kind === 'any') {
           if (kind === 'any' && o.hp <= e.v) { value = 100; target = { cmd: o }; break; }
-          eu.forEach(u => { const v = Math.min(u.hp, e.v) + (u.hp <= e.v ? u.card.c : 0) - c.c + 1; if (v > value) { value = v; target = { unit: u }; } });
+          // 지정 범위(pickEnemyArea)면 양옆 적 유닛이 받는 피해도 더한다
+          const near = u => { if (e.tgt !== 'pickEnemyArea') return 0; const l = o.lanes.indexOf(u), sv = e.side ?? e.v; return [l - 1, l + 1].reduce((t, k) => { const n = o.lanes[k]; return t + (n ? Math.min(n.hp, sv) + (n.hp <= sv ? n.card.c * 0.5 : 0) : 0); }, 0); };
+          eu.forEach(u => { const v = Math.min(u.hp, e.v) + (u.hp <= e.v ? u.card.c : 0) + near(u) - c.c + 1; if (v > value) { value = v; target = { unit: u }; } });
           if (kind === 'any' && !target && p.hand.length > 5) { value = 1; target = { cmd: o }; }
         }
         break;
       case 'heal': value = (p.maxHp - p.hp) >= e.v ? e.v - c.c + 1 : -1; break;
+      case 'debuff': if (e.tgt === 'allEnemyUnits') value = eu.reduce((s, u) => s + Math.min(u.atk, e.a || 1) * 1.2, 0) - c.c; break;
       case 'healAll': value = au.reduce((s, u) => s + Math.min(u.maxHp - u.hp, e.v), 0) - c.c; break;
       case 'buffAll': value = au.length * 2 - c.c; break;
       case 'draw': value = p.hand.length <= 3 ? 2 : -1; break;
@@ -109,7 +112,8 @@ const AI = {
     return fxs.reduce((s, x) => s + ({
       dmg: x.tgt === 'allEnemyUnits' ? eu.reduce((t, u) => t + Math.min(u.hp, x.v), 0) : x.tgt === 'enemyCmd' ? x.v : x.v * 0.6,
       draw: (x.v || 1) * 1.5, res: (x.v || 1) * (p.hand.some(h => !p.canAfford(h)) ? 1 : 0.3),
-      slow: eu.length ? 1.5 : 0, debuff: eu.length ? (x.a || 1) : 0,
+      slow: eu.length ? 1.5 : 0, debuff: eu.length ? (x.a || 1) * (x.tgt === 'allEnemyUnits' ? eu.length : 1) : 0,
+      strip: eu.some(u => u.shield || u.evade) ? 1.5 : 0, silence: 1.5,
       shield: (x.tgt === 'allAllies' ? au.length : 1) * (x.v || 1) * 0.8, evade: x.tgt === 'allAllies' ? au.length * 1.2 : 1,
       buffAll: au.length * ((x.a || 0) + (x.h || 0)) * 0.9, buff: ((x.a || 0) + (x.h || 0)) * 0.9,
       heal: Math.min(p.maxHp - p.hp, x.v || 0), healAll: au.reduce((t, u) => t + Math.min(u.maxHp - u.hp, x.v), 0),

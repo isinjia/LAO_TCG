@@ -646,6 +646,7 @@ img { -webkit-user-drag: none; }
 .hero-skill.ready { box-shadow: 0 0 0 3px #ffc600, 0 0 22px rgba(255,198,0,0.75); animation: skillReady 1.4s ease-in-out infinite; }
 .hero-skill.selected { box-shadow: 0 0 0 4px #fff, 0 0 26px rgba(255,255,255,0.9); animation: none; }
 .hero-skill.used { filter: grayscale(1) brightness(0.55); }
+.hero-skill.sealed::after { content: "봉인"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-45deg); padding: 1px 6px; font-size: 14px; font-weight: 900; color: #fff; background: #c8102e; border: 1px solid #ffb3b8; white-space: nowrap; }
 .cmd.hero.me .hero-skill:not(.ready):not(.selected) { filter: grayscale(0.6) brightness(0.75); }
 .cmd.hero.me .hero-skill.used { filter: grayscale(1) brightness(0.5); }
 @keyframes skillReady { 50% { box-shadow: 0 0 0 3px #ffc600, 0 0 34px rgba(255,198,0,1); } }
