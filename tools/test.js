@@ -241,11 +241,11 @@ t('작전 지시: 턴당 1회, AP 차감, 대상 피해, 아군 대상 불가', 
 t('특성 스킬: 지휘관마다 다르고, 대상 종류에 맞게 쓴다', () => {
   Object.entries(HERO_SKILLS).forEach(([id, sk]) => { ok(CARDS[id] && sk.hero && sk.icon && sk.fx.length && sk.c > 0, id); ok(fs.existsSync(path.join(ROOT, 'assets/skill', sk.icon + '.png')), id + ' 아이콘'); });
   eq(heroSkillOf({ portrait: 'PECS_Orangeade' }), COMMAND_CARD); eq(heroSkillOf({ portrait: 'DS_Angel' }), DEFAULT_HERO_SKILL, '표에 없으면 포격 지원');
-  // 회로 간섭: 방어막·회피를 먼저 없애고 2 피해
+  // 회로 간섭: 적 유닛 또는 상대 라이프에 2 피해 (방어막·회피는 그대로 적용)
   const { g, p, o } = setup([], ['AGS_Rampart'], ['DS_Angel']);
-  p.portrait = 'PECS_Orangeade'; const u = o.lanes[0]; u.shield = 3; u.evade = true; const uh = u.hp, ap = p.ap;
+  p.portrait = 'PECS_Orangeade'; const u = o.lanes[0]; u.shield = 0; u.evade = false; const uh = u.hp, ap = p.ap;
   ok(!g.canCommand({ unit: p.lanes[0] }), '아군 대상 불가');
-  ok(g.command({ unit: u })); eq(u.shield, 0); eq(u.evade, false); eq(u.hp, uh - 2); eq(p.ap, ap - COMMAND_CARD.c);
+  ok(g.command({ unit: u })); eq(u.hp, uh - 2); eq(p.ap, ap - COMMAND_CARD.c);
   ok(!g.canCommand(), '턴당 1회');
   // 나를 따르라!: 고른 적 2 피해, 양옆 1 피해
   const t2 = setup([], ['BR_Io', 'AGS_Rampart', 'PECS_Muse'], []); t2.p.portrait = 'BR_RedHood';

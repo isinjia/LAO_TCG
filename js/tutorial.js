@@ -125,8 +125,8 @@ function tutAllowsEndTurn() {
 // ===== 실전 규칙 안내 =====
 // 튜토리얼에서 다루지 않은 규칙을, 실제 배틀에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
 const LESSONS = [
-  { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '#cmd-me .hero-skill',
-    text: () => `내 초상화 왼쪽 아이콘이 특성 스킬 <b>카두세우스 : 회로 간섭</b>이야. 지휘관마다 원작 스킬을 닮은 특성 스킬이 다르단다. 회로 간섭은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 고정 피해</b>를 주고, 전투원이면 방어막·회피를 먼저 없앤단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },
+  { id: 'command', when: b => b.me.ap >= COMMAND_CARD.c && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= COMMAND_CARD.c), spot: '#cmd-me .hero-skill',
+    text: () => `내 초상화 왼쪽 아이콘이 특성 스킬 <b>카두세우스 : 회로 간섭</b>이야. 지휘관마다 원작 스킬을 닮은 특성 스킬이 다르단다. 회로 간섭은 턴마다 한 번, AP ${COMMAND_CARD.c}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 준단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },
   { id: 'skill', when: b => b.me.hand.some(c => c.kind === 'skill' && b.me.canAfford(c)), spot: '.hand',
     text: () => '손패의 <b>지원 카드</b>는 전장에 남지 않고 효과만 낸단다. 대상을 고르는 카드는 카드를 누른 뒤 <b>빛나는 전투원</b>을 누르면 되고, 끌어다 놓아도 쓸 수 있어.' },
   { id: 'guard', when: b => b.ai.units().some(u => u.role === 'DEF'), spot: '.lanes.enemy',
