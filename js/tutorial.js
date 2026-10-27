@@ -11,7 +11,7 @@ const TUTORIAL_STEPS = [
   { trigger: 'myTurn', text: '상대가 행동을 마쳤어. 이번 턴 AP는 2야. 다 쓰지 못한 AP는 <b>최대 2까지 다음 턴으로 이월</b>되니까 기억해 두렴.', spot: '#ap-me', box: [1080, 560] },
   { text: '이번엔 비용 2인 <b>하치코</b>를 골라 볼래? 레인 위에 <b>유리 ▲ / 불리 ▼</b>가 보일 거야. 경장 ▶ 기동 ▶ 중장 ▶ 경장 순으로 유리하고, 유리하면 피해가 1 늘어나.', spot: '.hand', box: [1380, 140], wait: 'cardSelected', cond: c => c.kind === 'unit' },
   { text: '좋아. 상성이 유리한 레인이나, 적이 없는 레인(상대 직격)에 놓아 보렴.', spot: '.lanes.me', box: [1380, 140], wait: 'cardPlayed' },
-  { text: '적 전투원과 상대 초상화 위의 <b>빨간 숫자</b>는 이번 턴 전투의 <b>예상 피해</b>야. ☠는 격파 예상이고, 주황색은 다음 상대 턴에 네가 받을 피해란다.', spot: '.lanes.enemy', box: [1380, 560] },
+  { text: '적 전투원과 상대 초상화 위의 <b>빨간 숫자</b>는 이번 턴 전투의 <b>예상 피해</b>야. ☠는 격파 예상이란다.', spot: '.lanes.enemy', box: [1380, 560] },
   { text: '<b>턴 종료</b> 버튼에 마우스를 올리면 공격 경로가 화살표로 보여. <b>보호기</b>는 양옆 레인을 지키고, <b>지원기</b>는 양옆 아군의 공격력을 1 올려 준단다.', spot: '.end-btn', box: [1380, 560] },
   { trigger: 'myTurn', text: '이번엔 <b>지원 카드</b>를 써 보자. 방금 뽑은 <b>야전 의료</b>를 고른 뒤, 빛나는 내 전투원을 누르렴. 그 전투원의 체력을 가득 채워 준단다.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
     cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },

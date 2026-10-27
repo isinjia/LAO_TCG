@@ -661,27 +661,14 @@ function refreshForecast() {
     const el = B.unitEls.get(uid); if (!el) return;
     const isMine = me.lanes.some(u => u && u.uid === uid);
     const f = $('.u-fc', el);
-    if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '회피'; return; }
+    if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '빗나감'; return; } // 회피 상태 표시와 겹치지 않게 결과로 적는다
     f.className = `u-fc show ${isMine ? 'self' : 'opp'}${mine.deadUids.has(uid) ? ' kill' : ''}`;
     f.textContent = isMine ? `받는 피해 -${e.v}` : `-${e.v}`; // 내 전투원이 받는 피해는 반격·격파 효과 등 여러 가지라 이름을 붙이지 않는다
   });
   if (mine.cmdDmg > 0) {
     const f = $('#cmd-enemy .cm-fc'); f.className = `cm-fc show${mine.lethal ? ' lethal' : ''}`; f.textContent = mine.lethal ? `-${mine.cmdDmg} 격파!` : `-${mine.cmdDmg}`;
   }
-  // 다음 적 턴 위협: 내 전투를 먼저 치른 뒤의 보드 기준
-  const after = game.clone(); after.phase = 'combat'; after.resolveCombat();
-  if (after.phase === 'over') return;
-  const threat = after.forecast(after.players[game.players.indexOf(ai)]);
-  if (threat.cmdDmg > 0) {
-    const f = $('#cmd-me .cm-fc'); f.className = `cm-fc show warn${threat.lethal ? ' lethal' : ''}`; f.textContent = `적 턴 -${threat.cmdDmg}${threat.lethal ? ' 위험!' : ''}`;
-  }
-  const tsum = new Map();
-  threat.hits.forEach(hh => { if (hh.toUid !== 'cmd' && me.lanes.some(u => u && u.uid === hh.toUid)) tsum.set(hh.toUid, (tsum.get(hh.toUid) || 0) + hh.v); });
-  tsum.forEach((v, uid) => {
-    const el = B.unitEls.get(uid); if (!el) return; const f = $('.u-fc', el);
-    if (f.classList.contains('show') || !v) return;
-    f.className = `u-fc show self${threat.deadUids.has(uid) ? ' kill' : ''}`; f.textContent = `적 턴 -${v}`;
-  });
+  // 다음 적 턴 피해 미리보기는 표시하지 않는다 (화면이 복잡하다는 의견에 따라 뺐다. 위험한 경우는 전술 팁으로만 알린다)
 }
 
 function drawArrows() {

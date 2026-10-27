@@ -28,6 +28,8 @@ OVERRIDE = {
     'IW_Speaker': 'FullbodyIMG_MP_Speaker_N.png',
     'IW_RocC': 'FullbodyIMG_MP_RocC_N.png',
     'IW_Parasite': 'FullbodyIMG_MP_Metal_Parasite_N.png',
+    # 기본(N) 일러스트는 로봇 부품이 흩어진 조립용 그림이라, 완성된 모습의 첫 스킨을 쓴다
+    'AGS_Arachne': 'FullbodyIMG_AGS_Arachne_NS1_Part1.png',
     'IW_Kidnapper': 'FullbodyIMG_MP_Kidnapper_N.png',
     'IW_Robert': 'FullbodyIMG_MP_Robert_N.png',
     'IW_MetalGuard': '2DModel_MP_MetalGuard.png',
@@ -38,9 +40,9 @@ OVERRIDE = {
 }
 
 # 초상 크롭 수동 보정: (cx 비율, top 비율, 폭 비율) — bbox 기준
-CROP_FIX = {}
+CROP_FIX = {'PECS_BlindPrincess': (0.62, 0.1, 0.5), 'AGS_Arachne': (0.56, 0.0, 0.62)}
 # 머리 기준 크롭 대신 전신을 3:4 캔버스에 맞춰 넣을 카드 (로봇·와이드 구도)
-FIT = {'AGS_Aeda', 'DS_KunoichiShiden', 'DS_Ramiel', 'PECS_BlindPrincess', 'PECS_Lumberjane', 'IW_NightChick', 'IW_Speaker', 'IW_RocC', 'IW_Parasite', 'IW_Kidnapper', 'IW_Robert', 'IW_Stalker'}
+FIT = {'AGS_Aeda', 'DS_KunoichiShiden', 'DS_Ramiel', 'PECS_Lumberjane', 'IW_NightChick', 'IW_Speaker', 'IW_RocC', 'IW_Parasite', 'IW_Kidnapper', 'IW_Robert', 'IW_Stalker'}
 
 
 # FullbodyImg에 완성본이 없어 2D 모델 폴더의 정식 일러스트를 쓰는 카드
@@ -133,7 +135,7 @@ def portrait(im, cid):
 
 
 # 전신 이미지에서 캐릭터와 떨어진 소품(드론 등)을 지우고 본체만 남길 카드
-MAIN_ONLY = {'PECS_Orangeade'}
+MAIN_ONLY = {'PECS_Orangeade', 'PECS_BlindPrincess', 'PECS_LemonadeBeta'}
 
 
 def keep_main(im):
