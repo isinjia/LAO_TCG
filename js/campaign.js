@@ -16,6 +16,7 @@ const CAMPAIGN = [
     openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', 'SK_PECS_Medic'], // 시작 패 4장 + 2턴·3턴에 뽑을 카드
     enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 9, level: 'easy',
       deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Shade', 'AGS_Seljuq', 'AGS_Roc', 'AGS_Rampart', 'AGS_Fallen', 'AGS_Aeda', 'AGS_Arachne', 'SK_AGS_Barrier'] },
+    start: [{ lane: 2, id: 'AGS_SpartanC' }], // 기동형을 미리 세워 2턴 상성 안내(경장 하치코가 유리)가 실제로 성립하게
     stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 11 }],
     intro: [
       { who: 'PECS_Orangeade', text: '오르카 카드 리그, 참가자 모집 중…? 우승하면 오르카호 최고의 카드 마스터로 인정받는대요!' },

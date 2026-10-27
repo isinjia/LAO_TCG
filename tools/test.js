@@ -124,6 +124,19 @@ t('보호: 마주 선 전투원끼리의 공격은 막지 않는다 (설명과 �
   const ghp = guard.hp; g.attack(att, 0); eq(guard.hp, ghp, '보호기는 맞지 않음'); ok(opp.hp < 20, '마주 선 전투원이 맞음');
   ok(KEYWORD_HELP['보호'].includes('앞이 빈'), '설명 문구가 실제 동작과 같음');
 });
+t('튜토리얼 대본: 정해 둔 시작 패와 2·3턴 드로우가 지켜진다', () => {
+  const st = CAMPAIGN[0];
+  for (let k = 0; k < 30; k++) {
+    const me = new Player('me', st.playerDeck), ai = new Player('ai', st.enemy.deck, { isAI: true, hp: st.enemy.hp });
+    const want = st.openingHand.map(id => me.deck.find(c => c.id === id));
+    me.deck = me.deck.filter(c => !want.includes(c)).concat(want.reverse());
+    const g = new Game(me, ai); (st.start || []).forEach(x => g.placeStart(ai, x.lane, x.id));
+    g.mulligan(ai, []); g.mulligan(me, []); g.start();
+    eq(me.hand.map(c => c.id).sort().join(), st.openingHand.slice(0, RULES.START_HAND).sort().join(), '시작 패');
+    g.endTurn(); g.endTurn(); ok(me.hand.some(c => c.id === st.openingHand[4]), '2턴 드로우');
+    g.endTurn(); g.endTurn(); ok(me.hand.some(c => c.id === st.openingHand[5]), '3턴 드로우');
+  }
+});
 t('지원기 오라: 양옆 공격력 +1', () => { const { a } = fresh(D0, D1); const g = new Game(a, new Player('X', D1)); const s = makeUnit(CARDS['3P_Vanilla'], a); const u = makeUnit(CARDS['3P_Alice'], a); a.lanes = [u, s, null]; eq(g.effectiveAtk(u), CARDS['3P_Alice'].a + 1); });
 t('격파 효과 발동 (메탈 패러사이트)', () => { const { a, b, g } = fresh(D0, D1); const u = makeUnit(CARDS['IW_Parasite'], b); b.lanes[0] = u; const hp = a.hp; g.damageUnit(u, 10, null); eq(a.hp, hp - 2); });
 t('소환 효과 (철충 무리)', () => { const { a, b } = fresh(D0, D1); const p = new Player('I', CAMPAIGN[5].enemy.deck); const g2 = new Game(p, a); g2.start(); p.ap = 9; p.hand.push(CARDS['SK_IW_Swarm']); g2.play(CARDS['SK_IW_Swarm']); eq(p.units().length, 3); });

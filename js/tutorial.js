@@ -33,12 +33,13 @@ const Tutorial = {
   },
   release() { if (this._ready) { const r = this._ready; this._ready = null; r(); } },
   stop() { this.active = false; clearInterval(this.timer); const c = $('#coach'); c.classList.remove('show'); c.innerHTML = ''; this.release(); },
-  go(i) {
+  // triggered: 이 단계가 기다리던 신호(내 턴 시작 등)가 이미 왔다
+  go(i, triggered = false) {
     this.i = i;
     const st = TUTORIAL_STEPS[i];
     if (!st) { this.stop(); return; }
-    if (st.trigger) {
-      if (this.seen.has(st.trigger)) { this.seen.delete(st.trigger); this.waitingTrigger = false; this.render(); return; }
+    if (st.trigger && !triggered) {
+      if (this.seen.has(st.trigger)) { this.seen.delete(st.trigger); this.go(i, true); return; }
       this.waitingTrigger = true; this.hide(); this.release(); return;
     }
     this.waitingTrigger = false;
@@ -73,7 +74,7 @@ const Tutorial = {
   },
   on(evt, data) {
     const st = TUTORIAL_STEPS[this.i]; if (!st) return;
-    if (this.waitingTrigger) { if (st.trigger === evt) { this.waitingTrigger = false; this.render(); } return; }
+    if (this.waitingTrigger) { if (st.trigger === evt) { this.waitingTrigger = false; this.go(this.i, true); } return; }
     if (evt === 'myTurn') this.seen.add(evt);
     if (st.wait === evt && (!st.cond || st.cond(data))) this.go(this.i + 1);
     // 카드를 고르는 단계에서 바로 배치까지 끝낸 경우 다음 단계(배치 대기)도 함께 넘긴다

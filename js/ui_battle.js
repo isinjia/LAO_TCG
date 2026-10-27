@@ -123,9 +123,17 @@ function cmdHtml(side, p) {
     <div class="cm-fc"></div></div>`;
 }
 
+// 대국 시작 배너에 쓰는 모드 이름
+function modeLabel(cfg) {
+  if (cfg.mode === 'campaign') return CAMPAIGN[cfg.stageIdx].title;
+  if (cfg.mode === 'gauntlet') return `리그 순회전 ${cfg.gauntlet.idx + 1}/${cfg.gauntlet.total}`;
+  if (cfg.mode === 'draft') return `보급 원정 ${cfg.draft.idx + 1}/${cfg.draft.total}`;
+  if (cfg.mode === 'daily') return '오늘의 대국';
+  return '자유 대국';
+}
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
-  showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${cfg.mode === 'campaign' ? CAMPAIGN[cfg.stageIdx].title : '자유 대국'}`, 'mine');
+  showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);
   // 멀리건

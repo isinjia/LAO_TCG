@@ -130,6 +130,7 @@ class Game {
     const back = cards.filter((c, i) => p.hand.includes(c) && cards.indexOf(c) === i).slice(0, RULES.MULLIGAN_MAX ?? 3);
     back.forEach(c => p.hand.splice(p.hand.indexOf(c), 1));
     const n = back.length;
+    if (!n) return; // 교체하지 않으면 덱 순서를 건드리지 않는다 (튜토리얼처럼 정해 둔 드로우 순서를 지킨다)
     // 돌려놓은 카드가 바로 다시 나오지 않도록, 남은 덱에서 먼저 뽑는다
     shuffle(p.deck, () => this.random());
     for (let i = 0; i < n; i++) p.hand.push(p.deck.pop());

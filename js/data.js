@@ -66,7 +66,7 @@ const UNITS = [
   { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
-  { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: [] },
+  { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 3, kw: [] },
   { id: '3P_Maria', n: '마리아', f: '3P', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 2, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '전개: 내 라이프 1 회복.' },
 
   // ---------- PECS ----------
@@ -78,9 +78,9 @@ const UNITS = [
   { id: 'PECS_HighElven', n: '하이엘븐', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 5, a: 6, h: 4, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '공격 후: 무작위 적 유닛에게 1 피해.' },
   { id: 'PECS_DarkElf', n: '다크 엘프', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 5, h: 3, kw: ['회피'], strike: [{ op: 'slow', tgt: 'oppUnit' }], text: '공격 후: 마주한 적 유닛 둔화.' },
   { id: 'PECS_Lumberjane', n: '럼버 제인', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: ['반격'], strike: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '공격 후: 마주한 적 유닛 공격력 -1.' },
-  { id: 'PECS_Sekhmet', n: '세크메트', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 3, h: 9, kw: ['재생:2'], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
+  { id: 'PECS_Sekhmet', n: '세크메트', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 5, a: 3, h: 10, kw: ['재생:2'], deploy: [{ op: 'healAll', v: 2 }], text: '전개: 모든 아군 유닛 2 회복.' },
   { id: 'PECS_Spartoia', n: '스파르토이아', f: 'PECS', t: 'H', r: 'DEF', g: 'S', c: 4, a: 3, h: 8, kw: ['방어막:3'] },
-  { id: 'PECS_Triaina', n: '트리아이나', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
+  { id: 'PECS_Triaina', n: '트리아이나', f: 'PECS', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 6, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 3 }], text: '전개: 내 라이프 3 회복.' },
   { id: 'PECS_Draculina', n: '드라큘리나', f: 'PECS', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: ['재생:2'] },
   { id: 'PECS_Orangeade', n: '오렌지에이드', f: 'PECS', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 5, kw: [], deploy: [{ op: 'draw', v: 1 }, { op: 'buff', tgt: 'adjAllies', a: 1, h: 0 }], text: '전개: 카드 1장 드로우, 양옆 아군 공격력 +1.' },
   { id: 'PECS_Hestia', n: '헤스티아', f: 'PECS', t: 'M', r: 'DEF', g: 'A', c: 3, a: 2, h: 7, kw: ['재생:1'], strike: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '공격 후: 내 라이프 1 회복.' },
@@ -224,7 +224,7 @@ const SKILLS = [
   { id: 'SK_BR_Airstrike', icon: 'AirStrike', art: 'BR_Hraesvelgr', n: '공중 폭격', f: 'BR', g: 'S', c: 5, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }, { op: 'dmg', tgt: 'enemyCmd', v: 2 }], text: '모든 적 유닛과 상대 라이프에 2 피해.' },
   { id: 'SK_BR_Rush', icon: 'AssaultAttack', art: 'BR_HongRyun', n: '총공세', f: 'BR', g: 'A', c: 2, fx: [{ op: 'buffAll', a: 1, h: 0 }], text: '모든 아군 유닛 공격력 +1.' },
   { id: 'SK_DS_Mark', icon: 'EnemyDetect', art: 'DS_Ramiel', n: '표적 지정', f: 'DS', g: 'B', c: 1, fx: [{ op: 'slow', tgt: 'pickEnemyUnit' }, { op: 'debuff', tgt: 'pickEnemyUnit', a: 1 }], text: '적 유닛 하나를 둔화시키고 공격력 -1.' },
-  { id: 'SK_DS_Ambush', icon: 'Shock', art: 'DS_Atalanta', n: '기습', f: 'DS', g: 'A', c: 4, fx: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 3 }, { op: 'dmg', tgt: 'randomEnemyUnit', v: 2 }], text: '무작위 적 유닛에게 3 피해, 다시 무작위 적 유닛에게 2 피해.' },
+  { id: 'SK_DS_Ambush', icon: 'Shock', art: 'DS_Atalanta', n: '기습', f: 'DS', g: 'A', c: 4, fx: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 3 }, { op: 'dmg', tgt: 'randomEnemyUnit', v: 1 }], text: '무작위 적 유닛에게 3 피해, 다시 무작위 적 유닛에게 1 피해.' },
   { id: 'SK_AGS_Reinforce', icon: 'SetTurret', art: 'AGS_SpartanA', n: '긴급 증원', f: 'AGS', g: 'A', c: 3, fx: [{ op: 'summon', card: 'TK_Spartan' }], text: '비어 있는 모든 아군 레인에 스파르탄 증원기(1/4 중장 보호기)를 소환.' },
   { id: 'SK_AGS_EMP', icon: 'WideLightning', art: 'AGS_Arachne', n: 'EMP 충격파', f: 'AGS', g: 'B', c: 2, fx: [{ op: 'slow', tgt: 'allEnemyUnits' }], text: '모든 적 유닛 둔화.' },
   { id: 'SK_IW_Swarm', icon: 'Vortex', art: 'IW_NightChick', n: '철충 무리', f: 'IW', g: 'A', c: 3, enemy: true, fx: [{ op: 'summon', card: 'TK_NightChick' }], text: '비어 있는 모든 아군 레인에 나이트 칙 유충(1/1)을 소환.' },
@@ -233,7 +233,7 @@ const SKILLS = [
   // 외전 보상 카드
   { id: 'SK_3P_Redeploy', icon: 'Haze', art: '3P_Vanilla', n: '긴급 재배치', f: '3P', g: 'A', c: 3, fx: [{ op: 'shield', tgt: 'pickAllyUnit', v: 3 }, { op: 'evade', tgt: 'pickAllyUnit' }], text: '아군 유닛 하나에게 방어막 3과 회피 부여.' },
   { id: 'SK_AGS_Bulwark', icon: 'ShieldWall', art: 'AGS_Goltarion', n: '강철 장벽', f: 'AGS', g: 'S', c: 4, fx: [{ op: 'shield', tgt: 'allAllies', v: 3 }, { op: 'healAll', v: 2 }], text: '모든 아군 유닛에게 방어막 3, 체력 2 회복.' },
-  { id: 'SK_DS_Flash', icon: 'SwordAttk', art: 'DS_Azazel', n: '그림자 일섬', f: 'DS', g: 'A', c: 3, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 3 }], text: '적 유닛 하나에게 3 피해.' },
+  { id: 'SK_DS_Flash', icon: 'SwordAttk', art: 'DS_Azazel', n: '그림자 일섬', f: 'DS', g: 'A', c: 4, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 3 }], text: '적 유닛 하나에게 3 피해.' },
   { id: 'SK_PECS_Omega', icon: 'WideLightning', art: 'PECS_LemonadeAlpha', n: '오메가 프로토콜', f: 'PECS', g: 'SS', c: 6, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }, { op: 'dmg', tgt: 'enemyCmd', v: 3 }], text: '모든 적 유닛에게 2 피해, 상대 라이프에 3 피해.' },
 ];
 
