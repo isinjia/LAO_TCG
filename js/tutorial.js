@@ -63,7 +63,7 @@ const Tutorial = {
     // 「다음」과 붙어 있어 잘못 누르기 쉬우므로 한 번 더 묻는다
     $('[data-a=skip]', c).onclick = async () => {
       c.classList.add('under-modal');
-      if (!await confirmBox('튜토리얼 끄기', '안내를 끄고 남은 대국을 직접 진행할까요? 스토리 지도의 「첫 카드 수업」에서 언제든 다시 할 수 있습니다.', '끄기')) return;
+      if (!await confirmBox('튜토리얼 끄기', '안내를 끄고 남은 배틀을 직접 진행할까요? 스토리 지도의 「첫 카드 수업」에서 언제든 다시 할 수 있습니다.', '끄기')) return;
       this.stop(); toast('튜토리얼을 껐습니다. 오른쪽 위 ? 버튼으로 규칙을 볼 수 있어요.');
     };
     this.place();
@@ -123,7 +123,7 @@ function tutAllowsEndTurn() {
 }
 
 // ===== 실전 규칙 안내 =====
-// 튜토리얼에서 다루지 않은 규칙을, 실제 대국에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
+// 튜토리얼에서 다루지 않은 규칙을, 실제 배틀에서 그 상황이 처음 생겼을 때 한 번씩 알려 준다 (내 턴 시작 시 하나씩)
 const LESSONS = [
   { id: 'command', when: b => b.me.ap >= RULES.COMMAND.cost && !b.me.hand.some(c => b.me.canAfford(c) && c.c >= RULES.COMMAND.cost), spot: '#cmd-me .hero-skill',
     text: () => `내 초상화 왼쪽 아이콘이 특성 스킬 <b>포격 지원</b>이야. 지휘관마다 특성 스킬이 다르단다. 포격 지원은 턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 적 전투원 하나나 상대 라이프에 <b>${RULES.COMMAND.dmg} 피해</b>를 준단다. 카드를 다 내고 AP가 남을 때 쓰렴.` },

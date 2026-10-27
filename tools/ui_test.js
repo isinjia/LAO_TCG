@@ -67,7 +67,7 @@ async function main() {
     for (const [k, v] of Object.entries(r)) if (!v) throw new Error(k + ' 화면이 비어 있음');
   });
 
-  await t('리그 순회전: 승리하면 다음 대국, 패배하면 종료', async () => {
+  await t('리그 순회전: 승리하면 다음 배틀, 패배하면 종료', async () => {
     const r = await ev(`Store.clearBattle(); Store.data.gauntlet = { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 };
       Gauntlet.start('preset:0'); for (let i = 0; i < 80 && !(B && B.game && B.game.phase !== 'mulligan'); i++) { const ok = [...document.querySelectorAll('.modal button')].find(b => /확인/.test(b.textContent)); if (ok) ok.click(); await new Promise(r => setTimeout(r, 100)); }
       B.game.damageCmd(B.ai, 99); await finishBattle(false);
@@ -77,7 +77,7 @@ async function main() {
       const out = { ...afterWin, hp, ended: Store.data.gauntlet.run === null, best: Store.data.gauntlet.best, modals: document.querySelectorAll('#modal-root .modal').length };
       while (topModal()) closeModal(topModal()); B = null; await showScreen('lobby', { instant: true }); return out;`);
     if (r.modals !== 1) throw new Error('결과 화면 밑에 다른 창이 남음 ' + JSON.stringify(r));
-    if (r.idx !== 1 || !r.next) throw new Error('승리 후 다음 대국으로 넘어가지 않음 ' + JSON.stringify(r));
+    if (r.idx !== 1 || !r.next) throw new Error('승리 후 다음 배틀로 넘어가지 않음 ' + JSON.stringify(r));
     if (!r.ended || r.best !== 1) throw new Error('패배 후 순회전이 끝나지 않음 ' + JSON.stringify(r));
   });
 
@@ -123,7 +123,7 @@ async function main() {
     if (!cleared) throw new Error('결과 후 저장이 남아 있음');
   });
 
-  await t('진행 중 대국을 버리고 새로 시작하면 패배로 기록', async () => {
+  await t('진행 중 배틀을 버리고 새로 시작하면 패배로 기록', async () => {
     const r = await ev(`while (topModal()) closeModal(topModal()); B = null; Store.clearBattle();
       startBattle({ mode: 'quick', myDeck: PRESET_DECKS[0].cards, myDeckName: 't', enemy: { name: 'Z', deck: PRESET_DECKS[1].cards, level: 'normal', portrait: 'BR_Phoenix', hp: 25 }, first: 'me', bg: 'board', bgm: 'battle1' });
       await uiBot(60000, 2); const saved = !!Store.loadBattle(); const l0 = Store.data.record.l;

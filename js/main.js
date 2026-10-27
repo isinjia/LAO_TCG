@@ -1,6 +1,7 @@
 // ===== 부트스트랩 =====
 window.addEventListener('DOMContentLoaded', async () => {
   Store.load();
+  Pvp.settlePending(); // 끝내지 않고 나간 대전은 패배로 처리한다
   // 다른 탭에서 저장이 바뀌면 이 탭의 오래된 데이터로 덮어쓰지 않도록 다시 불러온다
   window.addEventListener('storage', e => {
     if (e.key !== STORE_KEY || e.newValue === null) return;

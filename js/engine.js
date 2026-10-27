@@ -4,12 +4,22 @@
 let _uid = 1;
 function uid() { return _uid++; }
 
-// rnd: 0 이상 1 미만 난수 함수. 대국 중에는 game.random을 넘겨 저장·복원 뒤에도 같은 결과가 나오게 한다
+// rnd: 0 이상 1 미만 난수 함수. 배틀 중에는 game.random을 넘겨 저장·복원 뒤에도 같은 결과가 나오게 한다
 // 받침에 맞춰 조사를 고른다: josa('하치코', '이', '가') → '하치코가' (숫자·영문 끝은 받침 없음으로 본다)
 function josa(word, withBatchim, without) {
   const c = String(word).charCodeAt(String(word).length - 1);
   const has = c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0;
   return word + (has ? withBatchim : without);
+}
+// 시드를 정한 난수 함수 (mulberry32). 대전 모드에서 두 기기가 같은 덱 순서를 만들 때 쓴다
+function seedRng(seed) {
+  let s = seed >>> 0;
+  return () => {
+    let t = (s = (s + 0x6D2B79F5) >>> 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 function shuffle(arr, rnd = Math.random) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -46,7 +56,7 @@ function makeUnit(card, owner) {
 function newStats() { return { dmgCmd: 0, dmgUnits: 0, kills: 0, unitsPlayed: 0, skillsUsed: 0, healed: 0, cardDmg: {} }; }
 
 class Player {
-  // opts: { hp, isAI, portrait }
+  // opts: { hp, isAI, portrait, rnd(덱 섞기 난수: 대전 모드에서 두 기기가 같은 순서를 쓰도록) }
   constructor(name, deckIds, opts = {}) {
     this.name = name;
     this.isAI = !!opts.isAI;
@@ -55,7 +65,7 @@ class Player {
     this.maxHp = opts.hp || RULES.CMD_HP;
     this.hp = this.maxHp;
     this.deckIds = deckIds.slice();
-    this.deck = shuffle(deckIds.map(id => CARDS[id]));
+    this.deck = shuffle(deckIds.map(id => CARDS[id]), opts.rnd);
     this.grave = [];
     this.hand = [];
     this.lanes = [null, null, null];
@@ -98,7 +108,7 @@ class Game {
     this.events = [];
     this.logs = [];
     this.winner = null;
-    this.seed = Math.floor(Math.random() * 4294967296); // 대국 난수 상태 (저장에 포함되어 새로고침으로 무작위 결과를 다시 굴릴 수 없다)
+    this.seed = opts.seed ?? Math.floor(Math.random() * 4294967296); // 배틀 난수 상태 (대전 모드는 두 기기가 같은 시드를 쓴다) (저장에 포함되어 새로고침으로 무작위 결과를 다시 굴릴 수 없다)
     this.quiet = false;      // 로그 생략 (AI 시뮬레이션용)
     this.noEvents = false;   // 이벤트 생략 (AI 시뮬레이션용)
     // 양쪽 모두 같은 장수로 시작한다. 후공 보정 카드는 교체가 끝난 뒤 start()에서 준다.
@@ -119,7 +129,7 @@ class Game {
   log(msg, kind) { if (this.quiet) return; this.logs.push({ msg, kind: kind || '' }); this.emit({ type: 'log', msg, kind: kind || '' }); }
   emit(ev) { if (!this.noEvents) this.events.push(ev); }
   round() { return Math.ceil(this.turn / 2); }
-  // 대국 전용 난수 (mulberry32)
+  // 배틀 전용 난수 (mulberry32)
   random() {
     let t = (this.seed = (this.seed + 0x6D2B79F5) >>> 0);
     t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -417,7 +427,7 @@ class Game {
 
   damageCmd(p, dmg, src) {
     if (this.phase === 'over') return;
-    if (p.minHp) dmg = Math.min(dmg, Math.max(0, p.hp - p.minHp)); // 튜토리얼: 라이프가 minHp 아래로 내려가지 않는다 (지지 않는 첫 대국)
+    if (p.minHp) dmg = Math.min(dmg, Math.max(0, p.hp - p.minHp)); // 튜토리얼: 라이프가 minHp 아래로 내려가지 않는다 (지지 않는 첫 배틀)
     const dealt = Math.min(dmg, Math.max(0, p.hp)); // 통계는 실제로 깎인 라이프만 센다 (넘친 피해 제외)
     p.hp -= dmg;
     const o = this.other(p);
@@ -543,7 +553,7 @@ class Game {
 
   // 지정 플레이어가 지금 전투를 치르면 어떻게 되는지 예측 (UI 표시용)
   // 반환: { hits: [{ fromUid, toUid | 'cmd', v, evaded }], cmdDmg(시간 초과 피해 포함), overtime, lethal, deadUids:Set }
-  // blind: 화면 예측용. 실제 대국과 다른 난수로 돌려 무작위 대상이 미리 드러나지 않게 한다 (무작위 피해는 rnd 표시)
+  // blind: 화면 예측용. 실제 배틀과 다른 난수로 돌려 무작위 대상이 미리 드러나지 않게 한다 (무작위 피해는 rnd 표시)
   forecast(player, blind) {
     const g = this.clone();
     if (blind) g.seed = (g.seed ^ 0x5BD1E995) >>> 0;

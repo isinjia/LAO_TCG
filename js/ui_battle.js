@@ -8,7 +8,7 @@ const ROLE_SFX = { L: 'rifle', M: 'shot', H: 'cannon' };
 const FX_COLOR = { dmg: '#ff7a5a', heal: '#6bff88', shield: '#8fd4ff', buff: '#ffe08a', debuff: '#c08aff', slow: '#9fd8ff' };
 
 // ---------- 시작 ----------
-// 이어하지 않고 버린 대국은 패배로 기록한다 (순회전은 그 자리에서 끝난다). 새로고침으로 불리한 대국을 피하는 것을 막는다.
+// 이어하지 않고 버린 배틀은 패배로 기록한다 (순회전은 그 자리에서 끝난다). 새로고침으로 불리한 배틀을 피하는 것을 막는다.
 function abandonSavedBattle() {
   const snap = Store.loadBattle(); if (!snap) return false;
   Store.clearBattle();
@@ -19,18 +19,19 @@ function abandonSavedBattle() {
   toast(`이어하지 않은 ${snap.cfg.enemy.name} 전은 패배로 기록되었습니다.`, true);
   return true;
 }
-// 진행 중인 대국이 저장돼 있으면 새로 시작하기 전에 확인한다
+// 진행 중인 배틀이 저장돼 있으면 새로 시작하기 전에 확인한다
 async function confirmAbandon() {
   const snap = Store.loadBattle(); if (!snap) return true;
-  return confirmBox('진행 중인 대국', `${snap.cfg.enemy.name} 전이 아직 끝나지 않았습니다. 새 대국을 시작하면 그 대국은 패배로 기록됩니다.`, '패배 처리하고 시작', true);
+  return confirmBox('진행 중인 배틀', `${snap.cfg.enemy.name} 전이 아직 끝나지 않았습니다. 새 배틀을 시작하면 그 배틀은 패배로 기록됩니다.`, '패배 처리하고 시작', true);
 }
 
 function startBattle(cfg) {
   abandonSavedBattle(); // 새 전투를 시작하면 이전 진행 기록은 패배로 정리한다
   const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
-  if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 대국: 깎인 라이프로 시작
+  if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 배틀: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
+  if (cfg.enemy.face) ai.face = cfg.enemy.face; // 대전 모드: 초상은 보여 주기만 하고 특성 스킬은 기본(포격 지원)
   if (cfg.tutorial) { ai.noHpBonus = true; ai.noSynergy = true; } // 튜토리얼 상대는 지도에 적힌 라이프 그대로, 결속(방어막)도 없이 짧게
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
@@ -57,7 +58,8 @@ function resumeBattle(snap) {
 function saveBattleSnapshot() {
   // 교체 단계도 저장한다 (첫 손패를 본 뒤 새로고침으로 다시 굴리지 못하게)
   // 승패가 정해진 상태도 저장한다: 결과 연출 중에 새로고침하면 그 결과로 바로 마무리한다 (마지막 턴 되감기 방지)
-  if (!B || B.cfg.tutorial || B.over || B.game.phase === 'combat') return;
+  // 대전 모드는 이어하기가 없다 (도중에 나가면 다음 실행 때 패배로 처리한다)
+  if (!B || B.cfg.tutorial || B.cfg.mode === 'pvp' || B.over || B.game.phase === 'combat') return;
   const { game, me } = B;
   Store.saveBattle({ game: serializeGame(game), cfg: B.cfg, meIdx: game.players.indexOf(me), meFirst: B.meFirst, round: game.round(), savedAt: Date.now() });
 }
@@ -113,7 +115,7 @@ screenHooks.battle = async el => {
 };
 
 function cmdHtml(side, p) {
-  const portrait = p.portrait ? artOf(CARDS[p.portrait]) : '';
+  const face = p.face || p.portrait, portrait = face ? artOf(CARDS[face]) : '';
   const sk = heroSkillOf(p);
   return `<div class="cmd hero ${side}" id="cmd-${side}">
     <div class="hero-frame"><div class="cm-portrait" style="background-image:url('${portrait}')"></div></div>
@@ -134,20 +136,21 @@ function lossHint(cfg, game, me) {
   if (st === 'control') return '제어형 상대예요. 관통 전투원과 포격 지원으로 라이프를 직접 노려 봐요.';
   return '아깝다! 상성이 유리한 레인을 고르고, 같은 제작사 2기로 결속을 켜 봐요.';
 }
-// 대국 시작 배너에 쓰는 모드 이름
+// 배틀 시작 배너에 쓰는 모드 이름
 function modeLabel(cfg) {
   if (cfg.mode === 'campaign') return CAMPAIGN[cfg.stageIdx].title;
   if (cfg.mode === 'gauntlet') return `리그 순회전 ${cfg.gauntlet.idx + 1}/${cfg.gauntlet.total}`;
   if (cfg.mode === 'draft') return `보급 원정 ${cfg.draft.idx + 1}/${cfg.draft.total}`;
-  if (cfg.mode === 'daily') return '오늘의 대국';
-  return '자유 대국';
+  if (cfg.mode === 'daily') return '오늘의 배틀';
+  if (cfg.mode === 'pvp') return `대전 모드 · ${PVP.TIERS[Pvp.tierOf(Pvp.d.mmr)].name}`;
+  return '자유 모드';
 }
 // 선공·후공 결정 연출: 양쪽 얼굴이 새겨진 동전을 던져 위로 나온 쪽이 선공
-// 무작위가 아닌 대국(스테이지 규칙·직접 지정)은 돌리지 않고 정해진 면만 보여 준다
+// 무작위가 아닌 배틀(스테이지 규칙·직접 지정)은 돌리지 않고 정해진 면만 보여 준다
 async function coinToss() {
   const myB = B; const { me, ai, cfg, meFirst } = B;
   const spin = cfg.first === 'random' && !REDUCE_MOTION;
-  const face = (p, side) => `<div class="ct-face ${side}"><div class="ct-portrait" style="background-image:url('${p.portrait ? artOf(CARDS[p.portrait]) : ''}')"></div></div>`;
+  const face = (p, side) => `<div class="ct-face ${side}"><div class="ct-portrait" style="background-image:url('${p.face || p.portrait ? artOf(CARDS[p.face || p.portrait]) : ''}')"></div></div>`;
   const el = h(`<div class="coin-toss"><div class="ct-title">${spin ? '선공 결정' : '선공 지정'}</div>
     <div class="ct-glow"><div class="ct-coin">${face(me, 'mine')}${face(ai, 'theirs')}</div></div>
     <div class="ct-result"></div></div>`);
@@ -180,11 +183,11 @@ async function coinToss() {
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
   if (!cfg.tutorial) { await coinToss(); alive(myB); }
-  showBanner('대국 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
+  showBanner('배틀 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);
   // 멀리건
-  game.mulligan(ai, AI.pickMulligan(ai, cfg.enemy.level));
+  if (!B.net) game.mulligan(ai, AI.pickMulligan(ai, cfg.enemy.level)); // 대전 상대는 자기 기기에서 고른다 (교체 창에서 주고받음)
   saveBattleSnapshot();
   if (!cfg.tutorial) { await mulliganPrompt(); alive(myB); }
   else game.mulligan(me, []);
@@ -228,9 +231,10 @@ function mulliganPrompt() {
     $('[data-a=ok]', box).onclick = async () => {
       if (done) return; done = true;
       const myB = B, before = new Set(me.hand);
-      game.mulligan(me, [...marked]);
       Audio2.play('click');
       $('.modal-actions', box).style.visibility = 'hidden';
+      if (B.net) { $('p', box).textContent = '상대 지휘관이 시작 패를 고르는 중입니다…'; await pvpMulligan([...marked]); if (B !== myB) return; }
+      else game.mulligan(me, [...marked]);
       try {
         const fresh = me.hand.filter(c => !before.has(c));
         if (fresh.length) await mulliganReveal(box, row, fresh);
@@ -295,6 +299,7 @@ async function onTurnBegin() {
   const { game, me } = B;
   if (game.phase === 'over') return finishBattle();
   renderAll();
+  pvpTurnClock();
   if (game.cur === me) {
     B.busy = false;
     renderAll(true);
@@ -304,6 +309,8 @@ async function onTurnBegin() {
     if (Lessons.cur) Lessons.close();
     Lessons.check(B);
     if (!Lessons.cur) showTacticalTip();
+  } else if (B.net) {
+    await pvpRemoteTurn();
   } else {
     await aiTurn();
   }
@@ -319,6 +326,7 @@ async function endMyTurn() {
   tut('turnEnded');
   setPhaseLabel('전투 중…');
   game.endTurn();
+  pvpSend({ k: 'end', d: pvpDigest(game) });
   saveBattleSnapshot(); // 전투는 이미 확정되었으므로 바로 저장 (새로고침 시 되감기 방지)
   await processEvents(); alive(myB);
   B.busy = false;
@@ -377,7 +385,7 @@ function bindBattleInputs(el) {
   };
   $('[data-a=surrender]', el).onclick = async () => {
     if (B.over) return;
-    if (await confirmBox('항복', '대국을 포기하고 패배 처리할까요?', '항복', true)) { B.over = true; B.game.phase = 'over'; B.game.winner = B.ai; finishBattle(true); }
+    if (await confirmBox('항복', '배틀을 포기하고 패배 처리할까요?', '항복', true)) { if (B.over) return; pvpSend({ k: 'bye' }); B.over = true; B.game.phase = 'over'; B.game.winner = B.ai; finishBattle(true); }
   };
   $$('[data-pile]', el).forEach(p => p.onclick = () => showPile(p.dataset.pile));
 }
@@ -426,7 +434,9 @@ function startMove(u) {
 async function doMove(u, lane) {
   const myB = B;
   clearSelection();
+  const from = B.me.lanes.indexOf(u);
   if (!B.game.move(u, lane)) return;
+  pvpSend({ k: 'move', from, lane });
   saveBattleSnapshot();
   B.busy = true; renderAll();
   await processEvents(); alive(myB);
@@ -536,7 +546,8 @@ async function playSelected(lane, target, fromRect) {
     await revealCard(card, true);
   }
   alive(myB);
-  if (isCmd) game.command(target); else game.play(card, lane, target);
+  const hi = game.cur.hand.indexOf(card), sent = pvpEncTarget(target); // (대상 표시는 행동 전에: 처치되면 레인을 잃는다)
+  if (isCmd ? game.command(target) : game.play(card, lane, target)) pvpSend(isCmd ? { k: 'cmd', t: sent } : { k: 'play', h: hi, lane, t: sent });
   saveBattleSnapshot(); // 연출 전에 바로 저장한다 (연출 중 새로고침으로 수를 무르거나 다음 드로우를 엿보지 못하게)
   Audio2.play(card.kind === 'unit' ? 'place' : 'energy');
   await processEvents(); alive(myB);
@@ -1137,6 +1148,8 @@ async function finishBattle(surrendered) {
   $$('#modal-root .modal').forEach(m => closeModal(m));
   const { game, me, cfg } = B;
   const win = game.winner === me;
+  clearInterval(B.clock);
+  if (B.net) { const net = B.net; clearInterval(net.beat); setTimeout(() => net.close(), 3000); } // (마지막 알림이 건너갈 틈을 두고 닫는다)
   // 전적 (결과를 먼저 저장하고 나서 진행 중 전투 기록을 지운다. 그 사이에 새로고침해도 패배가 빠지지 않게)
   const rec = Store.data.record;
   if (win) { rec.w++; rec.streak++; } else { rec.l++; rec.streak = 0; }
@@ -1155,7 +1168,7 @@ async function finishBattle(surrendered) {
     got = Store.grantRewards(stage.id, win);
   }
   Store.save();
-  const ch = recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp });
+  const ch = recordChallengeResult({ win, surrendered, game, me, cfg, campaignBp, reason: B.endReason });
   Store.clearBattle();
   await sleepRaw(700); alive(myB);
   if (win) Audio2.play('win'); else { Audio2.play('boom', 0.7); vibrate([120, 60, 220]); }
@@ -1167,7 +1180,7 @@ async function finishBattle(surrendered) {
     <div class="rs-art">${win ? '' : '<!-- 패배 화면에는 수훈 표시를 하지 않는다 -->'}<div class="mvp" ${win ? '' : 'style="display:none"'}>MVP<small>${esc(mvp.n)}${dmg.length ? ` — 피해 ${dmg[0][1]}` : ''}</small></div><img src="${fullOf(mvp.kind === 'unit' ? mvp : CARDS[mvp.art] || mvp)}" alt=""></div>
     <div class="rs-body">
       <h2 class="${win ? 'win' : 'lose'}">${win ? '승리' : '패배'}</h2>
-      <div class="rs-sub">${surrendered ? '대국을 포기했습니다.' : win ? `${esc(B.ai.name)}에게 승리했습니다!` : esc(lossHint(cfg, game, me))}</div>
+      <div class="rs-sub">${surrendered ? '배틀을 포기했습니다.' : B.endReason === 'surrender' ? `${esc(josa(B.ai.name, '이', '가'))} 항복했습니다.` : B.endReason === 'disconnect' ? (win ? '상대의 연결이 끊겨 승리했습니다.' : '연결이 끊겨 패배했습니다.') : win ? `${esc(B.ai.name)}에게 승리했습니다!` : esc(lossHint(cfg, game, me))}</div>
       ${stage && !win && stage.lose ? `<div class="rs-lose"><b>${esc(CARDS[stage.lose.who].n)}</b>“${esc(stage.lose.text)}”</div>` : ''}
       <div class="rs-stats">
         <div><span>라운드</span><b>${game.round()}</b></div>
@@ -1186,8 +1199,9 @@ async function finishBattle(surrendered) {
       <div class="modal-actions" style="margin-top:auto">
         <button class="btn" data-a="lobby">로비</button>
         ${cfg.mode === 'campaign' ? `${got.cards.length ? '<button class="btn" data-a="deck">덱 편성</button>' : '<button class="btn" data-a="retry">재도전</button>'}<button class="btn primary" data-a="camp">스토리로</button>`
-          : cfg.mode === 'gauntlet' ? (Store.data.gauntlet.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="gnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
-          : cfg.mode === 'draft' ? (Store.data.draft.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="dnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
+          : cfg.mode === 'gauntlet' ? (Store.data.gauntlet.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="gnext">다음 배틀</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
+          : cfg.mode === 'draft' ? (Store.data.draft.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="dnext">다음 배틀</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
+          : cfg.mode === 'pvp' ? '<button class="btn" data-a="pvpscr">대전 모드로</button><button class="btn primary" data-a="pvpagain">다시 찾기</button>'
           : cfg.mode === 'daily' ? '<button class="btn" data-a="retry">다시 도전</button><button class="btn primary" data-a="chal">도전 모드로</button>'
           : '<button class="btn" data-a="deck">덱 편성</button><button class="btn primary" data-a="retry">다시 하기</button>'}
       </div>
@@ -1214,6 +1228,8 @@ async function finishBattle(surrendered) {
   const chal = $('[data-a=chal]', box); if (chal) chal.onclick = () => leave('challenge');
   const gnext = $('[data-a=gnext]', box); if (gnext) gnext.onclick = () => { closeModal(m); B = null; Gauntlet.play(); };
   const dnext = $('[data-a=dnext]', box); if (dnext) dnext.onclick = () => { closeModal(m); B = null; Draft.play(); };
+  const pvpscr = $('[data-a=pvpscr]', box); if (pvpscr) pvpscr.onclick = () => leave('pvp');
+  const pvpagain = $('[data-a=pvpagain]', box); if (pvpagain) pvpagain.onclick = () => { closeModal(m); B = null; showScreen('pvp', { instant: true }).then(() => pvpSearch(pvpState.deck)); };
   const retry = $('[data-a=retry]', box); if (retry) retry.onclick = () => { closeModal(m); const c = B.cfg; B = null; startBattle(c); };
 }
 
@@ -1231,7 +1247,7 @@ function checkBark() {
   // 역전: 한때 라이프가 5 이상 뒤졌다가 앞서게 되면 콘스탄챠가 한마디 (스테이지에 comeback 대사가 있으면 그것을)
   else if (B.behind && !B.barked.comeback && me.hp > ai.hp && ai.hp > 0) { B.barked.comeback = true; showBark(mid.comeback || { who: '3P_ConstantiaS2', text: '흐름이 바뀌었구나! 이대로 몰아붙이렴, 오렌지에이드.' }); }
 }
-// SS 전투원 등장 때의 한마디 (대국마다 내 쪽·상대 쪽 한 번씩)
+// SS 전투원 등장 때의 한마디 (배틀마다 내 쪽·상대 쪽 한 번씩)
 function ssBark(unit) {
   if (!B || B.cfg.mode !== 'campaign' || unit.card.g !== 'SS') return;
   B.barked = B.barked || {};

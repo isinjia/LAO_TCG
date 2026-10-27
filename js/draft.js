@@ -1,5 +1,5 @@
 // ===== 보급 원정 (드래프트) 규칙 =====
-// 제작사 두 곳을 고른 뒤, 세 장 중 한 장씩 12번 골라 덱을 만들고 연달아 대국한다.
+// 제작사 두 곳을 고른 뒤, 세 장 중 한 장씩 12번 골라 덱을 만들고 연달아 배틀한다.
 // 화면과 상관없는 부분만 두어 시뮬레이션(tools/draft_sim.js)에서도 같은 규칙을 쓴다.
 const DRAFT = {
   // 다섯 번 이기면 돌파, 세 번 지면 끝. 보통 AI 플레이어가 드래프트하면 돌파율 약 18%, 평균 2.8승
@@ -43,7 +43,7 @@ function draftOffer(factions, picks, rnd) {
   return offer.map(c => c.id);
 }
 
-// 대국 상대 다섯 명: 뒤로 갈수록 스토리 후반 상대가 나오도록 고른다
+// 배틀 상대 다섯 명: 뒤로 갈수록 스토리 후반 상대가 나오도록 고른다
 function draftOpponents(rnd) {
   const story = CAMPAIGN.filter(s => !s.tutorial && s.chapter !== 'ex');
   // 단계는 실측 승률 순서로 묶었다 (s7 알파 덱은 보통 인공지능일 때 s5·s6보다 쉽다)

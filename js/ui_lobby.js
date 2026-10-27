@@ -92,9 +92,10 @@ screenHooks.lobby = el => {
     </div>
     <div class="lobby-menu${Store.loadBattle() ? ' many' : ''}">
       ${Store.loadBattle() ? `<div class="menu-item main resume" data-go="resume"><div class="mi-icon">▶</div><div><div class="mi-title">전투 이어하기</div><div class="mi-sub">${esc(Store.loadBattle().cfg.enemy.name)} 전 · ${Store.loadBattle().round ? `라운드 ${Store.loadBattle().round}` : "시작 패 교체 중"}</div></div></div>` : ''}
-      <div class="menu-item ${Store.loadBattle() ? '' : 'main'}" data-go="campaign"><div class="mi-icon">⚔</div><div><div class="mi-title">스토리</div><div class="mi-sub">${nextIdx >= 0 ? `다음 대국: ${esc(CAMPAIGN[nextIdx].no)}. ${esc(CAMPAIGN[nextIdx].title)}` : '오르카 카드 마스터 달성!'}</div></div><div class="mi-badge">★ ${stars}/${maxStars}</div></div>
-      <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="challenge"><div class="mi-icon">🏆</div><div><div class="mi-title">도전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `리그 순회전 · 오늘의 대국 · 업적 ${Ach.count()}/${ACHIEVEMENTS.length}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div>${Store.data.tutorialDone && !Daily.doneToday() ? '<div class="mi-badge">NEW</div>' : ''}</div>
-      <div class="menu-item" data-go="setup"><div class="mi-icon">⚡</div><div><div class="mi-title">자유 대국</div><div class="mi-sub">원하는 덱으로 AI와 1:1 대국</div></div></div>
+      <div class="menu-item ${Store.loadBattle() ? '' : 'main'}" data-go="campaign"><div class="mi-icon">⚔</div><div><div class="mi-title">스토리</div><div class="mi-sub">${nextIdx >= 0 ? `다음 배틀: ${esc(CAMPAIGN[nextIdx].no)}. ${esc(CAMPAIGN[nextIdx].title)}` : '오르카 카드 마스터 달성!'}</div></div><div class="mi-badge">★ ${stars}/${maxStars}</div></div>
+      <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="challenge"><div class="mi-icon">🏆</div><div><div class="mi-title">도전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `리그 순회전 · 오늘의 배틀 · 업적 ${Ach.count()}/${ACHIEVEMENTS.length}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div>${Store.data.tutorialDone && !Daily.doneToday() ? '<div class="mi-badge">NEW</div>' : ''}</div>
+      <div class="menu-item ${Store.data.tutorialDone ? '' : 'locked'}" data-go="pvp"><div class="mi-icon">⚑</div><div><div class="mi-title">대전 모드</div><div class="mi-sub">${Store.data.tutorialDone ? `다른 지휘관과 1:1 · ${PVP.TIERS[Pvp.tierOf(Store.data.pvp.mmr)].name} · 전공 ${Store.data.pvp.mmr}` : '스토리 "첫 카드 수업"을 마치면 열립니다'}</div></div></div>
+      <div class="menu-item" data-go="setup"><div class="mi-icon">⚡</div><div><div class="mi-title">자유 모드</div><div class="mi-sub">원하는 덱으로 AI와 1:1 배틀</div></div></div>
       <div class="menu-item" data-go="deck"><div class="mi-icon">🗂</div><div><div class="mi-title">덱 편성</div><div class="mi-sub">12장 덱 만들기 · 저장 ${Store.data.decks.length}개</div></div></div>
       <div class="menu-item" data-go="collection"><div class="mi-icon">📖</div><div><div class="mi-title">카드 도감</div><div class="mi-sub">해금 ${POOL.filter(c => Store.isUnlocked(c.id)).length}/${POOL.length}장 · 보급 포인트 ${Store.data.bp || 0}</div></div></div>
       <div class="menu-item" data-go="howto"><div class="mi-icon">📘</div><div><div class="mi-title">게임 방법</div><div class="mi-sub">규칙 · 상성 · 키워드</div></div></div>
@@ -162,7 +163,7 @@ screenHooks.setup = el => {
   const decks = Store.allDecks();
   el.innerHTML = `
     <div class="bg-layer" style="background-image:url('assets/bg/${setupState.bg}.jpg');opacity:.35"></div>
-    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>자유 대국</h2><span class="sub">덱과 상대를 고르고 대국을 시작하세요</span><span class="spacer"></span><button class="btn primary big" data-a="go">대국 시작</button></div>
+    <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>자유 모드</h2><span class="sub">덱과 상대를 고르고 배틀을 시작하세요</span><span class="spacer"></span><button class="btn primary big" data-a="go">배틀 시작</button></div>
     <div class="setup-wrap">
       <div class="panel setup-col"><h3>내 덱</h3><div class="deck-cards scroll" data-list="my"></div><button class="btn small" data-a="edit">덱 편성으로 이동</button></div>
       <div class="panel setup-col"><h3>상대</h3><div class="deck-cards scroll" data-list="opp" style="flex:0 0 auto;max-height:470px"></div>

@@ -89,7 +89,7 @@ function renderMap(el) {
       <div class="n-title">${esc(s.title)}</div>
       <div class="n-stars">${stars.map(v => `<span class="lo-star ${v ? 'on' : ''}"></span>`).join('')}</div>${Store.data.campaign.hardCleared[s.id] ? '<div class="n-hard">어려움 정복</div>' : ''}</div>`);
     n.onclick = () => {
-      if (!unlocked) { toast('이전 대국에서 먼저 이겨야 합니다.', true); return; }
+      if (!unlocked) { toast('이전 배틀에서 먼저 이겨야 합니다.', true); return; }
       selStage = i; Audio2.play('click'); renderMap(el); renderStagePanel(el);
     };
     map.appendChild(n);
@@ -110,13 +110,13 @@ function renderStagePanel(el) {
     </div>
     <div class="stage-body">
       <p>${esc(s.desc)}</p>
-      <div class="stage-info"><span>대국 상대 <b>${esc(en.name)}</b></span><span>상대 라이프 <b>${en.hp}</b>${RULES.SECOND_HP_BONUS && !s.tutorial ? `<small> (후공이면 +${RULES.SECOND_HP_BONUS})</small>` : ''}</span><span>AI <b>${LEVEL_LABEL[en.level]}</b></span><span>성향 <b>${{ aggro: '공격형', control: '제어형', balanced: '균형형' }[en.style || 'balanced']}</b></span>${en.start.length ? `<span>선배치 <b>${en.start.map(x => CARDS[x.id].n).join(', ')}</b></span>` : ''}</div>
+      <div class="stage-info"><span>배틀 상대 <b>${esc(en.name)}</b></span><span>상대 라이프 <b>${en.hp}</b>${RULES.SECOND_HP_BONUS && !s.tutorial ? `<small> (후공이면 +${RULES.SECOND_HP_BONUS})</small>` : ''}</span><span>AI <b>${LEVEL_LABEL[en.level]}</b></span><span>성향 <b>${{ aggro: '공격형', control: '제어형', balanced: '균형형' }[en.style || 'balanced']}</b></span>${en.start.length ? `<span>선배치 <b>${en.start.map(x => CARDS[x.id].n).join(', ')}</b></span>` : ''}</div>
       <div class="stage-info"><span>적 제작사 ${[...new Set(en.deck.map(id => CARDS[id].f))].map(f => `<span class="chip" style="background:${FACTIONS[f].color}">${FACTIONS[f].name}</span>`).join(' ')}</span></div>
       <div class="star-list">${s.stars.map((st, i) => `<div class="s ${stars[i] ? 'on' : ''}"><span class="lo-star ${stars[i] ? 'on' : ''}"></span> ${starLabel(st)}</div>`).join('')}</div>
       ${(STAGE_REWARDS[s.id] || []).length ? `<div class="stage-reward">첫 클리어 보상 <span data-v="rw"></span>${Store.data.campaign.cleared[s.id] ? '<span class="done">✔ 획득 완료</span>' : ''}</div>` : ''}
-      ${s.playerDeck ? '<div class="stage-info">이 대국은 콘스탄챠가 빌려준 연습용 덱으로 진행합니다.</div>' : decks.length ? `<div class="stage-deck">내 덱 <select data-a="deck">${decks.map(d => `<option value="${d.id}" ${d.id === curDeck ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select><button class="btn small" data-a="editdeck">덱 고치기</button></div>`
+      ${s.playerDeck ? '<div class="stage-info">이 배틀은 콘스탄챠가 빌려준 연습용 덱으로 진행합니다.</div>' : decks.length ? `<div class="stage-deck">내 덱 <select data-a="deck">${decks.map(d => `<option value="${d.id}" ${d.id === curDeck ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select><button class="btn small" data-a="editdeck">덱 고치기</button></div>`
         : '<div class="stage-deck">규칙에 맞는 내 덱이 없습니다. <button class="btn small" data-a="editdeck">덱 고치기</button></div>'}
-      <div class="stage-go"><button class="btn small" data-a="enemydeck">상대 덱 보기</button><span class="spacer"></span><button class="btn primary big" data-a="go">대국 시작</button></div>
+      <div class="stage-go"><button class="btn small" data-a="enemydeck">상대 덱 보기</button><span class="spacer"></span><button class="btn primary big" data-a="go">배틀 시작</button></div>
     </div>`;
   const rw = $('[data-v=rw]', panel);
   if (rw) (STAGE_REWARDS[s.id] || []).forEach(id => { const ce = cardEl(CARDS[id], { w: 76 }); ce.onclick = () => openCardDetail(CARDS[id]); rw.appendChild(ce); });
@@ -153,7 +153,7 @@ async function launchStage(idx, deckId) {
 }
 
 // ---------- 대화 ----------
-// 오렌지에이드와 리그 운영자 콘스탄챠는 왼쪽, 대국 상대와 그 일행은 오른쪽에 선다
+// 오렌지에이드와 리그 운영자 콘스탄챠는 왼쪽, 배틀 상대와 그 일행은 오른쪽에 선다
 // 말하는 인물을 세울 자리: 이미 서 있으면 그 자리, 주인공은 왼쪽,
 // 다른 인물은 빈 자리(오른쪽 먼저)나 가장 오래 말하지 않은 인물의 자리를 차지한다
 function speakerSide(who, stage) {
