@@ -25,7 +25,8 @@ const Store = {
       mastery: {},               // 카드 숙련도: 카드 id → 그 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수
       gauntlet: { run: null, best: 0, clears: 0, bestClearHp: 0, runs: 0 }, // 리그 순회전
       draft: { run: null, best: 0, clears: 0, runs: 0 },          // 보급 원정 (드래프트)
-      daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 대국
+      daily: { lastWin: null, wins: 0, tries: 0 },             // 오늘의 배틀
+      pvp: { mmr: 0, best: 0, w: 0, l: 0, streak: 0, nick: '', pid: '', recent: [], pending: null }, // 대전 모드: 등급 점수(전공)·전적·최근 상대·끝내지 않은 배틀
       lessons: {},               // 튜토리얼 뒤 실전에서 한 번씩 보여 주는 규칙 안내 (id → true)
       starterGiven: false,       // 처음 받는 내 덱(오렌지에이드의 덱)을 받았는지
       ownV: 1,                   // 카드 보유 도입 표시 (도입 전 저장은 그때 쓰던 카드를 모두 가진 것으로 친다)
@@ -60,6 +61,8 @@ const Store = {
     d.gauntlet = { ...def.gauntlet, ...(d.gauntlet || {}) };
     d.draft = { ...def.draft, ...(d.draft || {}) };
     d.daily = { ...def.daily, ...(d.daily || {}) };
+    d.pvp = { ...def.pvp, ...(d.pvp && typeof d.pvp === 'object' ? d.pvp : {}) };
+    if (!Array.isArray(d.pvp.recent)) d.pvp.recent = [];
     if (!d.ach || typeof d.ach !== 'object') d.ach = {};
     if (!d.mastery || typeof d.mastery !== 'object') d.mastery = {};
     if (!Array.isArray(d.stats.factionsWon)) d.stats.factionsWon = [];
@@ -78,6 +81,7 @@ const Store = {
     if (typeof ACHIEVEMENTS !== 'undefined') { const ids = new Set(ACHIEVEMENTS.map(a => a.id)); for (const k of Object.keys(d.ach)) if (!ids.has(k)) delete d.ach[k]; }
     for (const k of Object.keys(d.mastery)) { if (!CARDS[k]) delete d.mastery[k]; else d.mastery[k] = num(d.mastery[k], 0, 999); }
     for (const k of ['w', 'l', 'streak']) d.record[k] = num(d.record[k], 0, 99999);
+    for (const k of ['mmr', 'best', 'w', 'l', 'streak']) d.pvp[k] = num(d.pvp[k], 0, 99999);
     // 스토리 별·클리어 기록은 실제 스테이지만, 별은 길이 3의 참/거짓 배열로 (잘못된 값이면 로비가 깨지거나 보상이 풀리지 않게)
     const sids = new Set(CAMPAIGN.map(s => s.id));
     const stars = {}; for (const [k, v] of Object.entries(d.campaign.stars || {})) if (sids.has(k) && Array.isArray(v)) stars[k] = [0, 1, 2].map(i => !!v[i]);

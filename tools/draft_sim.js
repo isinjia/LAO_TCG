@@ -21,5 +21,5 @@ for (let r = 0; r < N; r++) {
   dist[wins]++; totalWins += wins; if (wins >= DRAFT.MATCHES) clears++;
 }
 console.log('돌파율', (clears / N * 100).toFixed(1) + '%', '평균 승수', (totalWins / N).toFixed(2), '승수 분포', dist.join('/'));
-console.log('대국별 승률', matchW.map((w, i) => (w / Math.max(1, matchN[i]) * 100).toFixed(0) + '%').join(' '));
+console.log('배틀별 승률', matchW.map((w, i) => (w / Math.max(1, matchN[i]) * 100).toFixed(0) + '%').join(' '));
 `, ctx);

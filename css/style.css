@@ -153,7 +153,7 @@ img { -webkit-user-drag: none; }
 .lobby-top { position: absolute; right: 40px; top: 36px; display: flex; gap: 12px; z-index: 3; }
 
 /* ---------- 덱 편성 ---------- */
-#scr-deck, #scr-collection, #scr-setup, #scr-campaign { background: #0d0d10; }
+#scr-deck, #scr-collection, #scr-setup, #scr-campaign, #scr-pvp { background: #0d0d10; }
 .deck-left { position: absolute; left: 0; top: 84px; bottom: 0; width: 500px; padding: 18px 22px; background: rgba(13,13,16,0.94); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
 .deck-select { display: flex; gap: 8px; }
 .deck-select select { flex: 1; background: #1d1d20; color: var(--text); border: 1px solid var(--line-strong); padding: 10px; font-size: 18px; }

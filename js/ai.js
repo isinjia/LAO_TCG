@@ -228,7 +228,7 @@ const AI = {
   hiddenInfoView(game, p, salt = 0) {
     const g = game.clone();
     const o = g.players[1 - game.players.indexOf(p)];
-    g.seed = (g.seed ^ 0x9E3779B9 ^ (salt * 0x85EBCA6B)) >>> 0; // 실제 대국의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
+    g.seed = (g.seed ^ 0x9E3779B9 ^ (salt * 0x85EBCA6B)) >>> 0; // 실제 배틀의 난수와 다른 흐름 (같은 상태에서는 같은 가정 → 새로고침해도 같은 판단)
     const pool = shuffle([...o.hand, ...o.deck], () => g.random());
     o.hand = pool.slice(0, o.hand.length); o.deck = pool.slice(o.hand.length);
     // 내 덱 순서도 모르는 것으로 한다 (다음에 뽑을 카드를 미리 알고 판단하지 않게)
@@ -308,7 +308,7 @@ const AI = {
     if (!best) return null;
     return this.toReal(real, game, rp, best);
   },
-  // 탐색용 복제의 카드·대상을 실제 대국의 것으로 바꿔 돌려준다
+  // 탐색용 복제의 카드·대상을 실제 배틀의 것으로 바꿔 돌려준다
   toReal(real, game, rp, best) {
     if (best.move) { const u = rp.lanes.find(x => x && x.uid === best.unit.uid); return u ? { move: true, unit: u, lane: best.lane } : null; }
     const card = best.command ? heroSkillOf(rp) : rp.hand.find(c => c.id === best.card.id);

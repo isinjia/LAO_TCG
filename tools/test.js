@@ -282,7 +282,7 @@ t('공격 예측: 무작위 대상 피해는 표시만 하고, 화면 예측은 
   ok(differ, '화면 예측이 실제 무작위 결과를 드러냄');
 });
 t('후공 라이프 보정', () => { const { a, b, g } = fresh(D0, D1); g.start(); eq(b.maxHp, RULES.CMD_HP + RULES.SECOND_HP_BONUS); eq(a.maxHp, RULES.CMD_HP); });
-t('대국 난수: 저장 → 복원 뒤 무작위 결과가 같음', () => {
+t('배틀 난수: 저장 → 복원 뒤 무작위 결과가 같음', () => {
   const { g } = setup(['3P_SnowFeather'], ['DS_Angel', 'PECS_Muse', 'AGS_Stronghold']);
   const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
   const seq = x => [x.random(), x.random(), x.random()].join(',');
@@ -313,7 +313,7 @@ t('교체 단계 저장·복원: 같은 손패, 교체 권한 유지', () => {
   eq(r.phase, 'mulligan'); eq(r.players[0].hand.map(c => c.id).join(), a.hand.map(c => c.id).join(), '같은 손패');
   ok(!r.players[0].mulliganDone, '플레이어는 아직 교체 가능'); ok(r.players[1].mulliganDone, 'AI는 교체 끝');
 });
-t('승패가 정해진 대국 저장·복원: 승자 유지', () => {
+t('승패가 정해진 배틀 저장·복원: 승자 유지', () => {
   const { a, b, g } = fresh(D0, D1); g.start(); b.hp = 0; g.phase = 'over'; g.winner = a;
   const r = restoreGame(JSON.parse(JSON.stringify(serializeGame(g))));
   eq(r.phase, 'over'); eq(r.winner, r.players[g.players.indexOf(a)], '승자 유지');
@@ -332,7 +332,7 @@ t('보급 카드는 처음 받은 덱·스토리 보상과 겹치지 않고, 나
   Object.values(CARDS).filter(c => !c.enemy && !c.token && c.id !== COMMAND_CARD.id && !STARTER_DECK.cards.includes(c.id)).forEach(c => ok(LOCKED.has(c.id), 'free ' + c.id));
   LEGACY_FREE.forEach(id => ok(SUPPLY_CARDS.has(id), 'legacy ' + id));
 });
-t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
+t('오늘의 배틀: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
   const code = src.slice(src.indexOf('const DAILY_TWISTS'), src.indexOf('  doneToday()')) + '}; this.__Daily = Daily; this.__opps = dailyOpponents;';
   (0, eval)(code);

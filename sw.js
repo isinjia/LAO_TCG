@@ -5,7 +5,7 @@
 const CACHE = 'lao-tcg-v8';
 const CODE = /\.(html|js|css|webmanifest)$|\/$/;
 
-// 설치할 때 precache.txt(배포 작업이 만든 목록)의 파일을 미리 받아 둔다. 첫 방문 뒤 바로 오프라인이 되어도 대국을 할 수 있게.
+// 설치할 때 precache.txt(배포 작업이 만든 목록)의 파일을 미리 받아 둔다. 첫 방문 뒤 바로 오프라인이 되어도 배틀을 할 수 있게.
 // 목록이 없거나 일부를 받지 못해도 설치는 계속한다 (볼 때 받는 방식으로 돌아간다).
 self.addEventListener('install', e => {
   self.skipWaiting();
