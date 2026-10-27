@@ -318,9 +318,9 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 /* 휴대폰 전투: 내 초상을 왼쪽 아래로 옮기고, 비운 자리로 손패를 올려 카드가 거의 다 보이게 한다 */
 .compact .cmd.hero.me { left: calc(420px + var(--ox)); top: 836px; }
 .compact .hand { left: 1150px; bottom: -70px; }
-/* 데스크톱도 같은 배치: 초상을 왼쪽 아래로, 손패를 올려 비용·공격력·체력이 늘 보이게 */
-body:not(.compact) .cmd.hero.me { left: calc(440px + var(--ox)); top: 836px; }
-body:not(.compact) .hand { left: 1100px; bottom: -40px; }
+/* 데스크톱: 적 사령관과 위아래로 마주 보도록 내 초상을 전장 아래 가운데에 두고, 손패는 그 아래 가운데에 깐다 */
+body:not(.compact) .cmd.hero.me { left: calc(960px + var(--ox)); top: calc(750px + var(--oy)); }
+body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .compact .hand .hslot { width: 240px; height: calc(240px * 1.4); }
 .compact .hand .card { --w: 240px; }
 .compact .hand .hslot:hover .card { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-120px - var(--dy, 0px))) scale(1.15); }
