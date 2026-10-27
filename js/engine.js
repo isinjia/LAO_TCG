@@ -143,7 +143,8 @@ class Game {
     const extra = RULES.SECOND_EXTRA_CARDS ?? 1;
     if (extra > 0) { this.players[1].draw(extra, this); this.log(`${this.players[1].name}: 후공 보정 카드 +${extra}`, 'sys'); }
     const hpBonus = RULES.SECOND_HP_BONUS || 0;
-    if (hpBonus > 0) { const q = this.players[1]; q.maxHp += hpBonus; q.hp += hpBonus; this.log(`${q.name}: 후공 보정 라이프 +${hpBonus}`, 'sys'); }
+    // noHpBonus: 튜토리얼 상대처럼 보정 없이 표시된 라이프 그대로 시작
+    if (hpBonus > 0 && !this.players[1].noHpBonus) { const q = this.players[1]; q.maxHp += hpBonus; q.hp += hpBonus; this.log(`${q.name}: 후공 보정 라이프 +${hpBonus}`, 'sys'); }
     this.beginTurn();
   }
 

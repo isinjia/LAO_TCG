@@ -68,8 +68,8 @@ const CAMPAIGN = [
   {
     id: 's2', no: '2', title: '회복의 숲', sub: '리그 2차전 · 엘븐 포레스트메이커', bg: 'mansion', bgm: 'battle2',
     desc: '끊임없이 회복하는 엘프 덱. 회복량보다 빠르게 피해를 쌓아야 합니다.',
-    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 35, level: 'normal', style: 'control',
-      deck: ['PECS_ElvenForestmaker', 'PECS_HighElven', 'PECS_DarkElf', 'PECS_Sekhmet', 'PECS_Hestia', 'PECS_LemonadeBeta', 'PECS_Fortune', 'PECS_Sonia', 'PECS_Cerberus', 'PECS_Muse', 'SK_PECS_Blessing', 'SK_PECS_Repair'] },
+    enemy: { name: '엘븐 포레스트메이커', portrait: 'PECS_ElvenForestmaker', hp: 28, level: 'normal', style: 'aggro',
+      deck: ['PECS_ElvenForestmaker', 'PECS_HighElven', 'PECS_DarkElf', 'PECS_Sekhmet', 'PECS_Hestia', 'PECS_LemonadeBeta', 'PECS_Fortune', 'PECS_Sonia', 'PECS_Cerberus', 'PECS_MightyR', 'SK_PECS_Blessing', 'PECS_Azaz'] },
     stars: [{ type: 'win' }, { type: 'hp', v: 16 }, { type: 'kills', v: 15 }],
     intro: [
       { who: '3P_ConstantiaS2', text: '다음 상대는 엘븐 포레스트메이커야. 같은 PECS라서 서로 덱을 잘 알 거란다.' },

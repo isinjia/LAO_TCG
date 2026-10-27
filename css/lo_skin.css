@@ -316,12 +316,12 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .card .c-text { font-size: 0.78em; }
 /* 휴대폰 전투: 내 초상을 왼쪽 아래로 옮기고, 비운 자리로 손패를 올려 카드가 거의 다 보이게 한다 */
 .compact .cmd.hero.me { left: calc(420px + var(--ox)); top: 836px; }
-.compact .hand { left: 1100px; bottom: -18px; }
+.compact .hand { left: 1150px; bottom: -70px; }
 /* 데스크톱도 같은 배치: 초상을 왼쪽 아래로, 손패를 올려 비용·공격력·체력이 늘 보이게 */
 body:not(.compact) .cmd.hero.me { left: calc(440px + var(--ox)); top: 836px; }
 body:not(.compact) .hand { left: 1100px; bottom: -40px; }
-.compact .hand .hslot { width: 196px; height: calc(196px * 1.4); }
-.compact .hand .card { --w: 196px; }
+.compact .hand .hslot { width: 240px; height: calc(240px * 1.4); }
+.compact .hand .card { --w: 240px; }
 .compact .hand .hslot:hover .card { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-120px - var(--dy, 0px))) scale(1.15); }
 .compact .hand .hslot .card.selected { transform: rotate(calc(-1 * var(--r, 0deg))) translateY(calc(-70px - var(--dy, 0px))) scale(1.04) !important; }
 .compact .unit .u-tags { font-size: 21px; }
@@ -471,3 +471,6 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 .compact .hero-syn { font-size: 24px; }
 .cmd-power .cp-cost.syn { background: linear-gradient(180deg, #fff3b0, #ffc600); }
 .coach.under-modal { display: none !important; }
+
+/* 이동 안내 버튼은 전장 가운데 줄을 가리지 않게 전장 아래쪽 바깥에 둔다 */
+.cast-btn.move-hint { top: auto; bottom: calc(300px - var(--oy, 0px)); left: auto; right: calc(300px + var(--ox, 0px)); transform: none; font-size: 22px; }

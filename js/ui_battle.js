@@ -31,6 +31,7 @@ function startBattle(cfg) {
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
   if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 대국: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
+  if (cfg.tutorial) ai.noHpBonus = true; // 튜토리얼 상대는 지도에 적힌 라이프 그대로
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
     const want = cfg.openingHand.map(id => me.deck.find(c => c.id === id)).filter(Boolean);
@@ -293,7 +294,7 @@ function startMove(u) {
     const s = $(`.slot[data-side=me][data-lane="${l}"]`); s.classList.add('place', 'move');
     s.appendChild(h(`<div class="adv replace">${B.me.lanes[l] ? '자리 바꿈' : '이동'} · AP ${RULES.MOVE_COST}</div>`));
   });
-  const cb = h(`<button class="cast-btn">${esc(u.card.n)} 이동<small>빛나는 레인을 누르면 옮깁니다 · 이 버튼을 누르면 상세 보기</small></button>`);
+  const cb = h(`<button class="cast-btn move-hint">${esc(u.card.n)} 이동<small>빛나는 레인을 누르면 옮깁니다 · 이 버튼을 누르면 상세 보기</small></button>`);
   cb.onclick = e => { e.stopPropagation(); clearSelection(); openCardDetail(u.card); };
   $('#scr-battle').appendChild(cb);
   tut('moveSelected', u);
@@ -576,8 +577,10 @@ function renderHand(force) {
   B.handSig = sig;
   hand.innerHTML = '';
   const n = me.hand.length;
-  const spacing = Math.min(130, 760 / Math.max(1, n));
-  const total = spacing * (n - 1) + 170;
+  // 휴대폰(.compact)은 카드를 크게(240) 그리고 간격도 넓혀 이름·능력치가 읽히게 한다
+  const compact = document.body.classList.contains('compact'), cw = compact ? 240 : 170;
+  const spacing = Math.min(compact ? 170 : 130, (compact ? 860 : 760) / Math.max(1, n));
+  const total = spacing * (n - 1) + cw;
   const start = (1000 - total) / 2;
   me.hand.forEach((c, i) => {
     const ce = cardEl(c);
