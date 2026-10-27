@@ -825,7 +825,7 @@ async function processEvents() {
         const el = B.unitEls.get(ev.unit.uid);
         if (el) { const c = centerOf(el); burstAt(c.x, c.y, FACTIONS[ev.unit.card.f].color); }
         Audio2.play('place');
-        if (!ev.token) Audio2.voice(ev.unit.cardId, 'deploy', ev.unit.card.g === 'SS');
+        if (!ev.token) { Audio2.voice(ev.unit.cardId, 'deploy', ev.unit.card.g === 'SS'); ssBark(ev.unit); }
         await sleep(ev.token ? 160 : 380);
         break;
       }
@@ -1019,6 +1019,19 @@ function checkBark() {
   const { me, ai } = B;
   if (mid.half && !B.barked.half && ai.hp > 0 && ai.hp <= ai.maxHp / 2) { B.barked.half = true; showBark(mid.half); }
   else if (mid.low && !B.barked.low && me.hp > 0 && me.hp <= 8) { B.barked.low = true; showBark(mid.low); }
+  // 역전: 한때 라이프가 5 이상 뒤졌다가 앞서게 되면 콘스탄챠가 한마디 (스테이지에 comeback 대사가 있으면 그것을)
+  if (me.hp + 5 <= ai.hp) B.behind = true;
+  if (B.behind && !B.barked.comeback && me.hp > ai.hp && ai.hp > 0) { B.barked.comeback = true; showBark(mid.comeback || { who: '3P_ConstantiaS2', text: '흐름이 바뀌었구나! 이대로 몰아붙이렴, 오렌지에이드.' }); }
+}
+// SS 전투원 등장 때의 한마디 (대국마다 내 쪽·상대 쪽 한 번씩)
+function ssBark(unit) {
+  if (!B || B.cfg.mode !== 'campaign' || unit.card.g !== 'SS') return;
+  B.barked = B.barked || {};
+  const mine = unit.owner === B.me, key = mine ? 'ssMe' : 'ssAi';
+  if (B.barked[key]) return; B.barked[key] = true;
+  const mid = CAMPAIGN[B.cfg.stageIdx].mid || {};
+  showBark(mine ? (mid.ssMe || { who: 'PECS_Orangeade', text: `${unit.card.n} 씨, 부탁드려요! 여기서 승부를 걸게요!` })
+    : (mid.ssAi || { who: '3P_ConstantiaS2', text: `상대가 ${josa(unit.card.n, '을', '를')} 꺼냈구나! 정면으로 받지 말고 상성을 살피렴.` }));
 }
 function showBark(line) {
   const c = CARDS[line.who]; if (!c) return;

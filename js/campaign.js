@@ -221,7 +221,7 @@ const CAMPAIGN = [
       { who: 'PECS_LemonadeAlpha', text: '결승 상대는 라비아타예요. 거기서 무너지면 그때는 정말로 혼낼 거예요.' },
       { who: 'PECS_Orangeade', text: '네! 꼭 이기고 올게요!' },
     ],
-    mid: { half: { who: 'PECS_LemonadeAlpha', text: '…생각보다 단단하네요. 언제 이렇게 배운 거죠?' }, low: { who: 'PECS_LemonadeAlpha', text: '여기까지인가요? 그렇다면 결승은 아직 이르네요.' } },
+    mid: { half: { who: 'PECS_LemonadeAlpha', text: '…생각보다 단단하네요. 언제 이렇게 배운 거죠?' }, low: { who: 'PECS_LemonadeAlpha', text: '여기까지인가요? 그렇다면 결승은 아직 이르네요.', ssAi: { who: 'PECS_LemonadeAlpha', text: '이 카드는 쉽게 넘을 수 없을 거예요. 보여 주세요, 오렌지에이드.' }, comeback: { who: 'PECS_LemonadeAlpha', text: '…흐름을 뒤집었네요. 그게 제가 보고 싶던 모습이에요.' } } },
     lose: { who: 'PECS_LemonadeAlpha', text: '아직 멀었어요. 다시 오세요, 오렌지에이드. 기다리고 있을게요.' },
   },
   {
@@ -251,7 +251,7 @@ const CAMPAIGN = [
       { who: 'PECS_Orangeade', text: '알파 님이 지금 저를 자랑이라고…! 헤헤, 이건 평생 기억할 거예요!' },
       { who: '3P_ConstantiaS2', text: '우승 축하해. 축하 파티 준비는 벌써 끝났잖니. 다들 기다리고 있어.' },
     ],
-    mid: { half: { who: '3P_Labiata', text: '후후, 정말 많이 컸구나. 그럼 나도 조금 더 힘을 내 볼까?' }, low: { who: '3P_Labiata', text: '미안, 여기서는 물러설 수 없단다.' } },
+    mid: { half: { who: '3P_Labiata', text: '후후, 정말 많이 컸구나. 그럼 나도 조금 더 힘을 내 볼까?' }, low: { who: '3P_Labiata', text: '미안, 여기서는 물러설 수 없단다.', ssAi: { who: '3P_Labiata', text: '챔피언의 카드란다. 받아 낼 수 있겠니?' }, comeback: { who: '3P_Labiata', text: '후후, 여기서 뒤집다니. 정말 많이 컸구나.' } } },
     lose: { who: '3P_Labiata', text: '좋은 대국이었단다. 언제든 다시 도전하렴, 오렌지에이드 양.' },
     epilogue: [
       { who: 'PECS_Orangeade', text: '파티는 정말 굉장했어요. 다들 제 카드 이야기만 하더라고요. 헤헤…' },
