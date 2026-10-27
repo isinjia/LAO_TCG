@@ -15,7 +15,7 @@ const FACTIONS = {
 const PLAYER_FACTIONS = ['3P', 'PECS', 'BR', 'DS', 'AGS'];
 // 제작사 결속: 같은 제작사 전투원이 전장에 2기 이상이면 켜지는 제작사 고유 효과 (덱마다 성격을 만든다)
 const SYNERGY = {
-  '3P':   { name: '함대 지휘', text: '포격 지원 AP 1 감소, 피해 +1' },
+  '3P':   { name: '함대 지휘', text: '특성 스킬 AP 1 감소, 피해 +1' },
   'PECS': { name: '정비 연계', text: '내 턴 시작에 모든 아군 전투원 체력 1 회복' },
   'BR':   { name: '돌파 화력', text: '블랙리버 전투원이 상대 라이프를 직접 칠 때 피해 +1' },
   'DS':   { name: '그림자 연계', text: '새로 낸 덴세츠 전투원이 회피를 얻음' },
@@ -292,5 +292,27 @@ const RULES = {
 };
 
 // 작전 지시를 화면에서 카드처럼 다루기 위한 가짜 카드 (덱·도감에는 없다)
-const COMMAND_CARD = { id: '__command', icon: 'AirStrike', art: '3P_Labiata', n: '포격 지원', kind: 'skill', f: '3P', g: 'S', c: RULES.COMMAND.cost,
+const COMMAND_CARD = { id: '__command', hero: true, icon: 'AirStrike', art: '3P_Labiata', n: '포격 지원', kind: 'skill', f: '3P', g: 'S', c: RULES.COMMAND.cost,
   fx: [{ op: 'dmg', tgt: 'pickAny', v: RULES.COMMAND.dmg }], text: `작전 지시 — 턴당 1회. 적 유닛 또는 상대 라이프에 ${RULES.COMMAND.dmg} 피해.` };
+
+// 지휘관 특성 스킬: 초상화(portrait)마다 하나. 초상 왼쪽 아이콘을 눌러 턴당 1회 쓴다. 표에 없는 지휘관은 포격 지원
+// 비용은 포격 지원(AP 4, 2 피해)과 비슷한 값어치로 맞췄다. 삼안 결속(함대 지휘)은 어느 특성 스킬이든 AP -1, 피해 +1
+const HERO_SKILLS = {};
+[
+  ['PECS_Orangeade', COMMAND_CARD],
+  ['BR_RedHood', { icon: 'Snipe', n: '사냥꾼의 조준', c: 3, fx: [{ op: 'dmg', tgt: 'pickAny', v: 2 }], text: '적 유닛 또는 상대 라이프에 2 피해.' }],
+  ['PECS_ElvenForestmaker', { icon: 'Particle', n: '숲의 숨결', c: 3, fx: [{ op: 'healAll', v: 2 }, { op: 'heal', tgt: 'myCmd', v: 2 }], text: '모든 아군 유닛 2 회복, 내 라이프 2 회복.' }],
+  ['DS_KunoichiZero', { icon: 'SlowShot', n: '그림자 표식', c: 4, fx: [{ op: 'dmg', tgt: 'pickAny', v: 2 }, { op: 'slow', tgt: 'pickEnemyUnit' }], text: '적 유닛 또는 상대 라이프에 2 피해. 유닛이면 둔화.' }],
+  ['AGS_Stronghold', { icon: 'ShieldWall', n: '방벽 전개', c: 4, fx: [{ op: 'shield', tgt: 'allAllies', v: 2 }, { op: 'dmg', tgt: 'enemyCmd', v: 2 }], text: '모든 아군 유닛에게 방어막 2, 상대 라이프에 2 피해.' }],
+  ['3P_Alexandra', { icon: 'Scan', n: '전술 분석', c: 3, fx: [{ op: 'dmg', tgt: 'enemyCmd', v: 1 }, { op: 'draw', v: 1 }], text: '상대 라이프에 1 피해, 카드 1장 드로우.' }],
+  ['BR_Khan', { icon: 'AssaultAttack', n: '신속 돌파', c: 4, fx: [{ op: 'buffAll', a: 1, h: 0 }], text: '모든 아군 유닛 공격력 +1.' }],
+  ['PECS_LemonadeAlpha', { icon: 'WideLightning', n: '알파 프로토콜', c: 4, fx: [{ op: 'dmg', tgt: 'pickAny', v: 2 }, { op: 'shield', tgt: 'allAllies', v: 1 }], text: '적 유닛 또는 상대 라이프에 2 피해, 모든 아군 유닛에게 방어막 1.' }],
+  ['3P_Labiata', { icon: 'Command', n: '프로토타입의 결의', c: 5, fx: [{ op: 'shield', tgt: 'allAllies', v: 1 }, { op: 'heal', tgt: 'myCmd', v: 2 }], text: '모든 아군 유닛에게 방어막 1, 내 라이프 2 회복.' }],
+  ['IW_LemonadeZeta', { icon: 'WideFireShot', n: '제타 난사', c: 4, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 1 }, { op: 'dmg', tgt: 'enemyCmd', v: 1 }], text: '모든 적 유닛과 상대 라이프에 1 피해.' }],
+  ['IW_IronPrince', { icon: 'Swamp', n: '철의 위압', c: 4, fx: [{ op: 'dmg', tgt: 'pickAny', v: 2 }, { op: 'debuff', tgt: 'pickEnemyUnit', a: 1 }], text: '적 유닛 또는 상대 라이프에 2 피해. 유닛이면 공격력 -1.' }],
+  ['IW_AzazelAlter', { icon: 'SwordAttk', n: '타락한 일섬', c: 5, fx: [{ op: 'dmg', tgt: 'pickEnemyUnit', v: 3 }], text: '적 유닛 하나에게 3 피해.' }],
+  ['IW_LemonadeOmega', { icon: 'Vortex', n: '오메가 섬멸', c: 6, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 1 }, { op: 'slow', tgt: 'allEnemyUnits' }], text: '모든 적 유닛에게 1 피해 및 둔화.' }],
+].forEach(([id, s]) => {
+  HERO_SKILLS[id] = s.hero ? s : { id: '__hero_' + id, hero: true, art: id, kind: 'skill', f: CARDS[id] ? CARDS[id].f : '3P', g: 'S', ...s, text: `특성 스킬 — 턴당 1회. ${s.text}` };
+});
+function heroSkillOf(p) { return (p && HERO_SKILLS[p.portrait]) || COMMAND_CARD; }

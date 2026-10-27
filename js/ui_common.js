@@ -136,7 +136,7 @@ function cardEl(card, opts = {}) {
     <div class="c-fac">${f.short}</div>
     <div class="c-plate">
       <div class="c-name">${esc(card.n)}</div>
-      <div class="c-tags">${isUnit ? `<span class="tag type-${card.t}">${TYPES[card.t]}</span><span class="tag role-${card.r}">${ROLES[card.r]}</span>` : '<span class="tag skill">지원 카드</span>'}${card.enemy ? '<span class="tag enemy">특수 카드</span>' : ''}</div>
+      <div class="c-tags">${isUnit ? `<span class="tag type-${card.t}">${TYPES[card.t]}</span><span class="tag role-${card.r}">${ROLES[card.r]}</span>` : `<span class="tag skill">${card.hero ? '특성 스킬' : '지원 카드'}</span>`}${card.enemy ? '<span class="tag enemy">특수 카드</span>' : ''}</div>
     </div>
     <div class="c-text">${kwText(card) || (isUnit ? '<span style="opacity:.5">특수 능력 없음</span>' : '')}</div>
     ${isUnit ? `<div class="c-stat c-atk">${card.a}</div><div class="c-stat c-hp">${card.h}</div>` : ''}`;
@@ -241,7 +241,7 @@ function openCardDetail(card, list) {
       <div class="d-meta">
         <span class="tag" style="background:${f.color};color:#111">${f.name}</span>
         <span class="tag" style="color:${GRADE_COLOR[card.g]}">${card.g} 등급</span>
-        ${isUnit ? `<span class="tag type-${card.t}">${TYPES[card.t]}형</span><span class="tag role-${card.r}">${ROLES[card.r]}</span>` : '<span class="tag skill">지원 카드</span>'}
+        ${isUnit ? `<span class="tag type-${card.t}">${TYPES[card.t]}형</span><span class="tag role-${card.r}">${ROLES[card.r]}</span>` : `<span class="tag skill">${card.hero ? '특성 스킬' : '지원 카드'}</span>`}
         ${card.enemy ? '<span class="tag enemy">특수 카드</span>' : ''}
       </div>
       <h2>${esc(card.n)}</h2>
@@ -250,7 +250,7 @@ function openCardDetail(card, list) {
         ${isUnit ? `<div><span class="s-l">공격력</span><span style="color:#ffb13b">${card.a}</span></div><div><span class="s-l">체력</span><span style="color:#4fd66b">${card.h}</span></div>` : ''}
       </div>
       <div class="d-text">${kwText(card) || '특수 능력이 없는 기본 전투원입니다.'}</div>
-      ${typeof masteryWins === 'function' && !card.enemy ? `<div class="d-mastery">숙련도 <b class="m${masteryLevel(card.id)}">${masteryLevel(card.id) ? MASTERY[masteryLevel(card.id) - 1].name : '없음'}</b> · 이 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수 ${masteryWins(card.id)}회${masteryLevel(card.id) < 3 ? ` (다음 단계까지 ${MASTERY[masteryLevel(card.id)].n - masteryWins(card.id)}회)` : ''}</div>` : ''}
+      ${typeof masteryWins === 'function' && !card.enemy && !card.hero ? `<div class="d-mastery">숙련도 <b class="m${masteryLevel(card.id)}">${masteryLevel(card.id) ? MASTERY[masteryLevel(card.id) - 1].name : '없음'}</b> · 이 카드가 든 덱으로 보통 이상 상대에게 이긴 횟수 ${masteryWins(card.id)}회${masteryLevel(card.id) < 3 ? ` (다음 단계까지 ${MASTERY[masteryLevel(card.id)].n - masteryWins(card.id)}회)` : ''}</div>` : ''}
       ${!Store.isUnlocked(card.id) ? `<div class="d-lock">🔒 잠김 — 해금 조건: ${esc(unlockSource(card.id))}</div>` : ''}
       <div class="d-kw">${kwHelpList(card).map(([k, v]) => `<div><b>[${esc(k)}]</b>${esc(v)}</div>`).join('')}</div>
       <div class="d-nav">${list ? `<button class="btn small" data-n="-1" ${idx <= 0 ? 'disabled' : ''}>◀ 이전</button><button class="btn small" data-n="1" ${idx >= list.length - 1 ? 'disabled' : ''}>다음 ▶</button>` : ''}<span class="spacer"></span><span style="color:var(--muted);font-size:15px;align-self:center">${list ? `${idx + 1} / ${list.length}` : ''}</span></div>
@@ -338,7 +338,7 @@ const HOWTO = [
     <table><tr><th>1. AP 충전</th><td>매 턴 최대 AP가 1씩 늘어나고(최대 ${RULES.MAX_AP}) 가득 충전됩니다. 쓰지 않은 AP는 ${RULES.AP_CARRY}까지 다음 턴으로 이월됩니다. 모든 카드는 AP로 사용합니다.</td></tr>
     <tr><th>2. 드로우</th><td>카드 1장을 뽑습니다. 손패는 최대 ${RULES.HAND_MAX}장입니다.</td></tr>
     <tr><th>3. 배치·지원</th><td>전투원은 빈 레인에 배치하고, 지원 카드는 즉시 효과를 발휘합니다. 카드를 끌어다 놓거나 클릭해서 사용합니다.</td></tr>
-    <tr><th>4. 작전 지시</th><td>턴마다 한 번, AP ${RULES.COMMAND.cost}를 써서 <b>포격 지원</b>을 할 수 있습니다. 적 전투원 하나나 상대 라이프에 ${RULES.COMMAND.dmg} 피해를 줍니다. 카드를 다 내고 남은 AP를 쓰기 좋습니다.</td></tr>
+    <tr><th>4. 특성 스킬</th><td>초상화 왼쪽 아이콘이 지휘관의 <b>특성 스킬</b>입니다. 턴마다 한 번, 아이콘에 적힌 AP를 써서 누르면 발동합니다. 오렌지에이드는 <b>포격 지원</b>(AP ${RULES.COMMAND.cost}, 적 전투원 하나나 상대 라이프에 ${RULES.COMMAND.dmg} 피해)이고, 상대 지휘관은 저마다 다른 특성 스킬을 씁니다. 상대 아이콘을 누르면 효과를 볼 수 있습니다.</td></tr>
     <tr><th>5. 전투</th><td>턴 종료 버튼을 누르면 내 전투원이 왼쪽 레인부터 차례로 공격합니다.</td></tr></table>
     <h4>덱과 순환</h4>덱은 ${RULES.DECK_SIZE}장이며 같은 카드는 1장만 넣을 수 있습니다. 제작사는 최대 ${RULES.MAX_FACTIONS}곳까지 섞을 수 있습니다. 덱이 바닥나면 버린 카드를 섞어 다시 사용하므로, 강한 카드는 몇 번이고 돌아옵니다.
     ${RULES.OVERTIME_ROUND ? `<h4>작전 시간 초과</h4>${RULES.OVERTIME_ROUND}라운드부터는 턴을 시작하는 쪽이 라이프 피해를 받습니다. 피해는 1부터 시작해 라운드마다 1씩 커지므로, 교착 상태가 길어지면 라이프가 많은 쪽이 유리합니다.` : ''}

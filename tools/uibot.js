@@ -28,7 +28,7 @@ window.uiBot = async function (maxMs, stopRound) {
       continue;
     }
     if (st && st.can && st.wait === 'cardPlayed' && st.can()) {
-      if (st.cond(COMMAND_CARD)) { document.querySelector('.cmd-power').click(); await W(60); document.querySelector('#cmd-enemy').click(); }
+      if (st.cond(COMMAND_CARD)) { document.querySelector('#cmd-me .hero-skill').click(); await W(60); document.querySelector('#cmd-enemy').click(); }
       else {
         const sk = B.me.hand.find(c => c.kind === 'skill' && B.me.canAfford(c)), ce = document.querySelectorAll('.hand .card')[B.me.hand.indexOf(sk)];
         ce.dispatchEvent(new PointerEvent('pointerdown', at(ce))); window.dispatchEvent(new PointerEvent('pointerup', at(ce))); await W(60);
