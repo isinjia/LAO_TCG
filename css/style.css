@@ -157,7 +157,8 @@ img { -webkit-user-drag: none; }
 .deck-left { position: absolute; left: 0; top: 84px; bottom: 0; width: 500px; padding: 18px 22px; background: rgba(13,13,16,0.94); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
 .deck-select { display: flex; gap: 8px; }
 .deck-select select { flex: 1; background: #1d1d20; color: var(--text); border: 1px solid var(--line-strong); padding: 10px; font-size: 18px; }
-.deck-name { background: #161619; color: var(--text); border: 1px solid var(--line); padding: 10px 12px; font-size: 22px; font-weight: 700; width: 100%; }
+.deck-name { background: #161619; color: var(--text); border: 1px solid var(--line); padding: 10px 12px; font-size: 18px; font-weight: 700; flex: 1; min-width: 0; display: none; }
+.deck-select.renaming .deck-name { display: block; } .deck-select.renaming select { display: none; }
 .deck-name:disabled { color: var(--muted); }
 .deck-summary { display: flex; align-items: flex-end; gap: 16px; }
 .curve { display: flex; align-items: flex-end; gap: 6px; height: 84px; flex: 1; padding: 4px 0; }
@@ -664,8 +665,14 @@ img { -webkit-user-drag: none; }
 @keyframes lowPulse { 50% { box-shadow: 0 0 30px rgba(255,40,50,0.95); } }
 .hero-name { position: absolute; right: calc(100% + 14px); top: 50%; transform: translateY(-50%); white-space: nowrap; text-align: right; font-size: 20px; font-weight: 900; text-shadow: 0 2px 6px #000; background: linear-gradient(270deg, rgba(15,15,18,0.9), rgba(15,15,18,0)); padding: 8px 14px 8px 40px; }
 .hero-name small { display: block; font-size: 13px; color: var(--muted); font-weight: 500; }
-.hero-facs { display: inline-flex; gap: 4px; margin-top: 4px; }
-.hero-facs i { width: 14px; height: 14px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.hero-facs { display: inline-flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; justify-content: flex-end; }
+/* 제작사 결속 칩: 「삼안 1/2」. 꺼져 있으면 흐리게, 켜지면 제작사 색으로 채워져 빛이 맥박친다 */
+.hero-facs i { font-style: normal; font-size: 13px; font-weight: 800; padding: 1px 7px; color: var(--fc); border: 1px solid var(--fc); background: rgba(0,0,0,0.55); opacity: 0.6; text-shadow: none; transition: opacity 0.2s, background 0.2s, box-shadow 0.2s; }
+.hero-facs i b { font-family: "Exo 2", sans-serif; font-weight: 900; }
+.hero-facs i.on { opacity: 1; color: #111; background: var(--fc); border-color: #fff; box-shadow: 0 0 0 1px #fff, 0 0 14px var(--fc), 0 0 28px var(--fc); animation: synGlow 1.4s ease-in-out infinite; }
+.hero-facs i.on::after { content: " 결속"; }
+@keyframes synGlow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 22px var(--fc), 0 0 44px var(--fc); } }
+.compact .hero-facs i { font-size: 20px; padding: 2px 9px; }
 .hero-ap { position: absolute; left: calc(100% + 14px); top: 50%; transform: translateY(-50%); white-space: nowrap; font-family: "Exo 2", sans-serif; font-weight: 900; font-size: 20px; color: #8fd4ff; background: linear-gradient(90deg, rgba(15,15,18,0.9), rgba(15,15,18,0)); padding: 8px 40px 8px 14px; }
 .hero-ap.pulse { animation: resPulse 0.6s; }
 .cmd.hero .cm-fc { right: -70px; top: -6px; font-size: 22px; }
@@ -772,3 +779,22 @@ img { -webkit-user-drag: none; }
 .compact .deck-cmd .dc-name { font-size: 26px; } .compact .deck-cmd .dc-unit, .compact .deck-cmd .dc-label { font-size: 18px; }
 .compact .deck-cmd .dc-note { display: none; } .compact .deck-cmd .dc-unit { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .compact .deck-cmd .dc-skill { font-size: 20px; } .compact .deck-cmd .dc-face { width: 84px; height: 84px; }
+
+.deck-cmd .dc-syn { display: flex; flex-direction: column; gap: 3px; }
+.deck-cmd .ds-head { font-size: 13px; font-weight: 800; color: #e6e6ea; } .deck-cmd .ds-head small { font-weight: 600; color: var(--muted); margin-left: 4px; }
+.deck-cmd .ds-row { font-size: 12.5px; line-height: 1.35; color: #d4d4d7; padding-left: 8px; border-left: 3px solid var(--fc); }
+.deck-cmd .ds-row b { color: var(--fc); } .deck-cmd .ds-row small { color: #ff9aa2; }
+.deck-cmd .ds-row.off { opacity: 0.55; }
+.deck-cmd .ds-tag { font-weight: 800; color: var(--fc); margin-right: 4px; }
+.compact .deck-cmd .ds-head { font-size: 18px; } .compact .deck-cmd .ds-row { font-size: 17px; }
+/* 휴대폰: 지휘관 판을 줄여 덱 목록 자리를 지킨다 (전투원 요약은 초상을 눌러 상세로, 결속은 한 줄씩) */
+.compact .deck-cmd { gap: 4px; padding: 6px 10px; }
+.compact .deck-cmd .dc-unit, .compact .deck-cmd .dc-label, .compact .deck-cmd .ds-head small { display: none; }
+.compact .deck-cmd .ds-row, .compact .deck-cmd .dc-skill > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.compact .deck-cmd .dc-skill > div { min-width: 0; }
+.compact .deck-cmd .dc-skill br { display: none; }
+.compact .deck-cmd .dc-face { width: 64px; height: 64px; }
+.deck-cmd .dc-sum { display: none; }
+.compact .deck-cmd:not(.unfold) .dc-skill, .compact .deck-cmd:not(.unfold) .dc-syn, .compact .deck-cmd:not(.unfold) .cmd-pick { display: none; }
+.compact .deck-cmd .dc-sum { display: block; font-size: 18px; color: #d4d4d7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.compact .deck-cmd .dc-sum u { text-decoration: none; color: var(--accent); margin-left: 4px; }

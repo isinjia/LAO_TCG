@@ -72,8 +72,7 @@ screenHooks.deck = el => {
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>덱 편성</h2><span class="sub">${touchText('카드를 클릭해 추가·제거 · 우클릭으로 상세 정보')}</span><span class="spacer"></span><button class="btn small" data-a="howto">덱 규칙</button><button class="btn primary" data-a="battle">이 덱으로 빠른 전투</button></div>
     <div class="deck-left">
       <div class="deck-cmd" data-v="cmd"></div>
-      <div class="deck-select"><select data-a="pick"></select><button class="btn small" data-a="new" title="새 덱">＋</button></div>
-      <input class="deck-name" maxlength="24" data-a="name">
+      <div class="deck-select"><select data-a="pick"></select><input class="deck-name" maxlength="24" data-a="name"><button class="btn small" data-a="rename" title="덱 이름 바꾸기">✎</button><button class="btn small" data-a="new" title="새 덱">＋</button></div>
       <div class="deck-summary"><div class="deck-count"><span data-v="count">0</span><small>/${RULES.DECK_SIZE}</small></div><div class="curve" data-v="curve"></div></div>
       <div data-v="facs" style="display:flex;gap:6px;flex-wrap:wrap;min-height:24px"></div>
       <div class="deck-list scroll" data-v="list"></div>
@@ -103,6 +102,13 @@ screenHooks.deck = el => {
   };
   const nameIn = $('[data-a=name]', el);
   nameIn.oninput = () => { if (editing.preset) return; editing.name = nameIn.value || '이름 없는 덱'; commitEditing(); refreshPicker(el); };
+  // 덱 이름은 평소엔 위 목록에만 보이고, ✎를 누르면 그 자리에서 바꾼다
+  const sel = $('.deck-select', el), endRename = () => sel.classList.remove('renaming');
+  $('[data-a=rename]', el).onclick = () => {
+    if (editing.preset) { toast('프리셋 덱은 이름을 바꿀 수 없습니다. 복제해서 쓰세요.', true); return; }
+    if (sel.classList.toggle('renaming')) { nameIn.value = editing.name; nameIn.focus(); nameIn.select(); }
+  };
+  nameIn.onblur = endRename; nameIn.onkeydown = e => { if (e.key === 'Enter' || e.key === 'Escape') nameIn.blur(); };
   $('[data-a=clear]', el).onclick = () => { ensureEditable(); editing.cards = []; commitEditing(); renderDeck(el); renderPool(el); };
   $('[data-a=dup]', el).onclick = () => {
     const d = { id: Store.newDeckId(), name: editing.name.replace(/\s*\(.*\)$/, '') + ' (사본)', cards: editing.cards.slice() };
@@ -143,17 +149,32 @@ function renderDeckCmd(el, story, open) {
       <div class="dc-info">
         <div class="dc-label">내 지휘관</div>
         <div class="dc-name">${esc(c.n)} <span class="dc-fac">${esc(f.name)}</span></div>
+        <div class="dc-sum">「${esc(sk.n)}」 AP ${sk.c}<span class="dc-sum-facs"></span> <u>${box.classList.contains('unfold') ? '접기 ▲' : '자세히 ▼'}</u></div>
         <div class="dc-unit">전투원 카드 · ${TYPES[c.t]}형 ${ROLES[c.r]} · 비용 ${c.c} · ${c.a}/${c.h}${c.text ? ` · ${esc(c.text)}` : ''}</div>
       </div>
       ${story ? '<span class="dc-lock">스토리 고정</span>' : `<button class="btn small" data-a="cmdchange">${open ? '닫기' : '바꾸기'}</button>`}
     </div>
     <div class="dc-skill" title="특성 스킬 상세 보기"><span class="dc-icon" style="background-image:url('${iconOf(sk)}')"></span><div><b>특성 스킬 「${esc(sk.n)}」</b> <i>AP ${sk.c} · 턴당 1회</i><br>${esc(eff)}</div></div>
+    <div class="dc-syn" data-v="syn"></div>
     <div class="dc-note">${story ? '스토리에서는 오렌지에이드로 싸웁니다. 자유 대국에서는 다른 지휘관을 고를 수 있습니다.' : '자유 대국(빠른 전투)에서 이 지휘관으로 싸웁니다. 스토리에서는 오렌지에이드로 고정입니다.'}</div>
     ${open ? `<div class="cmd-pick">${PLAYER_COMMANDERS.map(k => `<div class="cp-item ${k === id ? 'on' : ''}" data-cmd="${k}" title="${esc(CARDS[k].n)} — ${esc(heroSkillOf({ portrait: k }).n)}"><div class="cp-face" style="background-image:url('${artOf(CARDS[k])}')"></div><span>${esc(CARDS[k].n)}</span></div>`).join('')}</div>` : ''}`;
   $('.dc-face', box).onclick = () => openCardDetail(c);
+  $('.dc-sum', box).onclick = () => { box.classList.toggle('unfold'); renderDeckCmd(el, story, open); }; // 휴대폰: 한 줄로 접었다 펼친다
   $('.dc-skill', box).onclick = () => openCardDetail(sk);
   const chg = $('[data-a=cmdchange]', box); if (chg) chg.onclick = () => { Audio2.play('click'); renderDeckCmd(el, story, !open); };
   $$('[data-cmd]', box).forEach(it => it.onclick = () => { setupState.myCmd = it.dataset.cmd; Audio2.play('click'); renderDeckCmd(el, story, false); });
+  renderDeckSyn(el);
+}
+// 이 덱의 제작사 결속: 덱에 든 제작사마다 결속 이름·효과와, 켜는 데 필요한 전투원이 덱에 충분한지
+function renderDeckSyn(el) {
+  const box = $('[data-v=syn]', el); if (!box || !editing) return;
+  const units = editing.cards.map(id => CARDS[id]).filter(c => c.kind === 'unit');
+  const facs = [...new Set(editing.cards.map(id => CARDS[id].f))].filter(f => SYNERGY[f]).sort((a, b) => units.filter(u => u.f === b).length - units.filter(u => u.f === a).length);
+  box.innerHTML = `<div class="ds-head">제작사 결속 <small>전장에 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 켜짐</small></div>` + (facs.length ? facs.map(f => {
+    const n = units.filter(u => u.f === f).length, ok = n >= RULES.SYNERGY_MIN;
+    return `<div class="ds-row ${ok ? '' : 'off'}" style="--fc:${FACTIONS[f].color}"><span class="ds-tag">${FACTIONS[f].short} 전투원 ${n}장</span><b>「${esc(SYNERGY[f].name)}」</b> ${esc(SYNERGY[f].text)}${ok ? '' : `<small> — 덱에 전투원이 ${RULES.SYNERGY_MIN}장 미만이라 켤 수 없음</small>`}</div>`;
+  }).join('') : '<div class="ds-row off">덱에 카드를 넣으면 결속이 보입니다.</div>');
+  const sum = $('.dc-sum-facs', el); if (sum) sum.textContent = facs.length ? ` · 결속 ${facs.map(f => FACTIONS[f].short).join('·')}` : '';
 }
 
 function refreshPicker(el) {
@@ -171,6 +192,7 @@ function renderDeck(el) {
   $('[data-a=del]', el).disabled = editing.preset;
   const cards = editing.cards.map(id => CARDS[id]).sort((a, b) => a.c - b.c || a.f.localeCompare(b.f));
   $('[data-v=count]', el).textContent = cards.length;
+  renderDeckSyn(el);
   // 비용 곡선
   const buckets = [1, 2, 3, 4, 5, 6, 7].map(c => cards.filter(x => (c === 7 ? x.c >= 7 : x.c === c)).length);
   const mx = Math.max(3, ...buckets);

@@ -124,7 +124,7 @@ function cmdHtml(side, p) {
     <div class="hero-hp"><span class="num">0</span></div>
     <button class="hero-skill" title="특성 스킬 「${esc(sk.n)}」 — 턴당 1회. ${esc(sk.text.replace(/^[^.]*턴당 1회\. /, ''))}${side === 'me' ? ' (누르면 사용, 우클릭은 상세)' : ''}"><span class="hs-icon" style="background-image:url('${iconOf(sk)}')"></span><span class="hs-name">${esc(sk.n)}</span><b class="hs-cost">${sk.c}</b></button>
     ${side === 'enemy' ? '<div class="hero-ap" title="적 AP"></div>' : ''}
-    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? (p.portrait === 'PECS_Orangeade' ? '카드 마스터 지망생' : '지휘관') : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
+    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? (p.portrait === 'PECS_Orangeade' ? '카드 마스터 지망생' : '지휘관') : '대전 상대'}</small><span class="hero-facs">${p.noSynergy ? '' : p.factions.filter(f => SYNERGY[f]).map(f => `<i data-f="${f}" style="--fc:${FACTIONS[f].color}" title="${FACTIONS[f].name} 결속 「${SYNERGY[f].name}」: 전장에 ${FACTIONS[f].short} 전투원이 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}">${FACTIONS[f].short} <b>0</b>/${RULES.SYNERGY_MIN}</i>`).join('')}</span><span class="hero-syn"></span></div>
     <div class="cm-fc"></div></div>`;
 }
 
@@ -647,7 +647,8 @@ function renderCmd(side, p) {
   el.title = `${p.name} — 체력 ${p.hp}/${p.maxHp}`;
   // 켜진 제작사 결속을 이름 아래에 표시한다
   const syn = p.factions.filter(f => SYNERGY[f] && B.game.synergy(p, f));
-  $$('.hero-facs i', el).forEach(i => i.classList.toggle('on', syn.includes(i.dataset.f)));
+  // 제작사마다 「전장의 같은 제작사 전투원 수 / 필요한 수」, 켜지면 강하게 빛난다
+  $$('.hero-facs i', el).forEach(i => { const f = i.dataset.f; $('b', i).textContent = p.units().filter(u => u.card.f === f).length; i.classList.toggle('on', syn.includes(f)); });
   // 켜진 결속은 이름과 효과를 함께 적고, 새로 켜지면 초상 옆에 무엇이 좋아졌는지 크게 알린다
   const sl = $('.hero-syn', el);
   if (sl) {
