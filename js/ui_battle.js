@@ -1017,11 +1017,12 @@ function checkBark() {
   const mid = CAMPAIGN[B.cfg.stageIdx].mid; if (!mid) return;
   B.barked = B.barked || {};
   const { me, ai } = B;
+  if (me.hp + 5 <= ai.hp) B.behind = true; // 역전 판정용: 한때 5 이상 뒤졌는가
+  // 한 번에 한 대사만 띄운다
   if (mid.half && !B.barked.half && ai.hp > 0 && ai.hp <= ai.maxHp / 2) { B.barked.half = true; showBark(mid.half); }
   else if (mid.low && !B.barked.low && me.hp > 0 && me.hp <= 8) { B.barked.low = true; showBark(mid.low); }
   // 역전: 한때 라이프가 5 이상 뒤졌다가 앞서게 되면 콘스탄챠가 한마디 (스테이지에 comeback 대사가 있으면 그것을)
-  if (me.hp + 5 <= ai.hp) B.behind = true;
-  if (B.behind && !B.barked.comeback && me.hp > ai.hp && ai.hp > 0) { B.barked.comeback = true; showBark(mid.comeback || { who: '3P_ConstantiaS2', text: '흐름이 바뀌었구나! 이대로 몰아붙이렴, 오렌지에이드.' }); }
+  else if (B.behind && !B.barked.comeback && me.hp > ai.hp && ai.hp > 0) { B.barked.comeback = true; showBark(mid.comeback || { who: '3P_ConstantiaS2', text: '흐름이 바뀌었구나! 이대로 몰아붙이렴, 오렌지에이드.' }); }
 }
 // SS 전투원 등장 때의 한마디 (대국마다 내 쪽·상대 쪽 한 번씩)
 function ssBark(unit) {

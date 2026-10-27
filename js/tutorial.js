@@ -19,7 +19,7 @@ const TUTORIAL_STEPS = [
     can: () => B.me.units().some(u => [0, 1, 2].some(l => B.game.canMove(u, l))) },
   { trigger: 'myTurn', text: '<b>포격 지원</b>이야. 버튼을 누르고 <b>상대 초상화</b>를 누르렴(턴마다 한 번).', spot: '.cmd-power', wait: 'cardPlayed',
     cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // AP가 모자라거나 내 전장이 비었으면 건너뛴다
-  { text: '같은 제작사 2기가 모이면 <b>결속</b>이 켜져. 초상 아래에 이름이 뜬단다.', spot: '#cmd-me' },
+  { text: '같은 제작사 2기가 모여 <b>결속</b>이 켜졌어. 초상 아래 이름을 보렴.', spot: '#cmd-me', when: () => B.me.factions.some(f => SYNERGY[f] && B.game.synergy(B.me, f)) },
   { text: '레인이 차면 내 전투원 위에 겹쳐 내는 <b>교체 배치</b>도 돼(AP 1 더). 규칙은 오른쪽 위 <b>?</b>에 있어. 끝까지 해 보렴!', spot: null },
 ];
 
@@ -44,6 +44,8 @@ const Tutorial = {
       this.waitingTrigger = true; this.hide(); this.release(); return;
     }
     this.waitingTrigger = false;
+    // when: 이 조건일 때만 보여 줄 설명 단계 (예: 결속은 실제로 켜졌을 때만)
+    if (st.when && !st.when()) { this.go(i + 1); return; }
     // 카드 사용을 기다리는 단계인데 쓸 수 있는 카드가 없으면 건너뛴다 (막힘 방지)
     if ((st.wait === 'cardSelected' || st.wait === 'cardPlayed' || st.wait === 'moved') && !(st.can ? st.can() : tutHasPlayable())) { this.go(i + 1); return; }
     this.render();

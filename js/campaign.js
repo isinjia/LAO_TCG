@@ -15,7 +15,7 @@ const CAMPAIGN = [
     playerFirst: true,
     openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', 'SK_PECS_Medic'], // 시작 패 4장 + 2턴·3턴에 뽑을 카드
     enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 7, level: 'easy',
-      deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Shade', 'AGS_Seljuq', 'AGS_Roc', 'AGS_Rampart', 'AGS_Fallen', 'AGS_Aeda', 'AGS_Arachne', 'SK_AGS_Barrier'] },
+      deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Rampart', 'AGS_Aeda', 'AGS_Arachne', 'AGS_Shade', 'AGS_Roc', 'SK_AGS_Barrier', 'SK_AGS_Protocol', 'SK_AGS_Reinforce'] /* 튜토리얼 상대: 공격 카드(셀주크·폴른)를 빼고 약한 전투원·지원 카드 위주로 */ },
     start: [{ lane: 2, id: 'AGS_SpartanC' }], // 기동형을 미리 세워 2턴 상성 안내(경장 하치코가 유리)가 실제로 성립하게
     stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 11 }],
     intro: [
@@ -221,7 +221,7 @@ const CAMPAIGN = [
       { who: 'PECS_LemonadeAlpha', text: '결승 상대는 라비아타예요. 거기서 무너지면 그때는 정말로 혼낼 거예요.' },
       { who: 'PECS_Orangeade', text: '네! 꼭 이기고 올게요!' },
     ],
-    mid: { half: { who: 'PECS_LemonadeAlpha', text: '…생각보다 단단하네요. 언제 이렇게 배운 거죠?' }, low: { who: 'PECS_LemonadeAlpha', text: '여기까지인가요? 그렇다면 결승은 아직 이르네요.', ssAi: { who: 'PECS_LemonadeAlpha', text: '이 카드는 쉽게 넘을 수 없을 거예요. 보여 주세요, 오렌지에이드.' }, comeback: { who: 'PECS_LemonadeAlpha', text: '…흐름을 뒤집었네요. 그게 제가 보고 싶던 모습이에요.' } } },
+    mid: { half: { who: 'PECS_LemonadeAlpha', text: '…생각보다 단단하네요. 언제 이렇게 배운 거죠?' }, low: { who: 'PECS_LemonadeAlpha', text: '여기까지인가요? 그렇다면 결승은 아직 이르네요.' }, ssAi: { who: 'PECS_LemonadeAlpha', text: '이 카드는 쉽게 넘을 수 없을 거예요. 보여 주세요, 오렌지에이드.' }, comeback: { who: 'PECS_LemonadeAlpha', text: '…흐름을 뒤집었네요. 그게 제가 보고 싶던 모습이에요.' } },
     lose: { who: 'PECS_LemonadeAlpha', text: '아직 멀었어요. 다시 오세요, 오렌지에이드. 기다리고 있을게요.' },
   },
   {
@@ -251,7 +251,7 @@ const CAMPAIGN = [
       { who: 'PECS_Orangeade', text: '알파 님이 지금 저를 자랑이라고…! 헤헤, 이건 평생 기억할 거예요!' },
       { who: '3P_ConstantiaS2', text: '우승 축하해. 축하 파티 준비는 벌써 끝났잖니. 다들 기다리고 있어.' },
     ],
-    mid: { half: { who: '3P_Labiata', text: '후후, 정말 많이 컸구나. 그럼 나도 조금 더 힘을 내 볼까?' }, low: { who: '3P_Labiata', text: '미안, 여기서는 물러설 수 없단다.', ssAi: { who: '3P_Labiata', text: '챔피언의 카드란다. 받아 낼 수 있겠니?' }, comeback: { who: '3P_Labiata', text: '후후, 여기서 뒤집다니. 정말 많이 컸구나.' } } },
+    mid: { half: { who: '3P_Labiata', text: '후후, 정말 많이 컸구나. 그럼 나도 조금 더 힘을 내 볼까?' }, low: { who: '3P_Labiata', text: '미안, 여기서는 물러설 수 없단다.' }, ssAi: { who: '3P_Labiata', text: '챔피언의 카드란다. 받아 낼 수 있겠니?' }, comeback: { who: '3P_Labiata', text: '후후, 여기서 뒤집다니. 정말 많이 컸구나.' } },
     lose: { who: '3P_Labiata', text: '좋은 대국이었단다. 언제든 다시 도전하렴, 오렌지에이드 양.' },
     epilogue: [
       { who: 'PECS_Orangeade', text: '파티는 정말 굉장했어요. 다들 제 카드 이야기만 하더라고요. 헤헤…' },
