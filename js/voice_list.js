@@ -103,7 +103,6 @@ const VOICE_LIST = {
   'DS_KunoichiShiden': 'deploy mvp idle',
   'DS_KunoichiZero': 'deploy mvp idle',
   'DS_MoMo': 'deploy mvp idle',
-  'DS_Koyori': 'deploy mvp idle',
   'DS_Angel': 'deploy mvp idle',
   'AGS_Goltarion': 'deploy mvp idle',
   'AGS_Tyrant': 'deploy mvp idle',

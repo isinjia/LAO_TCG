@@ -155,7 +155,6 @@ const UNITS = [
   { id: 'DS_KunoichiShiden', n: '쿠노이치 시덴', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 3, kw: ['돌격'] },
   { id: 'DS_KunoichiZero', n: '쿠노이치 제로', f: 'DS', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 4, kw: ['관통'] },
   { id: 'DS_MoMo', n: '모모', f: 'DS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 4, kw: ['회피'] },
-  { id: 'DS_Koyori', n: '코요리', f: 'DS', t: 'M', r: 'ATK', g: 'B', c: 2, a: 3, h: 3, kw: ['회피'], deploy: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '전개: 마주한 적 유닛 공격력 -1.' },
   { id: 'DS_Angel', n: '엔젤', f: 'DS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 2, kw: ['회피'] },
 
   // ---------- AGS ----------
@@ -243,8 +242,8 @@ TOKENS.forEach(u => { u.kind = 'unit'; CARDS[u.id] = u; });
 SKILLS.forEach(s => { s.kind = 'skill'; CARDS[s.id] = s; });
 // 덱 편성에 쓸 수 있는 카드 (적 전용·토큰 제외)
 const POOL = Object.values(CARDS).filter(c => !c.enemy && !c.token);
-const GAME_VER = 'V1.05'; // 로비 오른쪽 아래에 보이는 게임 버전. 푸시할 때마다 0.01씩 올린다
-const ART_VER = 7; // 아트를 다시 빌드하면 올려서 브라우저 캐시를 갱신한다
+const GAME_VER = 'V1.06'; // 로비 오른쪽 아래에 보이는 게임 버전. 푸시할 때마다 0.01씩 올린다
+const ART_VER = 8; // 아트를 다시 빌드하면 올려서 브라우저 캐시를 갱신한다
 function artOf(card) { return `assets/art/${card.art || card.id}.webp?v=${ART_VER}`; }
 function iconOf(card) { return card.icon ? `assets/skill/${card.icon}.png` : null; }
 function fullOf(card) { return `assets/full/${card.art || card.id}.webp?v=${ART_VER}`; }
