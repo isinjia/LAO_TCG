@@ -651,6 +651,7 @@ img { -webkit-user-drag: none; }
 .cmd.hero.enemy .hero-skill { background: radial-gradient(circle at 35% 35%, #d9a8ff, #5a2186 70%); border-color: #f0dcff; cursor: help; }
 .hero-skill .hs-icon { position: absolute; inset: 9px; transform: rotate(-45deg); background: center / contain no-repeat; filter: drop-shadow(0 2px 2px #000); }
 .hero-skill .hs-cost { position: absolute; left: -12px; top: 50%; width: 28px; height: 28px; margin-top: -14px; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; font-family: "Exo 2", sans-serif; font-weight: 900; font-size: 16px; color: #032; background: linear-gradient(180deg, #bff0ff, #1aa7e0); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.hero-skill .hs-name { display: none; }
 .hero-skill .hs-cost.syn { background: linear-gradient(180deg, #fff3b0, #ffc600); }
 .hero-skill:hover { filter: brightness(1.2); }
 .hero-skill.ready { box-shadow: 0 0 0 3px #ffc600, 0 0 22px rgba(255,198,0,0.75); animation: skillReady 1.4s ease-in-out infinite; }

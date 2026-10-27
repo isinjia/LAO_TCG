@@ -120,7 +120,7 @@ function cmdHtml(side, p) {
   return `<div class="cmd hero ${side}" id="cmd-${side}">
     <div class="hero-frame"><div class="cm-portrait" style="background-image:url('${portrait}')"></div></div>
     <div class="hero-hp"><span class="num">0</span></div>
-    <button class="hero-skill" title="특성 스킬 「${esc(sk.n)}」 — 턴당 1회. ${esc(sk.text.replace(/^[^.]*턴당 1회\. /, ''))}${side === 'me' ? ' (누르면 사용, 우클릭은 상세)' : ''}"><span class="hs-icon" style="background-image:url('${iconOf(sk)}')"></span><b class="hs-cost">${sk.c}</b></button>
+    <button class="hero-skill" title="특성 스킬 「${esc(sk.n)}」 — 턴당 1회. ${esc(sk.text.replace(/^[^.]*턴당 1회\. /, ''))}${side === 'me' ? ' (누르면 사용, 우클릭은 상세)' : ''}"><span class="hs-icon" style="background-image:url('${iconOf(sk)}')"></span><span class="hs-name">${esc(sk.n)}</span><b class="hs-cost">${sk.c}</b></button>
     ${side === 'enemy' ? '<div class="hero-ap" title="적 AP"></div>' : ''}
     <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? (p.portrait === 'PECS_Orangeade' ? '카드 마스터 지망생' : '지휘관') : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
     <div class="cm-fc"></div></div>`;

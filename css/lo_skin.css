@@ -498,3 +498,12 @@ body:not(.compact) .hand { left: calc(960px + var(--ox)); bottom: -100px; }
 .card .c-plate { padding: 0 0.5em 0 1em; }
 .card .c-text { left: 1.75em; right: 0.9em; } /* 효과문은 글자가 카드의 0.6배라 em 값도 그만큼 크게 */
 .card .c-stat { top: 37%; }
+
+/* 휴대폰: 내 특성 스킬 버튼이 초상 귀퉁이의 작은 점처럼 보여 쓰는 버튼인지 알기 어렵다.
+   크게 키워 초상 왼쪽 위 빈 곳으로 옮기고, 아래에 스킬 이름을 붙인다 */
+.compact .cmd.hero.me .hero-skill { width: 150px; height: 150px; left: -196px; bottom: 200px; transform: none; border-radius: 50%; border-width: 4px; }
+.compact .cmd.hero.me .hero-skill .hs-icon { inset: 20px; transform: none; }
+.compact .cmd.hero.me .hero-skill .hs-cost { left: -12px; top: -12px; margin-top: 0; width: 46px; height: 46px; font-size: 26px; transform: none; }
+.compact .cmd.hero.me .hero-skill .hs-name { display: block; position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); white-space: nowrap; font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 2px 4px #000; background: rgba(10,12,16,0.88); padding: 2px 12px; border: 1px solid #8fdcff; }
+.compact .cmd.hero.me .hero-skill.sealed::after { transform: translate(-50%, -50%); font-size: 22px; }
+.compact .cmd.hero.enemy .hero-skill { width: 84px; height: 84px; }
