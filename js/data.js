@@ -243,7 +243,7 @@ TOKENS.forEach(u => { u.kind = 'unit'; CARDS[u.id] = u; });
 SKILLS.forEach(s => { s.kind = 'skill'; CARDS[s.id] = s; });
 // 덱 편성에 쓸 수 있는 카드 (적 전용·토큰 제외)
 const POOL = Object.values(CARDS).filter(c => !c.enemy && !c.token);
-const ART_VER = 6; // 아트를 다시 빌드하면 올려서 브라우저 캐시를 갱신한다
+const ART_VER = 7; // 아트를 다시 빌드하면 올려서 브라우저 캐시를 갱신한다
 function artOf(card) { return `assets/art/${card.art || card.id}.webp?v=${ART_VER}`; }
 function iconOf(card) { return card.icon ? `assets/skill/${card.icon}.png` : null; }
 function fullOf(card) { return `assets/full/${card.art || card.id}.webp?v=${ART_VER}`; }
