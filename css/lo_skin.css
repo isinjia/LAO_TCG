@@ -275,6 +275,7 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .compact .deck-card .dc-name { font-size: 26px; }
 .compact .deck-card .dc-desc { font-size: 19px; }
 .compact .setup-opts { font-size: 22px; }
+.compact .cmd-pick .cp-item { width: 110px; font-size: 18px; } .compact .cmd-pick .cp-face { width: 96px; height: 96px; } .compact .cmd-skill { font-size: 22px; }
 .compact .chip { font-size: 17px; }
 .compact .filters input[type=search], .compact .filters select { font-size: 20px; }
 .compact .deck-row { font-size: 21px; }

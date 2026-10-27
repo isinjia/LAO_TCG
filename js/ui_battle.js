@@ -27,7 +27,9 @@ async function confirmAbandon() {
 
 function startBattle(cfg) {
   abandonSavedBattle(); // 새 전투를 시작하면 이전 진행 기록은 패배로 정리한다
-  const me = new Player('오렌지에이드', cfg.myDeck, { portrait: 'PECS_Orangeade' }); // 주인공은 항상 오렌지에이드
+  // 주인공은 오렌지에이드. 자유 모드에서는 다른 지휘관을 고를 수 있다 (지휘관마다 특성 스킬이 다르다)
+  const myCmd = cfg.myCommander && CARDS[cfg.myCommander] ? cfg.myCommander : 'PECS_Orangeade';
+  const me = new Player(CARDS[myCmd].n, cfg.myDeck, { portrait: myCmd });
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
   if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 배틀: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
@@ -122,7 +124,7 @@ function cmdHtml(side, p) {
     <div class="hero-hp"><span class="num">0</span></div>
     <button class="hero-skill" title="특성 스킬 「${esc(sk.n)}」 — 턴당 1회. ${esc(sk.text.replace(/^[^.]*턴당 1회\. /, ''))}${side === 'me' ? ' (누르면 사용, 우클릭은 상세)' : ''}"><span class="hs-icon" style="background-image:url('${iconOf(sk)}')"></span><b class="hs-cost">${sk.c}</b></button>
     ${side === 'enemy' ? '<div class="hero-ap" title="적 AP"></div>' : ''}
-    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? '카드 마스터 지망생' : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
+    <div class="hero-name">${esc(p.name)}<small>${side === 'me' ? (p.portrait === 'PECS_Orangeade' ? '카드 마스터 지망생' : '지휘관') : '대전 상대'}</small><span class="hero-facs">${p.factions.map(f => `<i data-f="${f}" style="background:${FACTIONS[f].color}" title="${FACTIONS[f].name}${SYNERGY[f] ? ` 결속 「${SYNERGY[f].name}」: 같은 제작사 전투원 ${RULES.SYNERGY_MIN}기 이상이면 ${SYNERGY[f].text}` : ''}"></i>`).join('')}</span><span class="hero-syn"></span></div>
     <div class="cm-fc"></div></div>`;
 }
 
@@ -174,7 +176,7 @@ async function coinToss() {
   Audio2.play(meFirst ? 'rankup' : 'place');
   vibrate(60);
   el.classList.add('done', meFirst ? 'mine' : 'theirs');
-  $('.ct-result', el).innerHTML = `<b>${esc(meFirst ? me.name : ai.name)} 선공</b><small>${meFirst ? '첫 턴에는 카드를 뽑지 않습니다' : `오렌지에이드 후공 — 카드 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}, 라이프 +${RULES.SECOND_HP_BONUS}`}</small>`;
+  $('.ct-result', el).innerHTML = `<b>${esc(meFirst ? me.name : ai.name)} 선공</b><small>${meFirst ? '첫 턴에는 카드를 뽑지 않습니다' : `${esc(me.name)} 후공 — 카드 +${RULES.SECOND_EXTRA_CARDS}, 첫 턴 AP +${RULES.SECOND_AP_BONUS}, 라이프 +${RULES.SECOND_HP_BONUS}`}</small>`;
   await sleep(1300); alive(myB);
   el.classList.add('out');
   setTimeout(() => el.remove(), 400);
@@ -183,7 +185,7 @@ async function coinToss() {
 async function battleIntro() {
   const myB = B; const { game, me, ai, cfg } = B;
   if (!cfg.tutorial) { await coinToss(); alive(myB); }
-  showBanner('배틀 시작', `${B.meFirst ? '오렌지에이드 선공' : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
+  showBanner('배틀 시작', `${B.meFirst ? `${B.me.name} 선공` : '상대 선공'} · ${modeLabel(cfg)}`, 'mine');
   Audio2.play('start');
   await sleepRaw(1300); alive(myB);
   // 멀리건
@@ -680,7 +682,7 @@ function pushHistory(card, player) {
   const list = $('.hs-list'); if (!list) return;
   const icon = card.kind === 'skill' && iconOf(card); // 지원 카드는 캐릭터 그림 대신 스킬 아이콘
   const it = h(`<div class="hs-item ${player === B.me ? 'mine' : 'theirs'}${icon ? ' skill' : ''}" style="background-image:url('${icon || artOf(card)}')"><span>${card.c}</span></div>`);
-  it.onpointerenter = e => { if (e.pointerType === 'mouse') showPreview(card, 'left', `${player === B.me ? '오렌지에이드' : esc(B.ai.name)} 사용`); };
+  it.onpointerenter = e => { if (e.pointerType === 'mouse') showPreview(card, 'left', `${esc(player === B.me ? B.me.name : B.ai.name)} 사용`); };
   it.onpointerleave = hidePreview;
   it.onclick = () => openCardDetail(card);
   list.prepend(it);
@@ -963,7 +965,7 @@ function showBanner(main, sub, side) {
 }
 async function revealCard(card, mine) {
   const ss = card.kind === 'unit' && card.g === 'SS';
-  const r = h(`<div class="reveal ${mine ? 'mine' : ''} ${ss ? 'ss' : ''}"><div class="rv-who">${mine ? '오렌지에이드' : esc(B.ai.name)} — ${card.kind === 'unit' ? '배치' : card.hero ? '특성 스킬' : '지원 카드'}</div></div>`);
+  const r = h(`<div class="reveal ${mine ? 'mine' : ''} ${ss ? 'ss' : ''}"><div class="rv-who">${esc(mine ? B.me.name : B.ai.name)} — ${card.kind === 'unit' ? '배치' : card.hero ? '특성 스킬' : '지원 카드'}</div></div>`);
   r.appendChild(cardEl(card, { noHover: true }));
   $('#stage').appendChild(r);
   Audio2.play('card');
@@ -1010,7 +1012,7 @@ async function processEvents() {
       case 'turnStart': {
         const mine = ev.player === B.me;
         renderAll(true);
-        showBanner(mine ? '내 턴' : '적 턴', mine ? `오렌지에이드의 턴 ${game.round()}` : `${B.ai.name}의 턴`, mine ? 'mine' : 'theirs');
+        showBanner(mine ? '내 턴' : '적 턴', mine ? `${B.me.name}의 턴 ${game.round()}` : `${B.ai.name}의 턴`, mine ? 'mine' : 'theirs');
         Audio2.play('round', 0.7);
         // 작전 시간 초과 예고: 시작 2라운드 전부터 내 턴에 알린다
         const left = RULES.OVERTIME_ROUND ? RULES.OVERTIME_ROUND - game.round() : 0;
@@ -1021,7 +1023,7 @@ async function processEvents() {
       case 'overtime': {
         // 시간 초과에 들어서면 음악을 결전 곡으로 바꾸고 화면 가장자리를 붉게 맥박치게 한다 (한 번만)
         if (!B.overtimeFx) { B.overtimeFx = true; Audio2.bgm(B.cfg.bgm === 'boss2' ? 'boss1' : 'boss2'); $('#scr-battle').classList.add('overtime'); }
-        showBanner('시간 초과', `작전 시간 초과 — ${ev.player === B.me ? '오렌지에이드' : esc(B.ai.name)} 피해 ${ev.v}`, 'theirs');
+        showBanner('시간 초과', `작전 시간 초과 — ${esc(ev.player === B.me ? B.me.name : B.ai.name)} 피해 ${ev.v}`, 'theirs');
         Audio2.play('warning', 0.8);
         await sleep(900);
         break;
