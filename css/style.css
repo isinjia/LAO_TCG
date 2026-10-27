@@ -407,6 +407,7 @@ img { -webkit-user-drag: none; }
 .unit .u-fc.miss { background: rgba(120,80,200,0.9); color: #fff; font-size: 22px; font-family: "Godo"; }
 .unit.lunge-up { transform: translateY(-150px) scale(1.06); z-index: 20; transition-duration: calc(0.15s / var(--spd)); }
 .unit.lunge-down { transform: translateY(150px) scale(1.06); z-index: 20; transition-duration: calc(0.15s / var(--spd)); }
+.lanes:has(.unit.lunge-up, .unit.lunge-down) { z-index: 5; } /* 돌진한 카드가 맞은편 진영 칸·유닛 뒤로 숨지 않게 그 진영 줄을 위로 올린다 */
 .unit.hit { animation: shake calc(0.35s / var(--spd)); }
 .unit.hit::before { content: ""; position: absolute; inset: 0; background: rgba(255,60,60,0.45); z-index: 5; animation: flashOut calc(0.35s / var(--spd)) forwards; }
 .unit.dying { animation: dieAnim calc(0.55s / var(--spd)) forwards; pointer-events: none; }

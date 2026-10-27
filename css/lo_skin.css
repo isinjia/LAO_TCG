@@ -94,8 +94,11 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .table { border-radius: 0; border: none; background: none; box-shadow: none; border-image: url("../assets/ui/panel.png") 26 84 26 26 fill / 30px 96px 30px 30px; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.55)); opacity: 0.94; }
 .table::before { border-radius: 0; border-color: rgba(255,255,255,0.06); }
 .table-mid { background: linear-gradient(90deg, transparent, rgba(255,198,0,0.7), transparent); box-shadow: 0 0 14px rgba(255,198,0,0.35); }
-.slot { border-radius: 0; border: 2px dashed rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
-.slot.place { border-color: var(--lo-yellow); background: rgba(255,198,0,0.12); box-shadow: inset 0 0 40px rgba(255,198,0,0.25); }
+/* 칸의 깎인 모서리는 뒤 바탕(::after)에만 건다. 칸 자체에 clip-path를 걸면 돌진·흔들림으로 칸 밖에 나간 카드가 잘린다 */
+.slot, .slot.place, .slot.place.hover { border-radius: 0; border: 2px solid transparent; background: none; box-shadow: none; }
+.slot::after { content: ""; position: absolute; inset: -2px; z-index: -1; pointer-events: none; border: 2px dashed rgba(255,255,255,0.12); background: rgba(0,0,0,0.18); clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); transition: background 0.15s, border-color 0.15s; }
+.slot.place::after { border-color: var(--lo-yellow); border-style: solid; background: rgba(255,198,0,0.12); }
+.slot.place.hover::after { background: rgba(255,198,0,0.3); }
 .unit { border-radius: 0; border: none; background: #1d1e22; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
 .unit .u-frame { position: absolute; inset: 0; pointer-events: none; z-index: 2; border-image: url("../assets/ui/frame_B.png") 6 6 100 16 / 5px 5px 82px 14px; }
 .unit .u-frame.g-A { border-image-source: url("../assets/ui/frame_A.png"); }
@@ -303,9 +306,9 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .table-side { position: absolute; left: 34px; font-family: "Exo 2", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.5em; writing-mode: vertical-rl; pointer-events: none; }
 .table-side.enemy { top: 40px; color: rgba(255,107,117,0.45); }
 .table-side.me { bottom: 40px; color: rgba(255,198,0,0.45); }
-.slot { background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.1)); }
-.slot[data-side=enemy] { box-shadow: inset 0 -30px 40px -30px rgba(255,77,90,0.25); }
-.slot[data-side=me] { box-shadow: inset 0 30px 40px -30px rgba(255,198,0,0.22); }
+.slot::after { background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.1)); }
+.slot[data-side=enemy]::after { box-shadow: inset 0 -30px 40px -30px rgba(255,77,90,0.25); }
+.slot[data-side=me]::after { box-shadow: inset 0 30px 40px -30px rgba(255,198,0,0.22); }
 .unit { box-shadow: 0 12px 30px rgba(0,0,0,0.7), 0 0 24px color-mix(in srgb, var(--fc) 35%, transparent); }
 /* 전투 중 안내(전술 팁 등)는 전장을 가리지 않도록 왼쪽 빈 공간에 띄운다 */
 #scr-battle.active ~ #toast-root { left: 130px; top: calc(210px + var(--oy)); transform: none; align-items: flex-start; }
