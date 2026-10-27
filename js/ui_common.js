@@ -229,6 +229,16 @@ function confirmBox(title, msg, okLabel = '확인', danger = false) {
 }
 
 // ---------- 카드 상세 ----------
+// 꾹 누르면(움직이지 않고 0.55초) 상세를 연다. 마우스는 우클릭으로도 열린다. 터치는 main.js가 길게 누르기를 우클릭으로 바꿔 보낸다
+// 열었으면 el._held를 켜 두어, 손을 뗄 때 따라오는 클릭 한 번을 무시할 수 있게 한다
+function holdForDetail(el, open) {
+  let t = null, sx = 0, sy = 0;
+  const fire = () => { t = null; el._held = true; open(); };
+  el.addEventListener('contextmenu', e => { e.preventDefault(); fire(); });
+  el.addEventListener('pointerdown', e => { el._held = false; if (e.pointerType === 'touch' || e.button !== 0) return; sx = e.clientX; sy = e.clientY; clearTimeout(t); t = setTimeout(fire, 550); });
+  const stop = e => { if (t && (e.type !== 'pointermove' || Math.hypot(e.clientX - sx, e.clientY - sy) > 12)) { clearTimeout(t); t = null; } };
+  ['pointerup', 'pointerleave', 'pointercancel', 'pointermove'].forEach(k => el.addEventListener(k, stop));
+}
 function openCardDetail(card, list) {
   const idx = list ? list.indexOf(card) : -1;
   const f = FACTIONS[card.f];

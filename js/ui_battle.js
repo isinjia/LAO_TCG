@@ -209,8 +209,10 @@ function mulliganPrompt() {
     me.hand.forEach(c => {
       const ce = cardEl(c); // 크기는 CSS(.mull-hand .card)가 정한다: 화면 크기가 바뀌어도 바로 맞춰진다
       ce._card = c;
+      holdForDetail(ce, () => openCardDetail(c, me.hand));
       ce.onclick = () => {
-        if (done) return;
+        if (ce._held) { ce._held = false; return; }
+        if (done) return; // 꾹 눌러 상세를 연 뒤 손을 뗄 때의 클릭은 교체 선택으로 치지 않는다
         if (!marked.has(c) && marked.size >= MAX) { toast(`최대 ${MAX}장까지 교체할 수 있습니다.`, true); return; }
         marked.has(c) ? marked.delete(c) : marked.add(c);
         ce.classList.toggle('marked', marked.has(c)); Audio2.play('card');
@@ -545,8 +547,8 @@ function attachHandDrag(ce, card) {
     if (e.button !== 0 || !B || B.drag) return;
     e.preventDefault();
     B.drag = { card, start: stagePoint(e.clientX, e.clientY), moved: false, ghost: null };
-    // 터치: 길게 누르면 카드 상세 (마우스의 우클릭 대신)
-    if (e.pointerType === 'touch') B.drag.timer = setTimeout(() => { const d = B && B.drag; if (d && !d.moved && d.card === card) { d.long = true; openCardDetail(card, B.me.hand); } }, 550);
+    // 움직이지 않고 꾹 누르고 있으면 카드 상세 (터치·마우스 모두. 마우스는 우클릭으로도 열린다)
+    B.drag.timer = setTimeout(() => { const d = B && B.drag; if (d && !d.moved && d.card === card) { d.long = true; openCardDetail(card, B.me.hand); } }, 550);
     const move = ev => onDragMove(ev);
     const up = ev => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); onDragEnd(ev); };
     const cancel = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); if (B && B.drag) { if (B.drag.ghost) B.drag.ghost.remove(); B.drag = null; clearSelection(); renderHand(true); } };
