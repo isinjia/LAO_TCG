@@ -870,13 +870,13 @@ async function processEvents() {
         renderAll(); await sleep(260);
         break;
       }
-      case 'shieldHit': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, `🛡 -${ev.v}`, 'shield'); Audio2.play('shield', 0.8); await sleep(120); break; }
-      case 'evade': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing'); renderAll(); await sleep(280); break; }
-      case 'counter': { const el = B.unitEls.get(ev.unit.uid), t = B.unitEls.get(ev.target.uid); floatOn(el, '반격!', 'info'); if (el && t) await boltTo(centerOf(el), centerOf(t), '#ff9a3b', 160); break; }
-      case 'guard': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호!', 'shield'); Audio2.play('shield'); await sleep(200); break; }
+      case 'shieldHit': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, `🛡 -${ev.v}`, 'shield'); /* 방어막이 깨지면 낮은 소리 */ Audio2.play('shield', 0.8, ev.unit.shield <= 0 ? 0.7 : 1.1); await sleep(120); break; }
+      case 'evade': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing', 0.9, 1.35); renderAll(); await sleep(280); break; }
+      case 'counter': { const el = B.unitEls.get(ev.unit.uid), t = B.unitEls.get(ev.target.uid); floatOn(el, '반격!', 'info'); Audio2.play('swingHeavy', 0.8, 0.85); if (el && t) await boltTo(centerOf(el), centerOf(t), '#ff9a3b', 160); break; }
+      case 'guard': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호!', 'shield'); Audio2.play('shield', 1, 0.8); await sleep(200); break; }
       case 'move': { Audio2.play('swing', 0.7); renderAll(); const el = B.unitEls.get(ev.unit.uid); if (el) floatOn(el, '이동', 'info'); await sleep(300); break; }
       case 'strike': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '공격 후', 'buff'); await sleep(140); break; }
-      case 'pierce': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '관통!', 'buff'); await sleep(150); break; }
+      case 'pierce': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '관통!', 'buff'); Audio2.play('beam', 0.7, 1.4); await sleep(150); break; }
       case 'dmgCmd': {
         const el = cmdElOf(ev.player);
         retrigger(el, 'hit');

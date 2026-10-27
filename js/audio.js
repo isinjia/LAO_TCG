@@ -15,8 +15,11 @@ const Audio2 = {
     this.bgmA = new Audio(); this.bgmB = new Audio();
     [this.bgmA, this.bgmB].forEach(a => { a.loop = true; a.volume = 0; a.preload = 'auto'; });
     const unlock = () => {
+      if (this.ctx && this.ctx.state === 'suspended' && !this.muted) this.ctx.resume().catch(() => {});
       if (this.unlocked) return;
       this.unlocked = true;
+      // 효과음은 웹 오디오로 낸다: 미리 해독한 소리를 지연 없이 겹쳐 재생하고, 음 높이를 조금씩 흔들 수 있다
+      try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) { this.ctx = new AC(); this.master = this.ctx.createGain(); this.master.connect(this.ctx.destination); Object.keys(this.SFX).forEach(n => this.buffer(n)); } } catch (e) { this.ctx = null; }
       if (this.pending) { const n = this.pending; this.pending = null; this.bgm(n, true); }
     };
     window.addEventListener('pointerdown', unlock, { once: false });
@@ -34,6 +37,7 @@ const Audio2 = {
     if (this.muted === m) return;
     this.muted = m;
     this.allEls().forEach(a => { a.muted = m; });
+    if (this.master) this.master.gain.value = m ? 0 : 1;
   },
   allEls() {
     const out = [this.bgmA, this.bgmB, this.voiceEl].filter(Boolean);
@@ -66,9 +70,29 @@ const Audio2 = {
     }, 40);
   },
   setBgmVolume(v) { if (this.current) this.current.volume = v; },
-  play(name, vol = 1) {
+  // 효과음 버퍼: 처음 한 번 받아 해독해 두고 다시 쓴다
+  buffer(name) {
+    if (!this.ctx) return null;
+    this.bufs = this.bufs || {};
+    if (!this.bufs[name]) this.bufs[name] = fetch(`assets/sfx/${this.SFX[name]}`).then(r => r.arrayBuffer()).then(b => new Promise((ok, no) => this.ctx.decodeAudioData(b, ok, no))).catch(() => null);
+    return this.bufs[name];
+  },
+  // rate: 재생 속도(음 높이). 생략하면 ±5% 안에서 무작위로 흔들어 같은 소리가 반복돼도 덜 단조롭다
+  play(name, vol = 1, rate) {
     const file = this.SFX[name]; if (!file || !this.unlocked || this.muted) return;
     const v = Store.settings.sfx * vol; if (v <= 0) return;
+    if (this.ctx) {
+      const t = this.ctx.currentTime;
+      this.buffer(name).then(buf => {
+        if (!buf || this.muted) return;
+        const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
+        src.buffer = buf; src.playbackRate.value = rate || (name === 'click' ? 1.3 : 0.95 + Math.random() * 0.1); // 클릭은 집기와 같은 소리를 높게
+        g.gain.value = Math.min(1, v);
+        src.connect(g); g.connect(this.master);
+        src.start(Math.max(t, this.ctx.currentTime));
+      });
+      return;
+    }
     let pool = this.sfxCache[name];
     if (!pool) pool = this.sfxCache[name] = [];
     let a = pool.find(x => x.paused || x.ended);
