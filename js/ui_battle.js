@@ -676,18 +676,12 @@ function refreshForecast() {
   if (!B) return;
   $$('.unit .u-fc').forEach(f => { f.className = 'u-fc'; f.textContent = ''; });
   $$('.cmd .cm-fc').forEach(f => { f.className = 'cm-fc'; f.textContent = ''; });
-  if (!Store.settings.forecast || !canAct()) return;
-  const { game, me, ai } = B;
-  const mine = game.forecast(me);
-  // 카드 위에는 예측 문구(피해량·빗나감)를 띄우지 않는다. 카드 그림과 상태 표시를 가린다는 의견에 따라 뺐다
-  if (mine.cmdDmg > 0) {
-    const f = $('#cmd-enemy .cm-fc'); f.className = `cm-fc show${mine.lethal ? ' lethal' : ''}`; f.textContent = mine.lethal ? `-${mine.cmdDmg} 격파!` : `-${mine.cmdDmg}`;
-  }
-  // 다음 적 턴 피해 미리보기는 표시하지 않는다 (화면이 복잡하다는 의견에 따라 뺐다. 위험한 경우는 전술 팁으로만 알린다)
+  // 카드와 사령관 위에 예측 문구(피해량·빗나감·격파)를 띄우지 않는다. 화면을 가린다는 의견에 따라 모두 뺐다.
+  // 예측은 턴 종료 버튼에 마우스를 올렸을 때의 공격 화살표로만 보여 준다 (설정 > 공격 예측 화살표)
 }
 
 function drawArrows() {
-  if (!canAct()) return;
+  if (!Store.settings.forecast || !canAct()) return;
   const svg = $('.fc-svg'); clearArrows();
   const fc = B.game.forecast(B.me);
   const seen = new Set();
