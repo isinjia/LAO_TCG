@@ -155,7 +155,7 @@ function chooseSecretary() {
 }
 
 // ---------- 빠른 전투 설정 ----------
-const setupState = { myDeck: null, oppDeck: 'random', level: 'normal', first: 'random', bg: 'board' };
+const setupState = { myDeck: null, oppDeck: 'random', level: 'normal', first: 'random', bg: 'board', myCmd: 'PECS_Orangeade', oppCmd: 'auto' };
 screenHooks.setup = el => {
   Audio2.bgm('lobby');
   if (!setupState.myDeck) setupState.myDeck = Store.data.activeDeck;
@@ -164,11 +164,12 @@ screenHooks.setup = el => {
     <div class="bg-layer" style="background-image:url('assets/bg/${setupState.bg}.jpg');opacity:.35"></div>
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>자유 대국</h2><span class="sub">덱과 상대를 고르고 대국을 시작하세요</span><span class="spacer"></span><button class="btn primary big" data-a="go">대국 시작</button></div>
     <div class="setup-wrap">
-      <div class="panel setup-col"><h3>내 덱</h3><div class="deck-cards scroll" data-list="my"></div><button class="btn small" data-a="edit">덱 편성으로 이동</button></div>
+      <div class="panel setup-col"><h3>내 지휘관</h3><div class="cmd-pick" data-list="cmd"></div><div class="cmd-skill" data-v="cmdskill"></div><h3>내 덱</h3><div class="deck-cards scroll" data-list="my"></div><button class="btn small" data-a="edit">덱 편성으로 이동</button></div>
       <div class="panel setup-col"><h3>상대</h3><div class="deck-cards scroll" data-list="opp" style="flex:0 0 auto;max-height:470px"></div>
         <div class="setup-opts">
           <span>AI 난이도</span><div class="seg" data-k="level"><button data-v="easy">쉬움</button><button data-v="normal">보통</button><button data-v="hard">어려움</button></div>
           <span>선공</span><div class="seg" data-k="first"><button data-v="random">무작위</button><button data-v="me">내가 선공</button><button data-v="ai">상대 선공</button></div>
+          <span>상대 지휘관</span><select data-k="oppCmd"><option value="auto">자동 (덱의 대표 전투원)</option>${Object.keys(HERO_SKILLS).filter(id => CARDS[id]).map(id => `<option value="${id}" ${id === setupState.oppCmd ? 'selected' : ''}>${esc(CARDS[id].n)} — ${esc(HERO_SKILLS[id].n)}</option>`).join('')}</select>
           <span>전장</span><select data-k="bg">${Object.entries(BATTLE_BGS).map(([k, v]) => `<option value="${k}" ${k === setupState.bg ? 'selected' : ''}>${v}</option>`).join('')}</select>
         </div>
       </div>
@@ -208,7 +209,21 @@ screenHooks.setup = el => {
       opp.appendChild(dc);
     });
   };
+  // 지휘관: 초상을 누르면 고르고, 아래에 그 지휘관의 특성 스킬을 보여 준다
+  const renderCmd = () => {
+    const box = $('[data-list=cmd]', el); box.innerHTML = '';
+    PLAYER_COMMANDERS.forEach(id => {
+      const it = h(`<div class="cp-item ${id === setupState.myCmd ? 'on' : ''}" title="${esc(CARDS[id].n)}"><div class="cp-face" style="background-image:url('${artOf(CARDS[id])}')"></div><span>${esc(CARDS[id].n)}</span></div>`);
+      it.onclick = () => { setupState.myCmd = id; Audio2.play('click'); renderCmd(); };
+      box.appendChild(it);
+    });
+    const sk = HERO_SKILLS[setupState.myCmd] || COMMAND_CARD;
+    $('[data-v=cmdskill]', el).innerHTML = `<b>${esc(CARDS[setupState.myCmd].n)}</b> 특성 스킬 「${esc(sk.n)}」 <i>AP ${sk.c} · 턴당 1회</i><br>${esc(sk.text.replace(/^(특성 스킬|작전 지시) — 턴당 1회\.\s*/, ''))}`;
+  };
+  renderCmd();
   renderLists();
+  $('select[data-k=oppCmd]', el).value = setupState.oppCmd;
+  $('select[data-k=oppCmd]', el).onchange = e => { setupState.oppCmd = e.target.value; };
   $$('.seg', el).forEach(seg => {
     const k = seg.dataset.k;
     $$('button', seg).forEach(b => { b.classList.toggle('on', b.dataset.v === setupState[k]); b.onclick = () => { setupState[k] = b.dataset.v; $$('button', seg).forEach(x => x.classList.toggle('on', x === b)); Audio2.play('click'); }; });
@@ -225,8 +240,8 @@ screenHooks.setup = el => {
     Store.data.activeDeck = my.id; Store.save();
     const top = opp.cards.map(id => CARDS[id]).filter(c => c.kind === 'unit').sort((a, b) => b.c - a.c || (b.g > a.g ? 1 : -1))[0];
     startBattle({
-      mode: 'quick', myDeck: my.cards, myDeckName: my.name,
-      enemy: { name: opp.name.replace(/\s*\(.*\)$/, ''), deck: opp.cards, level: setupState.level, portrait: story ? story.enemy.portrait : top.id, hp: RULES.CMD_HP },
+      mode: 'quick', myDeck: my.cards, myDeckName: my.name, myCommander: setupState.myCmd,
+      enemy: { name: opp.name.replace(/\s*\(.*\)$/, ''), deck: opp.cards, level: setupState.level, portrait: setupState.oppCmd !== 'auto' ? setupState.oppCmd : story ? story.enemy.portrait : top.id, hp: RULES.CMD_HP },
       first: setupState.first, bg: setupState.bg, bgm: ['battle1', 'battle2', 'battle3'][Math.floor(Math.random() * 3)],
     });
   };
