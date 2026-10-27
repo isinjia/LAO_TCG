@@ -420,18 +420,26 @@ const STAGE_REWARDS = {
   ex3: ['SK_DS_Flash'],
   ex4: ['SK_PECS_Omega'],
 };
+// 처음 받는 내 덱. 스토리 난이도를 맞춘 프리셋 덱(오르카호 정예)과 같은 카드로 시작해, 보상 카드를 넣어 가며 고친다
+const STARTER_DECK = { id: 'deck_starter', name: '오렌지에이드의 덱', cards: PRESET_DECKS[0].cards.slice() };
 // 별 누적 보상: 철충 보스를 로비 캐릭터로 선택 가능
 const STAR_REWARDS = [
   { stars: 9, secretary: 'IW_LemonadeZeta' },
   { stars: 18, secretary: 'IW_AzazelAlter' },
   { stars: 27, secretary: 'IW_LemonadeOmega' },
 ];
-// 보급소 카드: 프리셋·튜토리얼 덱과 스토리 보상에 없는 A·S·SS 등급 카드. 보급 포인트로 하나씩 해금한다.
-const SUPPLY_COST = { A: 6, S: 10, SS: 15 };
-const SUPPLY_RANDOM_COST = 7; // 무작위 보급 (남은 보급 카드 중 하나)
+// 처음에는 받은 덱(STARTER_DECK)의 카드만 가진다. 나머지는 스토리 첫 클리어 보상이나 보급소에서 하나씩 얻는다.
+// 보급소 카드: 처음 받은 덱과 스토리 보상에 없는 모든 카드. 보급 포인트로 하나씩 해금한다.
+const SUPPLY_COST = { B: 3, A: 6, S: 10, SS: 15 };
+const SUPPLY_RANDOM_COST = 5; // 무작위 보급 (남은 보급 카드 중 하나)
 const SUPPLY_CARDS = (() => {
-  const keep = new Set([...PRESET_DECKS.flatMap(d => d.cards), ...CAMPAIGN[0].playerDeck, ...Object.values(STAGE_REWARDS).flat()]);
-  return new Set(Object.values(CARDS).filter(c => !c.enemy && !c.token && c.id !== COMMAND_CARD.id && c.g !== 'B' && !keep.has(c.id)).map(c => c.id));
+  const keep = new Set([...STARTER_DECK.cards, ...Object.values(STAGE_REWARDS).flat()]);
+  return new Set(Object.values(CARDS).filter(c => !c.enemy && !c.token && c.id !== COMMAND_CARD.id && !keep.has(c.id)).map(c => c.id));
+})();
+// 카드 보유 도입 전에는 처음부터 쓸 수 있던 카드 (B 등급과 프리셋·튜토리얼 덱 카드). 그 전부터 하던 저장에는 이 카드들을 준다
+const LEGACY_FREE = (() => {
+  const was = new Set([...PRESET_DECKS.flatMap(d => d.cards), ...CAMPAIGN[0].playerDeck]);
+  return [...SUPPLY_CARDS].filter(id => CARDS[id].g === 'B' || was.has(id));
 })();
 const LOCKED = new Set([...Object.values(STAGE_REWARDS).flat(), ...SUPPLY_CARDS]);
 const LOCKED_SECRETARIES = new Set(STAR_REWARDS.map(r => r.secretary));

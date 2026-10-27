@@ -284,8 +284,10 @@ t('특수 임무 별 판정', () => {
   ok(starMet({ type: 'guards', v: 1 }, g, a), 'guards'); ok(starMet({ type: 'units', v: 7 }, g, a) && !starMet({ type: 'units', v: 6 }, g, a), 'units');
   CAMPAIGN.forEach(st => st.stars.forEach(x => ok(starLabel(x), st.id + ' label ' + x.type)));
 });
-t('보급 카드는 프리셋·튜토리얼·스토리 보상과 겹치지 않음', () => {
-  ok(SUPPLY_CARDS.size > 40, 'size'); SUPPLY_CARDS.forEach(id => { ok(CARDS[id] && !CARDS[id].enemy && CARDS[id].g !== 'B', id); ok(LOCKED.has(id), 'locked ' + id); });
+t('보급 카드는 처음 받은 덱·스토리 보상과 겹치지 않고, 나머지 카드는 모두 보급소에서 얻을 수 있음', () => {
+  ok(SUPPLY_CARDS.size > 40, 'size'); SUPPLY_CARDS.forEach(id => { ok(CARDS[id] && !CARDS[id].enemy && SUPPLY_COST[CARDS[id].g], id); ok(LOCKED.has(id), 'locked ' + id); ok(!STARTER_DECK.cards.includes(id), 'starter ' + id); });
+  Object.values(CARDS).filter(c => !c.enemy && !c.token && c.id !== COMMAND_CARD.id && !STARTER_DECK.cards.includes(c.id)).forEach(c => ok(LOCKED.has(c.id), 'free ' + c.id));
+  LEGACY_FREE.forEach(id => ok(SUPPLY_CARDS.has(id), 'legacy ' + id));
 });
 t('오늘의 대국: 같은 날짜는 같은 상대·조건, 덱은 유효', () => {
   const src = fs.readFileSync(path.join(ROOT, 'js/ui_challenge.js'), 'utf8');
@@ -309,7 +311,7 @@ t('직렬화 → 복원 후 동일하게 진행', () => {
   r.players.forEach(p => p.lanes.forEach(u => ok(!u || u.owner === p, 'owner')));
   const fa = g.forecast(g.cur), fb = r.forecast(r.cur); eq(fa.cmdDmg, fb.cmdDmg, 'forecast same');
 });
-t('잠금 카드는 프리셋·튜토리얼에 없음', () => { [...LOCKED].forEach(id => { ok(CARDS[id], id); ok(!PRESET_DECKS.some(d => d.cards.includes(id)), 'preset ' + id); ok(!CAMPAIGN[0].playerDeck.includes(id), 'tut ' + id); }); });
+t('처음 받는 내 덱은 규칙에 맞고 잠긴 카드가 없음', () => { ok(!validateDeck(STARTER_DECK.cards), validateDeck(STARTER_DECK.cards)); ok(!STARTER_DECK.cards.some(id => LOCKED.has(id)), 'locked'); });
 
 // ---------- AI 안정성 ----------
 t('AI 대전 300판: 예외·무한루프 없음', () => {

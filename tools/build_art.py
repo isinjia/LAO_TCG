@@ -40,7 +40,7 @@ OVERRIDE = {
 }
 
 # 초상 크롭 수동 보정: (cx 비율, top 비율, 폭 비율) — bbox 기준
-CROP_FIX = {'PECS_BlindPrincess': (0.62, 0.1, 0.5), 'AGS_Arachne': (0.56, 0.0, 0.62)}
+CROP_FIX = {'PECS_BlindPrincess': (0.62, 0.1, 0.5), 'BR_RedHood': (0.655, 0.28, 0.37), 'AGS_Arachne': (0.56, 0.0, 0.62)}
 # 머리 기준 크롭 대신 전신을 3:4 캔버스에 맞춰 넣을 카드 (로봇·와이드 구도)
 FIT = {'AGS_Aeda', 'DS_KunoichiShiden', 'DS_Ramiel', 'PECS_Lumberjane', 'IW_NightChick', 'IW_Speaker', 'IW_RocC', 'IW_Parasite', 'IW_Kidnapper', 'IW_Robert', 'IW_Stalker'}
 
@@ -138,6 +138,30 @@ def portrait(im, cid):
 MAIN_ONLY = {'PECS_Orangeade', 'PECS_BlindPrincess', 'PECS_LemonadeBeta'}
 
 
+# 원본에서 캐릭터 뒤 소품(포대 등)을 지울 카드: 남길 영역 다각형(원본 좌표)과 남길 사각형들
+# 레드후드: 올라탄 포대·탄약 상자를 지우고 사람과 깃발만 남긴다 (다리 사이로 보이는 포대도 다각형으로 뺀다)
+def _rh(pts): return [(400 + x / 0.75, 700 + y / 0.75) for x, y in pts]  # 0.75배 미리보기 좌표로 땄다
+CUT = {
+    'BR_RedHood': {
+        'keep_rects': [(600, 0, 2048, 946), (0, 0, 600, 880)],
+        'drop_rects': [(400 + 575 / 0.75, 700 + 176 / 0.75, 400 + 620 / 0.75, 700 + 205 / 0.75)],  # 망토 아래로 삐져나온 깃대
+        'poly': _rh([(380, 185), (610, 185), (560, 215), (575, 300), (600, 380), (640, 460), (668, 512), (688, 525), (692, 600), (700, 700), (700, 728), (669, 728), (668, 700), (660, 650), (650, 600), (630, 560), (610, 522), (598, 505), (560, 420), (530, 350), (512, 300), (497, 350), (492, 450), (498, 519), (490, 578), (476, 610), (463, 645), (453, 690), (449, 725), (452, 748), (374, 748), (376, 738), (400, 728), (428, 712), (437, 675), (442, 600), (444, 525), (444, 470), (430, 420), (410, 345), (400, 300), (392, 220)]),
+    },
+}
+# 좌우를 뒤집어 쓸 카드 (다른 카드와 같은 방향을 보게)
+FLIP = {'BR_RedHood'}
+
+
+def cut(im, spec):
+    from PIL import ImageDraw, ImageChops
+    m = Image.new('L', im.size, 0); d = ImageDraw.Draw(m)
+    for r in spec.get('keep_rects', []): d.rectangle(r, fill=255)
+    d.polygon(spec['poly'], fill=255)
+    for r in spec.get('drop_rects', []): d.rectangle(r, fill=0)
+    im.putalpha(ImageChops.multiply(im.getchannel('A'), m))
+    return keep_main(im)  # 잘리고 남은 부스러기 제거
+
+
 def keep_main(im):
     from scipy import ndimage
     a = np.array(im)
@@ -164,6 +188,8 @@ def build(cid):
         return False
     im = Image.open(src).convert('RGBA')
     if cid in MAIN_ONLY: im = keep_main(im)
+    if cid in CUT: im = cut(im, CUT[cid])
+    if cid in FLIP: im = im.transpose(Image.FLIP_LEFT_RIGHT)
     portrait(im, cid).save(OUT_ART / f'{cid}.webp', quality=82, method=6)
     full(im).save(OUT_FULL / f'{cid}.webp', quality=80, method=6)
     return True

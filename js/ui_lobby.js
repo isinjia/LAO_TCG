@@ -174,7 +174,7 @@ screenHooks.setup = el => {
       </div>
     </div>`;
   const deckCard = (d, on, list) => {
-    const err = d.story ? null : Store.deckProblem(d.cards); // 스토리 상대 덱은 특수 카드가 있어도 상대로는 쓸 수 있다
+    const err = d.story ? null : Store.deckProblem(d.cards, d.preset); // 스토리 상대 덱은 특수 카드가 있어도 상대로는 쓸 수 있다
     const facs = [...new Set(d.cards.map(id => CARDS[id] && CARDS[id].f).filter(Boolean))];
     const top = d.cards.map(id => CARDS[id]).filter(c => c && c.kind === 'unit').sort((a, b) => b.c - a.c)[0];
     const dc = h(`<div class="deck-card ${on ? 'on' : ''} ${err ? 'invalid' : ''}">
@@ -188,7 +188,7 @@ screenHooks.setup = el => {
     const my = $('[data-list=my]', el); my.innerHTML = '';
     decks.forEach(d => {
       const dc = deckCard(d, d.id === setupState.myDeck);
-      dc.onclick = () => { if (Store.deckProblem(d.cards)) { toast(Store.deckProblem(d.cards), true); return; } setupState.myDeck = d.id; Audio2.play('click'); renderLists(); };
+      dc.onclick = () => { if (Store.deckProblem(d.cards, d.preset)) { toast(Store.deckProblem(d.cards, d.preset), true); return; } setupState.myDeck = d.id; Audio2.play('click'); renderLists(); };
       my.appendChild(dc);
     });
     const opp = $('[data-list=opp]', el); opp.innerHTML = '';
@@ -219,7 +219,7 @@ screenHooks.setup = el => {
   $('[data-a=go]', el).onclick = async () => {
     if (!await confirmAbandon()) return;
     const my = Store.getDeck(setupState.myDeck);
-    if (Store.deckProblem(my.cards)) { toast(Store.deckProblem(my.cards), true); return; }
+    if (Store.deckProblem(my.cards, my.preset)) { toast(Store.deckProblem(my.cards, my.preset), true); return; }
     const story = setupState.oppDeck.startsWith('story:') ? CAMPAIGN.find(s => 'story:' + s.id === setupState.oppDeck) : null;
     const opp = story ? { name: story.enemy.name, cards: story.enemy.deck } : setupState.oppDeck === 'random' ? Store.allDecks()[Math.floor(Math.random() * PRESET_DECKS.length)] : Store.getDeck(setupState.oppDeck);
     Store.data.activeDeck = my.id; Store.save();

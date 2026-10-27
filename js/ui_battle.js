@@ -740,18 +740,12 @@ function refreshForecast() {
   if (!B) return;
   $$('.unit .u-fc').forEach(f => { f.className = 'u-fc'; f.textContent = ''; });
   $$('.cmd .cm-fc').forEach(f => { f.className = 'cm-fc'; f.textContent = ''; });
-  if (!Store.settings.forecast || !canAct()) return;
-  const { game, me, ai } = B;
-  const mine = game.forecast(me);
-  // 카드 위에는 예측 문구(피해량·빗나감)를 띄우지 않는다. 카드 그림과 상태 표시를 가린다는 의견에 따라 뺐다
-  if (mine.cmdDmg > 0) {
-    const f = $('#cmd-enemy .cm-fc'); f.className = `cm-fc show${mine.lethal ? ' lethal' : ''}`; f.textContent = mine.lethal ? `-${mine.cmdDmg} 격파!` : `-${mine.cmdDmg}`;
-  }
-  // 다음 적 턴 피해 미리보기는 표시하지 않는다 (화면이 복잡하다는 의견에 따라 뺐다. 위험한 경우는 전술 팁으로만 알린다)
+  // 카드와 사령관 위에 예측 문구(피해량·빗나감·격파)를 띄우지 않는다. 화면을 가린다는 의견에 따라 모두 뺐다.
+  // 예측은 턴 종료 버튼에 마우스를 올렸을 때의 공격 화살표로만 보여 준다 (설정 > 공격 예측 화살표)
 }
 
 function drawArrows() {
-  if (!canAct()) return;
+  if (!Store.settings.forecast || !canAct()) return;
   const svg = $('.fc-svg'); clearArrows();
   const fc = B.game.forecast(B.me);
   const seen = new Set();
@@ -1029,10 +1023,10 @@ async function finishBattle(surrendered) {
       ${ch.bp ? `<div class="rs-bp">보급 포인트 <b>+${ch.bp}</b><span>보유 ${Store.data.bp} · 카드 도감의 보급소에서 카드를 해금할 수 있습니다</span></div>` : ''}
       ${ch.masteryUps.length ? `<div class="rs-mastery">${ch.masteryUps.slice(0, 6).map(m => `<span class="mst m${m.level}">${esc(CARDS[m.id].n)} <b>${MASTERY[m.level - 1].name}</b></span>`).join('')}${ch.masteryUps.length > 6 ? `<span class="mst">외 ${ch.masteryUps.length - 6}장</span>` : ''}<em>숙련도 상승</em></div>` : ''}
       ${ch.achievements.length ? `<div class="rs-ach">${ch.achievements.map(a => `<span><i class="lo-star on"></i>업적 달성 · <b>${esc(a.name)}</b></span>`).join('')}${ch.newBgs.map(b => `<span><i class="lo-star on"></i>로비 배경 해금 · <b>${esc(b.name)}</b></span>`).join('')}</div>` : ''}
-      ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!</div><div class="rr-list"></div></div>` : ''}
+      ${got.cards.length || got.secretaries.length ? `<div class="rs-reward"><div class="rr-title">보상 획득!${got.cards.length ? '<small> 덱 편성에서 내 덱에 넣을 수 있습니다</small>' : ''}</div><div class="rr-list"></div></div>` : ''}
       <div class="modal-actions" style="margin-top:auto">
         <button class="btn" data-a="lobby">로비</button>
-        ${cfg.mode === 'campaign' ? '<button class="btn" data-a="retry">재도전</button><button class="btn primary" data-a="camp">스토리로</button>'
+        ${cfg.mode === 'campaign' ? `${got.cards.length ? '<button class="btn" data-a="deck">덱 편성</button>' : '<button class="btn" data-a="retry">재도전</button>'}<button class="btn primary" data-a="camp">스토리로</button>`
           : cfg.mode === 'gauntlet' ? (Store.data.gauntlet.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="gnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
           : cfg.mode === 'draft' ? (Store.data.draft.run ? '<button class="btn" data-a="chal">도전 모드</button><button class="btn primary" data-a="dnext">다음 대국</button>' : '<button class="btn primary" data-a="chal">도전 모드로</button>')
           : cfg.mode === 'daily' ? '<button class="btn" data-a="retry">다시 도전</button><button class="btn primary" data-a="chal">도전 모드로</button>'
@@ -1057,7 +1051,7 @@ async function finishBattle(surrendered) {
   };
   $('[data-a=lobby]', box).onclick = () => leave('lobby');
   const camp = $('[data-a=camp]', box); if (camp) camp.onclick = () => leave('campaign');
-  const deck = $('[data-a=deck]', box); if (deck) deck.onclick = () => leave('deck');
+  const deck = $('[data-a=deck]', box); if (deck) deck.onclick = () => { if (cfg.mode === 'campaign') deckReturn = 'campaign'; leave('deck'); };
   const chal = $('[data-a=chal]', box); if (chal) chal.onclick = () => leave('challenge');
   const gnext = $('[data-a=gnext]', box); if (gnext) gnext.onclick = () => { closeModal(m); B = null; Gauntlet.play(); };
   const dnext = $('[data-a=dnext]', box); if (dnext) dnext.onclick = () => { closeModal(m); B = null; Draft.play(); };
