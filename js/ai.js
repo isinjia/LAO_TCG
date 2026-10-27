@@ -261,7 +261,9 @@ const AI = {
     const dfs = (g, d) => {
       if (d === 0) return null;
       const gp = g.players[game.players.indexOf(p)];
-      for (const a of this.legalActions(g, gp).slice(0, 14)) {
+      // 피해를 내는 행동(포격·피해 지원 카드·돌격 전투원)을 먼저 본다
+      const dmgFirst = a => (a.command ? 0 : a.card && a.card.kind === 'skill' && a.card.fx.some(e => e.op === 'dmg') ? 1 : a.card && (a.card.kw || []).includes('돌격') ? 2 : 3);
+      for (const a of this.legalActions(g, gp).sort((x, y) => dmgFirst(x) - dmgFirst(y)).slice(0, 14)) {
         const c = g.clone(); c.quiet = true; c.noEvents = true;
         const cp = c.players[game.players.indexOf(p)];
         if (!this.applyAct(c, cp, a)) continue;

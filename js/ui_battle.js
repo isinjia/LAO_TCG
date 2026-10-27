@@ -31,7 +31,7 @@ function startBattle(cfg) {
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
   if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 대국: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
-  if (cfg.tutorial) ai.noHpBonus = true; // 튜토리얼 상대는 지도에 적힌 라이프 그대로
+  if (cfg.tutorial) { ai.noHpBonus = true; ai.noSynergy = true; } // 튜토리얼 상대는 지도에 적힌 라이프 그대로, 결속(방어막)도 없이 짧게
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
     const want = cfg.openingHand.map(id => me.deck.find(c => c.id === id)).filter(Boolean);
@@ -217,7 +217,7 @@ async function aiTurn() {
   saveBattleSnapshot();
   B.busy = true; renderAll();
   setPhaseLabel('적 지휘관 행동 중…');
-  await sleep(380); alive(myB);
+  await sleep(300); alive(myB);
   let guard = 0;
   while (game.phase === 'main' && guard++ < 12 && !B.over) {
     const act = AI.nextAction(game, ai, cfg.enemy.level);
@@ -225,8 +225,9 @@ async function aiTurn() {
     if (!act.move) { await revealCard(act.card, false); alive(myB); }
     const ok = game.act(act);
     if (!ok) break;
+    saveBattleSnapshot();
     await processEvents(); alive(myB); renderAll();
-    await sleep(180); alive(myB);
+    await sleep(130); alive(myB);
   }
   if (game.phase === 'over' || B.over) { B.busy = false; return finishBattle(); }
   await sleep(250); alive(myB);
@@ -311,6 +312,7 @@ async function doMove(u, lane) {
   const myB = B;
   clearSelection();
   if (!B.game.move(u, lane)) return;
+  saveBattleSnapshot();
   B.busy = true; renderAll();
   await processEvents(); alive(myB);
   B.busy = false; renderAll();
@@ -420,6 +422,7 @@ async function playSelected(lane, target, fromRect) {
   }
   alive(myB);
   if (isCmd) game.command(target); else game.play(card, lane, target);
+  saveBattleSnapshot(); // 연출 전에 바로 저장한다 (연출 중 새로고침으로 수를 무르거나 다음 드로우를 엿보지 못하게)
   Audio2.play(card.kind === 'unit' ? 'place' : 'energy');
   await processEvents(); alive(myB);
   B.busy = false; renderAll();
@@ -672,7 +675,8 @@ function refreshForecast() {
     const el = B.unitEls.get(uid); if (!el) return;
     const isMine = me.lanes.some(u => u && u.uid === uid);
     const f = $('.u-fc', el);
-    if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '빗나감'; return; } // 회피 상태 표시와 겹치지 않게 결과로 적는다
+    if (e.miss && !e.v) { f.className = 'u-fc show miss'; f.textContent = '빗나감'; return; }
+    if (!e.v) return; // 방어막에 다 막히는 공격은 '-0'으로 적지 않는다 // 회피 상태 표시와 겹치지 않게 결과로 적는다
     f.className = `u-fc show ${isMine ? 'self' : 'opp'}${mine.deadUids.has(uid) ? ' kill' : ''}`;
     f.textContent = isMine ? `받는 피해 -${e.v}` : `-${e.v}`; // 내 전투원이 받는 피해는 반격·격파 효과 등 여러 가지라 이름을 붙이지 않는다
   });
@@ -739,7 +743,7 @@ async function revealCard(card, mine) {
   $('#stage').appendChild(r);
   Audio2.play('card');
   if (ss) { Audio2.play('pickSS'); screenFlash('gold'); vibrate(90); } // SS 등장은 잠깐 멈추고 번쩍인다
-  await sleep((mine ? 600 : 760) + (ss ? 550 : 0));
+  await sleep((mine ? 560 : 580) + (ss ? 550 : 0));
   setTimeout(() => r.remove(), 400);
 }
 function flyCard(card, from, to) {

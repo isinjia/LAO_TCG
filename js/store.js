@@ -62,6 +62,14 @@ const Store = {
     if (!Array.isArray(d.secretaries)) d.secretaries = [];
     d.decks = (d.decks || []).filter(x => x && Array.isArray(x.cards)).map(x => ({ ...x, cards: x.cards.filter(id => CARDS[id] && !CARDS[id].enemy) }));
     if (!CARDS[d.secretary] || (LOCKED_SECRETARIES.has(d.secretary) && !d.secretaries.includes(d.secretary))) d.secretary = def.secretary;
+    // 값 범위 검사 (손으로 고친 저장 파일을 불러와도 말이 안 되는 값은 받지 않는다)
+    const num = (v, lo, hi) => (Number.isFinite(+v) ? Math.max(lo, Math.min(hi, Math.floor(+v))) : lo);
+    d.bp = num(d.bp, 0, 9999);
+    d.unlocked = [...new Set(d.unlocked.filter(id => LOCKED.has(id)))];
+    d.secretaries = [...new Set(d.secretaries.filter(id => LOCKED_SECRETARIES.has(id)))];
+    if (typeof ACHIEVEMENTS !== 'undefined') { const ids = new Set(ACHIEVEMENTS.map(a => a.id)); for (const k of Object.keys(d.ach)) if (!ids.has(k)) delete d.ach[k]; }
+    for (const k of Object.keys(d.mastery)) { if (!CARDS[k]) delete d.mastery[k]; else d.mastery[k] = num(d.mastery[k], 0, 999); }
+    for (const k of ['w', 'l', 'streak']) d.record[k] = num(d.record[k], 0, 99999);
     this.data = d;
     return d;
   },

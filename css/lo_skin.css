@@ -474,3 +474,7 @@ body:not(.compact) .hand { left: 1100px; bottom: -40px; }
 
 /* 이동 안내 버튼은 전장 가운데 줄을 가리지 않게 전장 아래쪽 바깥에 둔다 */
 .cast-btn.move-hint { top: auto; bottom: calc(300px - var(--oy, 0px)); left: auto; right: calc(300px + var(--ox, 0px)); transform: none; font-size: 22px; }
+/* 15차 평가: 휴대폰에서 내 초상·라이프가 손패에 가려지지 않게, 로비 아이콘·설정 선택 칸을 손가락 크기로 */
+.compact .cmd.hero.me { z-index: 25; }
+.compact .lobby-top .icon-btn { width: 116px; height: 116px; font-size: 46px; }
+.compact .setup-opts select { font-size: 28px; min-height: 84px; }

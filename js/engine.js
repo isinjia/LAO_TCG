@@ -175,7 +175,7 @@ class Game {
     }
     // 제작사 결속 (턴 시작)
     if (this.synergy(p, 'PECS')) p.units().forEach(u => { const v = Math.min(1, u.maxHp - u.hp); if (v > 0) { u.hp += v; p.stats.healed += v; this.emit({ type: 'heal', unit: u, v }); } });
-    if (this.synergy(p, 'AGS')) p.units().forEach(u => { if (u.card.f === 'AGS' && u.shield < 2) { u.shield = 2; this.emit({ type: 'shield', unit: u, v: 2 }); } });
+    if (this.synergy(p, 'AGS')) p.units().forEach(u => { if (u.card.f === 'AGS' && u.shield < 1) { u.shield = 1; this.emit({ type: 'shield', unit: u, v: 1 }); } });
     p.units().forEach(u => {
       if (u.kw['재생'] && u.hp < u.maxHp) {
         const v = Math.min(u.kw['재생'], u.maxHp - u.hp);
@@ -399,10 +399,11 @@ class Game {
   damageCmd(p, dmg, src) {
     if (this.phase === 'over') return;
     if (p.minHp) dmg = Math.min(dmg, Math.max(0, p.hp - p.minHp)); // 튜토리얼: 라이프가 minHp 아래로 내려가지 않는다 (지지 않는 첫 대국)
+    const dealt = Math.min(dmg, Math.max(0, p.hp)); // 통계는 실제로 깎인 라이프만 센다 (넘친 피해 제외)
     p.hp -= dmg;
     const o = this.other(p);
-    o.stats.dmgCmd += dmg;
-    if (src) o.stats.cardDmg[src.id] = (o.stats.cardDmg[src.id] || 0) + dmg;
+    o.stats.dmgCmd += dealt;
+    if (src) o.stats.cardDmg[src.id] = (o.stats.cardDmg[src.id] || 0) + dealt;
     this.emit({ type: 'dmgCmd', player: p, v: dmg });
     if (p.hp <= 0) {
       p.hp = 0; this.phase = 'over'; this.winner = o;
@@ -427,7 +428,7 @@ class Game {
   // 포격 지원 AP: 삼안 결속(함대 지휘)이면 1 싸다
   commandCost(p) { return RULES.COMMAND.cost - (this.synergy(p, '3P') ? 1 : 0); }
   // 제작사 결속이 켜져 있는가 (같은 제작사 전투원이 SYNERGY_MIN기 이상)
-  synergy(p, f) { return !!RULES.SYNERGY_MIN && p.units().filter(u => u.card.f === f).length >= RULES.SYNERGY_MIN; }
+  synergy(p, f) { return !!RULES.SYNERGY_MIN && !p.noSynergy && p.units().filter(u => u.card.f === f).length >= RULES.SYNERGY_MIN; }
   effectiveAtk(u) {
     const p = u.owner; const lane = p.lanes.indexOf(u);
     let a = u.atk;

@@ -19,7 +19,7 @@ const SYNERGY = {
   'PECS': { name: '정비 연계', text: '내 턴 시작에 모든 아군 전투원 체력 1 회복' },
   'BR':   { name: '돌파 화력', text: '블랙리버 전투원이 상대 라이프를 직접 칠 때 피해 +1' },
   'DS':   { name: '그림자 연계', text: '새로 낸 덴세츠 전투원이 회피를 얻음' },
-  'AGS':  { name: '방벽 프로토콜', text: '내 턴 시작에 AGS 전투원마다 방어막 2' },
+  'AGS':  { name: '방벽 프로토콜', text: '내 턴 시작에 AGS 전투원마다 방어막 1' },
 };
 
 const TYPES = { L: '경장', M: '기동', H: '중장' };
@@ -65,9 +65,9 @@ const UNITS = [
   { id: '3P_Merope', n: '메로페', f: '3P', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 6, kw: ['방어막:1'], strike: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '공격 후: 내 라이프 1 회복.' },
   { id: '3P_Alcyone', n: '알키오네', f: '3P', t: 'M', r: 'SUP', g: 'A', c: 2, a: 2, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: '3P_Alice', n: '앨리스', f: '3P', t: 'L', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
-  { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 4, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
+  { id: '3P_Hachiko', n: '하치코', f: '3P', t: 'L', r: 'DEF', g: 'B', c: 2, a: 2, h: 5, kw: [], death: [{ op: 'heal', tgt: 'myCmd', v: 2 }], text: '격파: 내 라이프 2 회복.' },
   { id: '3P_Poi', n: '피', f: '3P', t: 'M', r: 'ATK', g: 'B', c: 1, a: 2, h: 3, kw: [] },
-  { id: '3P_Maria', n: '마리아', f: '3P', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 2, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '전개: 내 라이프 1 회복.' },
+  { id: '3P_Maria', n: '마리아', f: '3P', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'heal', tgt: 'myCmd', v: 1 }], text: '전개: 내 라이프 1 회복.' },
 
   // ---------- PECS ----------
   { id: 'PECS_Empress', n: '엠프레스', f: 'PECS', t: 'H', r: 'DEF', g: 'SS', c: 7, a: 4, h: 11, kw: ['방어막:4', '반격'] },
@@ -94,7 +94,7 @@ const UNITS = [
   { id: 'PECS_Sonia', n: '소니아', f: 'PECS', t: 'L', r: 'ATK', g: 'A', c: 2, a: 3, h: 4, kw: [], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: 'PECS_Hussar', n: '후사르', f: 'PECS', t: 'M', r: 'ATK', g: 'A', c: 3, a: 3, h: 3, kw: ['돌격'], deploy: [{ op: 'buff', tgt: 'adjAllies', a: 1, h: 0 }], text: '전개: 양옆 아군 공격력 +1.' },
   { id: 'PECS_Cerberus', n: '케르베로스', f: 'PECS', t: 'M', r: 'ATK', g: 'B', c: 2, a: 2, h: 3, kw: ['돌격'], deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 1 }], text: '전개: 마주한 적 유닛에게 1 피해.' },
-  { id: 'PECS_MissSafety', n: '미스 세이프티', f: 'PECS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
+  { id: 'PECS_MissSafety', n: '미스 세이프티', f: 'PECS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 4, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'PECS_Express76', n: '익스프레스 76', f: 'PECS', t: 'M', r: 'SUP', g: 'B', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'draw', v: 1 }], text: '전개: 카드 1장 드로우.' },
   { id: 'PECS_LRL', n: 'LRL', f: 'PECS', t: 'L', r: 'SUP', g: 'B', c: 2, a: 1, h: 4, kw: [], deploy: [{ op: 'buff', tgt: 'adjAllies', a: 1, h: 1 }], text: '전개: 양옆 아군 +1/+1.' },
 
@@ -109,7 +109,7 @@ const UNITS = [
   { id: 'BR_HongRyun', n: '홍련', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 4, a: 5, h: 4, kw: ['돌격'] },
   { id: 'BR_Hraesvelgr', n: '흐레스벨그', f: 'BR', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 5, kw: [], deploy: [{ op: 'dmg', tgt: 'enemyCmd', v: 3 }], text: '전개: 상대 라이프에 3 피해.' },
   { id: 'BR_Io', n: '이오', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 5, kw: ['돌격', '관통'] },
-  { id: 'BR_May', n: '메이', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 4, kw: ['회피'], deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
+  { id: 'BR_May', n: '메이', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: ['회피'], deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '전개: 마주한 적 유닛에게 2 피해.' },
   { id: 'BR_NightAngel', n: '나이트 엔젤', f: 'BR', t: 'L', r: 'ATK', g: 'S', c: 4, a: 5, h: 2, kw: ['돌격'] },
   { id: 'BR_Phantom', n: '팬텀', f: 'BR', t: 'L', r: 'ATK', g: 'S', c: 4, a: 4, h: 5, kw: ['회피'], death: [{ op: 'draw', v: 1 }], text: '격파: 카드 1장 드로우.' },
   { id: 'BR_Scathy', n: '스카디', f: 'BR', t: 'M', r: 'ATK', g: 'S', c: 5, a: 5, h: 7, kw: ['관통'], strike: [{ op: 'dmg', tgt: 'randomEnemyUnit', v: 2 }], text: '공격 후: 무작위 적 유닛에게 2 피해.' },
@@ -118,7 +118,7 @@ const UNITS = [
   { id: 'BR_Valkyrie', n: '발키리', f: 'BR', t: 'H', r: 'ATK', g: 'S', c: 5, a: 6, h: 6, kw: ['반격'], death: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 1 }], text: '격파: 모든 적 유닛에게 1 피해.' },
   { id: 'BR_Thetis', n: '테티스', f: 'BR', t: 'H', r: 'DEF', g: 'S', c: 4, a: 2, h: 8, kw: ['반격'], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 2 }], text: '전개: 양옆 아군에게 방어막 2.' },
   { id: 'BR_Fafnir', n: '파프니르', f: 'BR', t: 'M', r: 'SUP', g: 'S', c: 4, a: 3, h: 6, kw: [], deploy: [{ op: 'res', v: 2 }, { op: 'draw', v: 1 }], text: '전개: 이번 턴 AP +2, 카드 1장 드로우.' },
-  { id: 'BR_Banshee', n: '밴시', f: 'BR', t: 'H', r: 'ATK', g: 'A', c: 3, a: 5, h: 5, kw: [], deploy: [{ op: 'debuff', tgt: 'oppUnit', a: 1 }], text: '전개: 마주한 적 유닛 공격력 -1.' },
+  { id: 'BR_Banshee', n: '밴시', f: 'BR', t: 'H', r: 'ATK', g: 'A', c: 3, a: 5, h: 6, kw: [], deploy: [{ op: 'debuff', tgt: 'oppUnit', a: 2 }], text: '전개: 마주한 적 유닛 공격력 -2.' },
   { id: 'BR_BeastHunter', n: '비스트헌터', f: 'BR', t: 'M', r: 'ATK', g: 'A', c: 3, a: 4, h: 5, kw: ['관통'], deploy: [{ op: 'dmg', tgt: 'oppUnit', v: 1 }], text: '전개: 마주한 적 유닛에게 1 피해.' },
   { id: 'BR_Bulgasari', n: '불가사리', f: 'BR', t: 'H', r: 'DEF', g: 'A', c: 3, a: 2, h: 8, kw: ['방어막:1'] },
   { id: 'BR_Cheona', n: '천아', f: 'BR', t: 'L', r: 'ATK', g: 'A', c: 3, a: 4, h: 3, kw: ['돌격'], strike: [{ op: 'dmg', tgt: 'enemyCmd', v: 1 }], text: '공격 후: 상대 라이프에 1 피해.' },
@@ -177,7 +177,7 @@ const UNITS = [
   { id: 'AGS_Aeda', n: '에이다 Type-G', f: 'AGS', t: 'M', r: 'SUP', g: 'A', c: 2, a: 1, h: 5, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'AGS_Watcher', n: '와쳐', f: 'AGS', t: 'L', r: 'SUP', g: 'B', c: 1, a: 1, h: 3, kw: [], deploy: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '전개: 양옆 아군에게 방어막 1.' },
   { id: 'AGS_SpartanA', n: '스파르탄 캡틴', f: 'AGS', t: 'H', r: 'DEF', g: 'B', c: 2, a: 2, h: 5, kw: ['방어막:1'] },
-  { id: 'AGS_SpartanB', n: '스파르탄 부머', f: 'AGS', t: 'H', r: 'ATK', g: 'B', c: 2, a: 3, h: 4, kw: [], death: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '격파: 마주한 적 유닛에게 2 피해.' },
+  { id: 'AGS_SpartanB', n: '스파르탄 부머', f: 'AGS', t: 'H', r: 'ATK', g: 'B', c: 2, a: 4, h: 4, kw: [], death: [{ op: 'dmg', tgt: 'oppUnit', v: 2 }], text: '격파: 마주한 적 유닛에게 2 피해.' },
   { id: 'AGS_SpartanC', n: '스파르탄 어썰트', f: 'AGS', t: 'M', r: 'ATK', g: 'B', c: 1, a: 1, h: 3, kw: ['돌격'], death: [{ op: 'shield', tgt: 'adjAllies', v: 1 }], text: '격파: 양옆 아군에게 방어막 1.' },
 
   // ---------- 철충 (캠페인 적 전용) ----------
@@ -219,7 +219,7 @@ const SKILLS = [
   { id: 'SK_AGS_Barrier', icon: 'ShieldWall', art: 'AGS_Stronghold', n: '방어 결계', f: 'AGS', g: 'B', c: 2, fx: [{ op: 'shield', tgt: 'allAllies', v: 2 }], text: '모든 아군 유닛에게 방어막 2.' },
   { id: 'SK_3P_Formation', icon: 'TeamDefBuff', art: '3P_Merope', n: '진형 재편', f: '3P', g: 'B', c: 1, fx: [{ op: 'shield', tgt: 'allAllies', v: 1 }, { op: 'draw', v: 1 }], text: '모든 아군 유닛에게 방어막 1, 카드 1장 드로우.' },
   { id: 'SK_3P_Rally', icon: 'Command', art: '3P_Titania', n: '오르카 결전', f: '3P', g: 'S', c: 6, fx: [{ op: 'buffAll', a: 2, h: 0 }], text: '모든 아군 유닛 공격력 +2.' },
-  { id: 'SK_PECS_Overtime', icon: 'Music', art: 'PECS_Muse', n: '특근 수당', f: 'PECS', g: 'B', c: 2, fx: [{ op: 'draw', v: 1 }, { op: 'res', v: 2 }], text: '카드 1장 드로우, 이번 턴 AP +2.' },
+  { id: 'SK_PECS_Overtime', icon: 'Music', art: 'PECS_Muse', n: '특근 수당', f: 'PECS', g: 'B', c: 1, fx: [{ op: 'draw', v: 1 }, { op: 'res', v: 2 }], text: '카드 1장 드로우, 이번 턴 AP +2.' },
   { id: 'SK_PECS_Medic', icon: 'Wave', art: 'PECS_Hestia', n: '야전 의료', f: 'PECS', g: 'A', c: 2, fx: [{ op: 'healFull', tgt: 'pickAllyUnit' }, { op: 'heal', tgt: 'myCmd', v: 2 }], text: '아군 유닛 하나를 완전 회복하고, 내 라이프 2 회복.' },
   { id: 'SK_BR_Airstrike', icon: 'AirStrike', art: 'BR_Hraesvelgr', n: '공중 폭격', f: 'BR', g: 'S', c: 5, fx: [{ op: 'dmg', tgt: 'allEnemyUnits', v: 2 }, { op: 'dmg', tgt: 'enemyCmd', v: 2 }], text: '모든 적 유닛과 상대 라이프에 2 피해.' },
   { id: 'SK_BR_Rush', icon: 'AssaultAttack', art: 'BR_HongRyun', n: '총공세', f: 'BR', g: 'A', c: 2, fx: [{ op: 'buffAll', a: 1, h: 0 }], text: '모든 아군 유닛 공격력 +1.' },

@@ -15,7 +15,7 @@ const TUTORIAL_STEPS = [
   { text: '<b>턴 종료</b> 버튼에 마우스를 올리면 공격 경로가 화살표로 보여. <b>보호기</b>는 양옆 레인을 지키고, <b>지원기</b>는 양옆 아군의 공격력을 1 올려 준단다.', spot: '.end-btn', box: [1380, 560] },
   { trigger: 'myTurn', text: '이번엔 <b>지원 카드</b>를 써 보자. 방금 뽑은 <b>야전 의료</b>를 고른 뒤, 빛나는 내 전투원을 누르렴. 그 전투원의 체력을 가득 채워 준단다.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
     cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },
-  { trigger: 'myTurn', text: '오른쪽 아래 <b>포격 지원</b>도 써 볼래? 턴마다 한 번, AP 4로 적 전투원이나 상대 라이프에 2 피해를 준단다. 버튼을 누르고 대상을 고르렴.', spot: '.cmd-power', wait: 'cardPlayed',
+  { trigger: 'myTurn', text: '오른쪽 아래 <b>포격 지원</b>도 써 볼래? 턴마다 한 번, 적 전투원이나 상대 라이프에 피해를 준단다(삼안 결속이 켜져 있으면 더 싸고 세져). 버튼을 누른 뒤 <b>상대 초상화</b>를 눌러 라이프를 노려 보렴.', spot: '.cmd-power', wait: 'cardPlayed',
     cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // 내 전장이 비었을 때는 포격보다 배치가 먼저라 건너뛴다
   { trigger: 'myTurn', text: '마지막으로 <b>이동</b>이야. 내 전투원을 누르면 옮길 수 있는 이웃 레인이 빛난단다. 턴마다 한 번, AP 2로 옮기고 아군이 있으면 자리를 바꿔. 상성이 불리한 전투원을 옮겨 보렴.', spot: '.lanes.me', wait: 'moved',
     can: () => B.me.units().some(u => [0, 1, 2].some(l => B.game.canMove(u, l))) },

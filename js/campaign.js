@@ -14,7 +14,7 @@ const CAMPAIGN = [
     playerDeck: ['3P_Poi', '3P_Hachiko', '3P_Ajax', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', '3P_Sowan', '3P_CSPerrault', '3P_BlackWyrm', '3P_ConstantiaS2', '3P_Labiata', 'SK_PECS_Medic'],
     playerFirst: true,
     openingHand: ['3P_Poi', '3P_Hachiko', '3P_Daphne', 'PECS_Orangeade', '3P_Aqua', 'SK_PECS_Medic'], // 시작 패 4장 + 2턴·3턴에 뽑을 카드
-    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 9, level: 'easy',
+    enemy: { name: '스파르탄 캡틴', portrait: 'AGS_SpartanA', hp: 7, level: 'easy',
       deck: ['AGS_SpartanA', 'AGS_SpartanB', 'AGS_SpartanC', 'AGS_Watcher', 'AGS_Shade', 'AGS_Seljuq', 'AGS_Roc', 'AGS_Rampart', 'AGS_Fallen', 'AGS_Aeda', 'AGS_Arachne', 'SK_AGS_Barrier'] },
     start: [{ lane: 2, id: 'AGS_SpartanC' }], // 기동형을 미리 세워 2턴 상성 안내(경장 하치코가 유리)가 실제로 성립하게
     stars: [{ type: 'win' }, { type: 'hp', v: 15 }, { type: 'rounds', v: 11 }],
@@ -394,7 +394,8 @@ function missionProgress(stage, game, me) {
   const st = me.stats;
   const cur = { kills: st.kills, commands: st.commands || 0, guards: st.guards || 0, units: st.unitsPlayed, noSkill: st.skillsUsed }[s.type];
   const ok = s.type === 'units' ? cur <= s.v : s.type === 'noSkill' ? cur === 0 : cur >= s.v;
-  const label = { kills: `처치 ${cur}/${s.v}`, commands: `작전 지시 ${cur}/${s.v}`, guards: `보호 ${cur}/${s.v}`, units: `배치 ${cur}/${s.v} 이하`, noSkill: cur ? '지원 카드 사용함' : '지원 카드 미사용' }[s.type];
+  const c = Math.min(cur, s.v); // 목표를 넘겨도 '2/1'처럼 보이지 않게
+  const label = { kills: `처치 ${c}/${s.v}`, commands: `작전 지시 ${c}/${s.v}`, guards: `보호 ${c}/${s.v}`, units: `배치 ${cur}/${s.v} 이하`, noSkill: cur ? '지원 카드 사용함' : '지원 카드 미사용' }[s.type];
   return { label, ok };
 }
 function evalStars(stage, game, me) {
