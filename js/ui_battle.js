@@ -168,9 +168,12 @@ function mulliganPrompt() {
       <div class="mull-count">교체 0 / ${MAX}</div>
       <div class="mull-hand"></div><div class="modal-actions" style="justify-content:center"><button class="btn primary big" data-a="ok">확인</button></div></div>`);
     const row = $('.mull-hand', box);
+    let done = false;
     me.hand.forEach(c => {
       const ce = cardEl(c); // 크기는 CSS(.mull-hand .card)가 정한다: 화면 크기가 바뀌어도 바로 맞춰진다
+      ce._card = c;
       ce.onclick = () => {
+        if (done) return;
         if (!marked.has(c) && marked.size >= MAX) { toast(`최대 ${MAX}장까지 교체할 수 있습니다.`, true); return; }
         marked.has(c) ? marked.delete(c) : marked.add(c);
         ce.classList.toggle('marked', marked.has(c)); Audio2.play('card');
@@ -181,8 +184,69 @@ function mulliganPrompt() {
       row.appendChild(ce);
     });
     const m = openModal(box, { closable: false });
-    $('[data-a=ok]', box).onclick = () => { game.mulligan(me, [...marked]); closeModal(m); Audio2.play('click'); res(); };
+    $('.hand').style.visibility = 'hidden'; // 교체가 끝나 카드가 날아올 때까지 패를 비워 둔다
+    $('[data-a=ok]', box).onclick = async () => {
+      if (done) return; done = true;
+      const myB = B, before = new Set(me.hand);
+      game.mulligan(me, [...marked]);
+      Audio2.play('click');
+      $('.modal-actions', box).style.visibility = 'hidden';
+      try {
+        const fresh = me.hand.filter(c => !before.has(c));
+        if (fresh.length) await mulliganReveal(box, row, fresh);
+        if (B === myB) await mulliganToHand(m, row);
+      } finally { const hd = $('.hand'); if (hd) hd.style.visibility = ''; closeModal(m); res(); }
+    };
   });
+}
+// 교체 연출 1: 고른 카드가 덱으로 빠지고, 그 자리에 새로 뽑은 카드가 뒤집히며 나타난다
+async function mulliganReveal(box, row, fresh) {
+  $('h3', box).textContent = '새로 받은 카드';
+  $('p', box).textContent = `카드 ${fresh.length}장을 덱에 돌려놓고 새로 뽑았습니다.`;
+  $('.mull-count', box).textContent = '';
+  const olds = $$('.card.marked', row);
+  olds.forEach((ce, i) => ce.animate([{ transform: 'translateY(14px)', opacity: 1 }, { transform: 'translateY(90px) scale(0.85)', opacity: 0 }], { duration: 260, delay: i * 70, easing: 'ease-in', fill: 'forwards' }));
+  await sleepRaw(260 + olds.length * 70);
+  for (let i = 0; i < olds.length; i++) {
+    const ne = cardEl(fresh[i], { noHover: true }); ne._card = fresh[i];
+    ne.classList.add('mull-new');
+    olds[i].replaceWith(ne);
+    Audio2.play('card');
+    await sleepRaw(200);
+  }
+  await sleepRaw(1000);
+}
+// 교체 연출 2: 창이 걷히고 카드가 한 장씩 패 자리로 날아간다
+async function mulliganToHand(m, row) {
+  renderAll(true); // 창 아래에 패를 먼저 그려 둬야 날아갈 자리를 잴 수 있다
+  const slots = $$('.hand .hslot');
+  const targetOf = c => slots[B.me.hand.indexOf(c)];
+  slots.forEach(sl => { sl.style.visibility = 'hidden'; });
+  $('.hand').style.visibility = '';
+  const stage = $('#stage');
+  const ghosts = $$('.card', row).map(ce => {
+    const r = stageRect(ce), g = h('<div class="mull-ghost"></div>');
+    const gc = cardEl(ce._card, { noHover: true }); gc.style.setProperty('--w', ce.offsetWidth + 'px'); g.appendChild(gc);
+    g.style.left = r.x + 'px'; g.style.top = r.y + 'px';
+    stage.appendChild(g);
+    return { g, r, card: ce._card, w: ce.offsetWidth };
+  });
+  m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: 'forwards' });
+  await sleepRaw(120);
+  await Promise.all(ghosts.map(({ g, r, card, w }, i) => new Promise(done => {
+    const sl = targetOf(card);
+    const fin = () => { g.remove(); if (sl) sl.style.visibility = ''; done(); };
+    if (!sl) return fin();
+    const t = stageRect($('.card', sl) || sl), k = ($('.card', sl) || sl).offsetWidth / w;
+    const rot = parseFloat(sl.style.getPropertyValue('--r')) || 0;
+    const a = g.animate([
+      { transform: 'translate(0,0) scale(1) rotate(0deg)' },
+      { transform: `translate(${t.cx - r.cx}px, ${t.cy - r.cy}px) scale(${k}) rotate(${rot}deg)` },
+    ], { duration: 420, delay: i * 90, easing: 'cubic-bezier(.4,.1,.3,1)', fill: 'forwards' });
+    setTimeout(() => Audio2.play('card', 0.5), i * 90);
+    a.onfinish = fin; setTimeout(fin, 420 + i * 90 + 200);
+  })));
+  $$('.hand .hslot').forEach(sl => { sl.style.visibility = ''; });
 }
 
 // ---------- 턴 진행 ----------
