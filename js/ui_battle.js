@@ -667,7 +667,8 @@ function renderAp() {
 }
 function pushHistory(card, player) {
   const list = $('.hs-list'); if (!list) return;
-  const it = h(`<div class="hs-item ${player === B.me ? 'mine' : 'theirs'}" style="background-image:url('${artOf(card)}')"><span>${card.c}</span></div>`);
+  const icon = card.kind === 'skill' && iconOf(card); // 지원 카드는 캐릭터 그림 대신 스킬 아이콘
+  const it = h(`<div class="hs-item ${player === B.me ? 'mine' : 'theirs'}${icon ? ' skill' : ''}" style="background-image:url('${icon || artOf(card)}')"><span>${card.c}</span></div>`);
   it.onpointerenter = e => { if (e.pointerType === 'mouse') showPreview(card, 'left', `${player === B.me ? '오렌지에이드' : esc(B.ai.name)} 사용`); };
   it.onpointerleave = hidePreview;
   it.onclick = () => openCardDetail(card);
