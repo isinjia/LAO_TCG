@@ -102,7 +102,30 @@ def head_portrait(im, head):
     return crop.resize((480, 640), Image.LANCZOS)
 
 
+# 얼굴 기준 수동 크롭: (얼굴 x / 원본 폭, 얼굴 y / 원본 높이, 크롭 폭 / 원본 높이). 얼굴이 크롭 위에서 22% 높이에 온다.
+# 전신이 작게 들어가거나 무기·날개만 보이던 카드를 다른 카드처럼 얼굴과 상반신이 카드를 채우게 맞춘다 (자동 크롭·렌더 기록보다 먼저 쓴다)
+CROP_HEAD = {
+    'PECS_Lumberjane': (0.25, 0.20, 0.45), '3P_Rhea': (0.53, 0.275, 0.42), 'PECS_DarkElf': (0.40, 0.31, 0.40),
+    'PECS_Spartoia': (0.605, 0.175, 0.40), 'PECS_LemonadeAlpha': (0.44, 0.485, 0.28), 'BR_Brunhild': (0.54, 0.48, 0.32),
+    'BR_Banshee': (0.45, 0.267, 0.36), 'BR_Shirayuri': (0.508, 0.36, 0.32), 'BR_Hyena': (0.44, 0.10, 0.45),
+    'DS_Azazel': (0.47, 0.27, 0.36), 'DS_Baekto': (0.45, 0.225, 0.42), 'AGS_Goltarion': (0.33, 0.21, 0.55),
+    'AGS_Watcher': (0.64, 0.20, 0.76), 'DS_MoMo': (0.50, 0.235, 0.42),
+    # 픽시는 곰이 아니라 왼쪽의 캐릭터를, 익스프레스 76은 오른쪽 위 캐릭터 얼굴을 가운데에 둔다
+    'BR_NightAngel': (0.44, 0.125, 0.42), 'AGS_Albatross': (0.533, 0.267, 0.60), 'BR_Pixie': (0.40, 0.26, 0.36), 'PECS_Express76': (0.69, 0.165, 0.40),
+}
+
+
+def head_crop(im, fx, fy, fw):
+    w = int(im.height * fw); h = int(w * 4 / 3)
+    left = int(im.width * fx - w / 2); top = int(im.height * fy - h * 0.22)
+    crop = Image.new('RGBA', (w, h), (0, 0, 0, 0))
+    crop.paste(im.crop((left, top, left + w, top + h)), (0, 0))
+    return crop.resize((480, 640), Image.LANCZOS)
+
+
 def portrait(im, cid):
+    if cid in CROP_HEAD:
+        return head_crop(im, *CROP_HEAD[cid])
     hj = RENDERS / f'{cid}.json'
     if hj.exists():
         import json

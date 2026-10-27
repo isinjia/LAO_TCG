@@ -155,7 +155,7 @@ function renderDeck(el) {
     (units.length ? `<span class="chip" style="background:#2a3647;color:#cfe0f2">공${roleCnt('ATK')} 보${roleCnt('DEF')} 지${roleCnt('SUP')} · 경${typeCnt('L')} 기${typeCnt('M')} 중${typeCnt('H')}</span>` : '');
   const list = $('[data-v=list]', el); list.innerHTML = '';
   cards.forEach(c => {
-    const row = h(`<div class="deck-row" style="--fc:${FACTIONS[c.f].color}"><div class="r-art" style="background-image:url('${artOf(c)}')"></div><span class="r-cost">${c.c}</span><span class="r-name">${esc(c.n)}</span><span class="r-grade" style="color:${GRADE_COLOR[c.g]}">${c.g}</span></div>`);
+    const row = h(`<div class="deck-row" style="--fc:${FACTIONS[c.f].color}">${c.kind === 'skill' && iconOf(c) ? `<div class="r-art r-icon" style="background-image:url('${iconOf(c)}')"></div>` : `<div class="r-art" style="background-image:url('${artOf(c)}')"></div>`}<span class="r-cost">${c.c}</span><span class="r-name">${esc(c.n)}</span><span class="r-grade" style="color:${GRADE_COLOR[c.g]}">${c.g}</span></div>`);
     row.title = '클릭하여 제거';
     row.onclick = () => { hidePreview(); ensureEditable(); editing.cards.splice(editing.cards.indexOf(c.id), 1); commitEditing(); Audio2.play('card'); renderDeck(el); renderPool(el); };
     row.oncontextmenu = e => { e.preventDefault(); openCardDetail(c, cards); };
