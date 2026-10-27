@@ -262,7 +262,8 @@ input[type=search], input[type=text], select, .deck-name { border-radius: 0; }
 .dialogue .dl-char.talk { animation: dlTalk 0.35s ease-out, dlBreath 5s ease-in-out 0.35s infinite; }
 @keyframes dlBreath { 50% { transform: translateY(-5px) scale(1.004); } }
 @keyframes dlEnterL { from { opacity: 0; transform: translateX(-80px); } }
-@keyframes dlEnterR { from { opacity: 0; transform: translateX(80px); } }
+.dialogue .dl-char.right { scale: -1 1; } /* 오른쪽 일러스트 좌우반전 (변형 애니메이션과 별개로 합성) */
+@keyframes dlEnterR { from { opacity: 0; transform: translateX(-80px); } } /* 반전된 좌표계라 음수가 화면 오른쪽 */
 @keyframes dlTalk { 40% { transform: translateY(-14px); } }
 .dialogue .dl-name.pop { animation: dlPop 0.3s ease-out; }
 @keyframes dlPop { from { opacity: 0; transform: translateX(-16px); } }
