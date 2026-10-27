@@ -35,6 +35,42 @@ window.addEventListener('DOMContentLoaded', async () => {
   const lpCancel = e => { if (lp && (e.type !== 'pointermove' || Math.hypot(e.clientX - lp.x, e.clientY - lp.y) > 12)) { clearTimeout(lp.timer); lp = null; } };
   ['pointerup', 'pointercancel', 'pointermove'].forEach(t => document.addEventListener(t, lpCancel));
   document.addEventListener('contextmenu', e => { if (e.target.closest && e.target.closest('#stage')) e.preventDefault(); });
+  // 터치로 목록을 밀어 넘긴다. 손가락 움직임을 무대 좌표로 바꿔 쓰므로 무대가 90도 돌아간 세로 화면에서도 손가락 방향대로 움직이고,
+  // 손을 떼면 관성으로 조금 더 미끄러진다. 밀어 넘긴 뒤 손을 뗄 때의 클릭은 카드 선택으로 치지 않는다
+  const scrollerOf = el => {
+    for (let e = el; e && e.id !== 'stage'; e = e.parentElement) {
+      if (e.scrollHeight > e.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(e).overflowY)) return e;
+    }
+    return null;
+  };
+  let ds = null, dragEnd = 0, glide = 0;
+  document.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') return;
+    cancelAnimationFrame(glide);
+    const sc = scrollerOf(e.target); if (!sc) return;
+    const p = stagePoint(e.clientX, e.clientY);
+    ds = { sc, id: e.pointerId, y0: p.y, top: sc.scrollTop, moved: false, lastY: p.y, lastT: performance.now(), v: 0 };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!ds || e.pointerId !== ds.id) return;
+    const y = stagePoint(e.clientX, e.clientY).y, now = performance.now();
+    if (!ds.moved && Math.abs(y - ds.y0) < 10) return;
+    ds.moved = true;
+    ds.sc.scrollTop = ds.top - (y - ds.y0);
+    const dt = Math.max(1, now - ds.lastT); ds.v = 0.8 * ((ds.lastY - y) / dt) + 0.2 * ds.v; ds.lastY = y; ds.lastT = now;
+  });
+  const dsEnd = e => {
+    if (!ds || e.pointerId !== ds.id) return;
+    const d = ds; ds = null;
+    if (!d.moved) return;
+    dragEnd = performance.now();
+    let v = performance.now() - d.lastT > 80 ? 0 : d.v, last = performance.now(); // 멈췄다가 떼면 미끄러지지 않는다
+    const step = now => { const dt = now - last; last = now; d.sc.scrollTop += v * dt; v *= Math.pow(0.995, dt); if (Math.abs(v) > 0.02) glide = requestAnimationFrame(step); };
+    if (Math.abs(v) > 0.05) glide = requestAnimationFrame(step);
+  };
+  document.addEventListener('pointerup', dsEnd);
+  document.addEventListener('pointercancel', dsEnd);
+  document.addEventListener('click', e => { if (performance.now() - dragEnd < 350) { e.stopPropagation(); e.preventDefault(); } }, true);
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) { if (e.key === 'Escape') e.target.blur(); return; }
     if ($('#dialogue').classList.contains('show')) return;
