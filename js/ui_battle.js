@@ -95,7 +95,7 @@ screenHooks.battle = async el => {
     </div>
     <div class="lanes enemy">${[0, 1, 2].map(i => `<div class="slot" data-side="enemy" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
     <div class="lanes me">${[0, 1, 2].map(i => `<div class="slot" data-side="me" data-lane="${i}" data-label="${LANE_NAMES[i]}"></div>`).join('')}</div>
-    <svg class="fc-svg"><defs><marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff5a64"/></marker></defs></svg>
+    <svg class="fc-svg"><defs><filter id="arrowGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="7"/></filter></defs></svg>
     ${cmdHtml('me', me)}
     <div class="stack me"><div class="st-deck" data-pile="deck" title="내 덱"><b data-v="deck">0</b></div><div class="st-grave" data-pile="grave" title="내 묘지">묘지 <b data-v="grave">0</b></div></div>
     <div class="round-info"></div>
@@ -831,9 +831,9 @@ function refreshForecast() {
 
 function drawArrows() {
   if (!Store.settings.forecast || !canAct()) return;
-  const svg = $('.fc-svg'); clearArrows();
+  const svg = $('.fc-svg');
   const fc = B.game.forecast(B.me);
-  const seen = new Set();
+  const seen = new Set(), list = [];
   fc.hits.forEach(hh => {
     const fromEl = B.unitEls.get(hh.fromUid); if (!fromEl) return;
     const key = hh.fromUid + '>' + hh.toUid; if (seen.has(key)) return; seen.add(key);
@@ -841,12 +841,50 @@ function drawArrows() {
     if (!toEl || toEl === fromEl) return;
     if (B.me.lanes.some(u => u && u.uid === hh.toUid)) return; // 반격 화살표 생략
     const a = stageRect(fromEl), b = stageRect(toEl);
-    const x1 = a.cx, y1 = a.y + 20, x2 = b.cx, y2 = b.y + b.h - 30;
-    const mx = (x1 + x2) / 2, my = Math.min(y1, y2) - 40;
-    svg.insertAdjacentHTML('beforeend', `<path class="arrow" d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" stroke="${hh.toUid === 'cmd' ? '#ffb13b' : '#ff5a64'}" marker-end="url(#ah)" stroke-dasharray="14 8"/>`);
+    // 공격하는 카드의 가운데에서 출발해 표적 카드의 가운데 조금 아래에 꽂힌다
+    list.push({ x1: a.cx, y1: a.cy, x2: b.cx, y2: b.cy + b.h * 0.12, cmd: hh.toUid === 'cmd' });
   });
+  // 화살표가 그대로면 다시 그리지 않는다 (화면이 바뀔 때마다 등장 연출이 반복되어 깜빡이지 않게)
+  const sig = list.map(l => [l.x1, l.y1, l.x2, l.y2].map(Math.round).join(',')).join('|');
+  if (sig === B.arrowSig) return;
+  clearArrows(); B.arrowSig = sig;
+  list.forEach((l, i) => svg.insertAdjacentHTML('beforeend', arrowSvg(l, i)));
 }
-function clearArrows() { $$('.fc-svg .arrow').forEach(p => p.remove()); }
+// 공격 화살표 한 개: 꼬리가 가늘고 끝으로 갈수록 굵어지는 곡선 몸통 + 번지는 빛 + 흐르는 빛줄기 + 화살촉 + 표적 표시
+function arrowSvg({ x1, y1, x2, y2, cmd }, i) {
+  const col = cmd ? '#ffc04a' : '#ff4655', hot = cmd ? '#fff2c4' : '#ffd2d6';
+  // 조절점: 두 점의 가운데에서 옆으로 비켜 활처럼 휘게 한다. 대각선은 위쪽으로, 바로 앞(세로)은 오른쪽으로 휜다
+  const dx = x2 - x1, dy = y2 - y1, dist = Math.hypot(dx, dy) || 1;
+  let px = -dy / dist, py = dx / dist; if (py > 0 || (Math.abs(py) < 0.01 && px < 0)) { px = -px; py = -py; }
+  const bend = Math.min(130, Math.max(34, dist * 0.22));
+  const cx = (x1 + x2) / 2 + px * bend, cy = (y1 + y2) / 2 + py * bend;
+  const at = t => ({ x: (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2, y: (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2 });
+  const tan = t => { const dx = 2 * (1 - t) * (cx - x1) + 2 * t * (x2 - cx), dy = 2 * (1 - t) * (cy - y1) + 2 * t * (y2 - cy), m = Math.hypot(dx, dy) || 1; return { x: dx / m, y: dy / m }; };
+  // 화살촉 길이만큼 앞에서 몸통을 끝낸다
+  const N = 40, HEAD = 40, pts = [];
+  let len = 0; for (let k = 0; k <= N; k++) { const p = at(k / N); if (k) len += Math.hypot(p.x - pts[k - 1].x, p.y - pts[k - 1].y); pts.push({ ...p, s: len }); }
+  const sEnd = Math.max(len * 0.3, len - HEAD + 6);
+  const L = [], R = [];
+  for (let k = 0; k <= N; k++) {
+    const p = pts[k]; if (p.s > sEnd) break;
+    const t = k / N, d = tan(t), w = 2 + 8 * Math.pow(p.s / sEnd, 1.4);
+    L.push(`${(p.x - d.y * w).toFixed(1)},${(p.y + d.x * w).toFixed(1)}`); R.unshift(`${(p.x + d.y * w).toFixed(1)},${(p.y - d.x * w).toFixed(1)}`);
+  }
+  const body = `M${L.join(' L')} L${R.join(' L')} Z`;
+  const d = tan(1), n = { x: -d.y, y: d.x }, bx = x2 - d.x * HEAD, by = y2 - d.y * HEAD, nx = x2 - d.x * (HEAD - 12), ny = y2 - d.y * (HEAD - 12);
+  const head = `M${x2},${y2} L${(bx + n.x * 22).toFixed(1)},${(by + n.y * 22).toFixed(1)} L${nx.toFixed(1)},${ny.toFixed(1)} L${(bx - n.x * 22).toFixed(1)},${(by - n.y * 22).toFixed(1)} Z`;
+  const end = at(sEnd / len), core = `M${x1},${y1} Q${cx},${cy} ${end.x.toFixed(1)},${end.y.toFixed(1)}`;
+  return `<g class="arrow${cmd ? ' cmd' : ''}">
+    <defs><linearGradient id="ag${i}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${col}" stop-opacity="0.15"/><stop offset="0.55" stop-color="${col}" stop-opacity="0.85"/><stop offset="1" stop-color="${col}"/></linearGradient></defs>
+    <path class="a-glow" d="${body} ${head}" fill="${col}" filter="url(#arrowGlow)"/>
+    <path class="a-body" d="${body}" fill="url(#ag${i})"/>
+    <path class="a-core" d="${core}" stroke="${hot}"/>
+    <circle class="a-src" cx="${x1}" cy="${y1}" r="10" stroke="${col}"/>
+    <g class="a-tgt" style="transform-origin:${x2}px ${y2}px"><circle cx="${x2}" cy="${y2}" r="30" stroke="${col}"/></g>
+    <path class="a-head" d="${head}" fill="${col}" stroke="${hot}" style="transform-origin:${x2}px ${y2}px"/>
+  </g>`;
+}
+function clearArrows() { $$('.fc-svg .arrow').forEach(p => p.remove()); if (B) B.arrowSig = ''; }
 
 // ---------- 전술 팁 (설정 > 전술 팁) ----------
 function tacticalTip() {

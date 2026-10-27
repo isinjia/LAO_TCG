@@ -520,7 +520,19 @@ img { -webkit-user-drag: none; }
 .quake { animation: quake 0.35s; }
 @keyframes quake { 25% { translate: 6px -4px; } 50% { translate: -6px 4px; } 75% { translate: 4px 2px; } }
 .fc-svg { position: absolute; inset: 0; pointer-events: none; z-index: 9; width: 100%; height: 100%; }
-.fc-svg path { fill: none; stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(0,0,0,0.8)); }
+.fc-svg .arrow { animation: arrowIn 0.35s ease-out both; }
+.fc-svg .arrow .a-glow { opacity: 0.5; animation: arrowGlow 1.6s ease-in-out infinite; }
+.fc-svg .arrow .a-body { filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7)); }
+.fc-svg .arrow .a-core { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 10 22; opacity: 0.9; animation: arrowFlow 0.7s linear infinite; }
+.fc-svg .arrow .a-head { stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.75)); animation: arrowHead 0.4s 0.15s cubic-bezier(.3,1.6,.5,1) both; }
+.fc-svg .arrow .a-src { fill: none; stroke-width: 3; opacity: 0.8; }
+.fc-svg .arrow .a-tgt circle { fill: none; stroke-width: 3; stroke-dasharray: 16 10; opacity: 0.85; }
+.fc-svg .arrow .a-tgt { animation: arrowSpin 4s linear infinite; }
+@keyframes arrowIn { from { opacity: 0; } }
+@keyframes arrowGlow { 50% { opacity: 0.85; } }
+@keyframes arrowFlow { to { stroke-dashoffset: -32; } }
+@keyframes arrowHead { from { transform: scale(0.2); opacity: 0; } }
+@keyframes arrowSpin { to { transform: rotate(360deg); } }
 
 /* 레벨업 / 멀리건 */
 .lv-wrap { display: flex; gap: 22px; margin-top: 14px; }
