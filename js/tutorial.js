@@ -1,25 +1,26 @@
 // ===== 튜토리얼 코치 =====
 // 각 단계: text, spot(선택자 또는 함수), wait(넘어가기 위한 이벤트), cond(이벤트 데이터 조건), trigger(이 이벤트가 와야 표시)
 const TUTORIAL_STEPS = [
-  { text: '첫 대국에 온 걸 환영해, 오렌지에이드. 위쪽이 <b>대국 상대</b>야. 상대의 <b>라이프</b>를 0으로 만들면 이기는 거란다.', spot: '#cmd-enemy', box: [490, 170] },
-  { text: '아래쪽 초상화가 네 자리야. 초상화 오른쪽 아래 숫자가 <b>라이프</b>고, 0이 되면 지는 거야.', spot: '#cmd-me', box: [1090, 600] },
-  { text: '이게 <b>손패</b>야. 카드 왼쪽 위 숫자가 <b>AP 비용</b>, 가운데 두 숫자가 <b>공격력</b>과 <b>체력</b>이지. 카드에 마우스를 올리면 크게 보여 줄게.', spot: '.hand', box: [1380, 140] },
-  { trigger: 'myTurn', text: '오른쪽 아래가 <b>AP</b>야. 매 턴 최대 AP가 1씩 늘어나고(최대 10) 가득 채워지지. 첫 턴인 지금은 AP 1이란다.', spot: '#ap-me', box: [1080, 560] },
-  { text: 'AP 1로 쓸 수 있는 비용 1짜리 <b>피</b>를 끌어다 <b>레인</b>에 놓아 볼래? (카드를 클릭한 뒤 레인을 클릭해도 돼)', spot: '.hand', box: [1380, 140], wait: 'cardPlayed' },
-  { text: '잘했어. 전투원은 <b>배치된 턴에는 공격하지 않아</b>. 단, <b>돌격</b> 키워드가 있으면 바로 공격하지.', spot: '.lanes.me', box: [1380, 140] },
-  { text: '이제 <b>턴 종료</b>를 눌러 봐 (단축키 Space). 턴이 끝나면 네 전투원들이 왼쪽 레인부터 공격한단다.', spot: '.end-btn', box: [1380, 560], wait: 'turnEnded' },
-  { trigger: 'myTurn', text: '상대가 행동을 마쳤어. 이번 턴 AP는 2야. 다 쓰지 못한 AP는 <b>최대 2까지 다음 턴으로 이월</b>되니까 기억해 두렴.', spot: '#ap-me', box: [1080, 560] },
-  { text: '이번엔 비용 2인 <b>하치코</b>를 골라 볼래? 레인 위에 <b>유리 ▲ / 불리 ▼</b>가 보일 거야. 경장 ▶ 기동 ▶ 중장 ▶ 경장 순으로 유리하고, 유리하면 피해가 1 늘어나.', spot: '.hand', box: [1380, 140], wait: 'cardSelected', cond: c => c.kind === 'unit' },
-  { text: '좋아. 상성이 유리한 레인이나, 적이 없는 레인(상대 직격)에 놓아 보렴.', spot: '.lanes.me', box: [1380, 140], wait: 'cardPlayed' },
-  { text: '적 전투원과 상대 초상화 위의 <b>빨간 숫자</b>는 이번 턴 전투의 <b>예상 피해</b>야. ☠는 격파 예상이고, 회피 중인 적에게는 <b>빗나감</b>이라고 떠.', spot: '.lanes.enemy', box: [1380, 560] },
-  { text: '<b>턴 종료</b> 버튼에 마우스를 올리면 공격 경로가 화살표로 보여. <b>보호기</b>는 앞이 빈 양옆 레인에서 라이프로 가는 공격을 대신 받고, <b>지원기</b>는 양옆 아군의 공격력을 1 올려 준단다.', spot: '.end-btn', box: [1380, 560] },
-  { trigger: 'myTurn', text: '이번엔 <b>지원 카드</b>를 써 보자. 방금 뽑은 <b>야전 의료</b>를 고른 뒤, 빛나는 내 전투원을 누르렴. 그 전투원의 체력을 가득 채워 준단다.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
+  { text: '환영해, 오렌지에이드. 위쪽 상대의 <b>라이프</b>를 0으로 만들면 이기는 거란다.', spot: '#cmd-enemy', box: [490, 170] },
+  { text: '아래쪽 초상화가 너야. 숫자가 네 <b>라이프</b>란다.', spot: '#cmd-me', box: [1090, 600] },
+  { text: '<b>손패</b>야. 왼쪽 위가 <b>AP 비용</b>, 가운데 두 숫자가 <b>공격력·체력</b>이지.', spot: '.hand', box: [1380, 140] },
+  { trigger: 'myTurn', text: '오른쪽 아래가 <b>AP</b>야. 턴마다 1씩 늘어나고(최대 10), 지금은 1이란다.', spot: '#ap-me', box: [1080, 560] },
+  { text: '비용 1인 <b>피</b>를 <b>레인</b>에 끌어다 놓아 보렴.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed' },
+  { text: '잘했어. 낸 턴에는 공격하지 않아(<b>돌격</b>이 있으면 바로 공격).', spot: '.lanes.me', box: [1380, 140] },
+  { text: '<b>턴 종료</b>를 눌러 보렴. 그러면 네 전투원이 공격해.', spot: '.end-btn', box: [1380, 560], wait: 'turnEnded' },
+  { trigger: 'myTurn', text: '이번 턴 AP는 2야. 남긴 AP는 <b>2까지 다음 턴으로 넘어가</b>.', spot: '#ap-me', box: [1080, 560] },
+  { text: '<b>하치코</b>를 골라 보렴. 레인 위에 <b>유리 ▲ / 불리 ▼</b>가 떠. 경장 ▶ 기동 ▶ 중장 ▶ 경장 순으로 강하단다.', spot: '.hand', box: [1380, 140], wait: 'cardSelected', cond: c => c.kind === 'unit' },
+  { text: '<b>유리</b>한 레인에 놓아 보렴.', spot: '.lanes.me', box: [1380, 140], wait: 'cardPlayed' },
+  { text: '<b>빨간 숫자</b>는 이번 턴 <b>예상 피해</b>야. ☠는 격파 예상이란다.', spot: '.lanes.enemy', box: [1380, 560] },
+  { text: '<b>보호기</b>는 옆 빈 레인의 공격을 대신 맞고, <b>지원기</b>는 양옆 공격력을 1 올려 준단다.', spot: '.lanes.me', box: [1380, 140] },
+  { trigger: 'myTurn', text: '<b>지원 카드</b> <b>야전 의료</b>를 고르고, 빛나는 내 전투원을 누르렴.', spot: '.hand', box: [1380, 140], wait: 'cardPlayed',
     cond: c => c.kind === 'skill' && c !== COMMAND_CARD, can: () => B.me.units().length > 0 && B.me.hand.some(c => c.kind === 'skill' && B.me.canAfford(c)) },
-  { trigger: 'myTurn', text: '이번엔 <b>이동</b>이야. 내 전투원을 누르면 옮길 수 있는 이웃 레인이 빛난단다. 턴마다 한 번, AP 2로 옮기고 아군이 있으면 자리를 바꿔. 상성이 불리한 전투원을 옮겨 보렴.', spot: '.lanes.me', wait: 'moved',
+  { trigger: 'myTurn', text: '<b>이동</b>이야. 내 전투원을 누르고 빛나는 옆 레인을 누르렴(턴마다 한 번, AP 2).', spot: '.lanes.me', wait: 'moved',
     can: () => B.me.units().some(u => [0, 1, 2].some(l => B.game.canMove(u, l))) },
-  { trigger: 'myTurn', text: '마지막으로 오른쪽 아래 <b>포격 지원</b>을 써 볼래? 턴마다 한 번, 적 전투원이나 상대 라이프에 피해를 준단다(삼안 결속이 켜져 있으면 더 싸고 세져). 낼 카드가 있으면 먼저 내도 되고, 남은 AP로 버튼을 누른 뒤 <b>상대 초상화</b>를 눌러 라이프를 노려 보렴.', spot: '.cmd-power', wait: 'cardPlayed',
-    cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // 카드를 먼저 내도 되고, AP가 모자라게 되면 건너뛴다 // 내 전장이 비었을 때는 포격보다 배치가 먼저라 건너뛴다
-  { text: '같은 제작사 전투원이 2기 모이면 <b>제작사 결속</b>이 켜져(초상 아래에 이름이 떠). 삼안은 포격 지원이 싸지고 세진단다. 레인이 다 차면 내 전투원 위에 겹쳐 내는 <b>교체 배치</b>도 할 수 있어(AP 1 더). 기본은 여기까지야. 오른쪽 위 <b>?</b> 버튼으로 언제든 규칙을 다시 볼 수 있어.', spot: null },
+  { trigger: 'myTurn', text: '<b>포격 지원</b>이야. 버튼을 누르고 <b>상대 초상화</b>를 누르렴(턴마다 한 번).', spot: '.cmd-power', wait: 'cardPlayed',
+    cond: c => c === COMMAND_CARD, can: () => B.game.canCommand() && B.me.units().length > 0 }, // AP가 모자라거나 내 전장이 비었으면 건너뛴다
+  { text: '같은 제작사 2기가 모이면 <b>결속</b>이 켜져. 초상 아래에 이름이 뜬단다.', spot: '#cmd-me' },
+  { text: '레인이 차면 내 전투원 위에 겹쳐 내는 <b>교체 배치</b>도 돼(AP 1 더). 규칙은 오른쪽 위 <b>?</b>에 있어. 끝까지 해 보렴!', spot: null },
 ];
 
 const Tutorial = {
