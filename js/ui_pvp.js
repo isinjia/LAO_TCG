@@ -144,7 +144,7 @@ function pvpFace(id) { return CARDS[id] && CARDS[id].kind === 'unit' && !CARDS[i
 const PVP_BGS = ['board', 'camp_night', 'snow', 'corridor_dark', 'offline', 'vr'];
 
 // 사람 상대를 찾았다: 두 기기가 같은 시드로 같은 판을 만든다. 저마다 자기가 아래쪽(아군 진영)에 보인다
-// 특성 스킬은 양쪽 모두 기본(포격 지원)으로 공평하게. 상대 초상은 그 지휘관의 로비 캐릭터로 보여 준다
+// 특성 스킬은 양쪽 모두 오렌지에이드의 것으로 공평하게. 상대 초상은 그 지휘관의 로비 캐릭터로 보여 준다
 function pvpStartOnline(m, profile, deck) {
   abandonSavedBattle();
   const f = m.foe, seed = m.seed >>> 0;

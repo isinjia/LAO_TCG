@@ -32,7 +32,7 @@ SFX = {
     'heal.wav': 'Common/shine.wav', 'shield.wav': 'Common/sci-fi_shield_power_on_impact_02.wav', 'card.wav': 'Common/foley_cloth_light_fast_movement_05.wav',
     'swing.wav': 'Common/Atk/Swing/atk_swing_mid.wav', 'swing_heavy.wav': 'Common/Atk/Swing/atk_swing_robot_big.wav', 'zap.wav': 'Common/elec_lightning_magic_spell_11.wav',
 }
-SKILL_ICONS = ['Command', 'Music', 'Wave', 'AirStrike', 'AssaultAttack', 'EnemyDetect', 'Shock', 'SetTurret', 'WideLightning', 'MultiMissile', 'TeamAtkBuff', 'ExpUp', 'SelfDefBuff', 'Particle', 'Charm', 'Chargeshot', 'WideFireShot', 'Snipe', 'Haze', 'SwordAttk', 'SlowShot', 'Scan', 'ShieldWall', 'SuiceideBomb', 'Vortex', 'Swamp']
+SKILL_ICONS = ['Command', 'Music', 'Wave', 'AirStrike', 'AssaultAttack', 'EnemyDetect', 'Shock', 'SetTurret', 'WideLightning', 'MultiMissile', 'TeamAtkBuff', 'ExpUp', 'SelfDefBuff', 'Particle', 'Charm', 'Chargeshot', 'WideFireShot', 'Snipe', 'Haze', 'SwordAttk', 'SlowShot', 'Scan', 'ShieldWall', 'SuiceideBomb', 'Vortex', 'Swamp', 'MGWideShot', 'WideSwordAttk', 'SatelliteBeam', 'TeamAtkDeBuff']
 
 for d in ['bg', 'bgm', 'sfx', 'skill']:
     (OUT / d).mkdir(parents=True, exist_ok=True)
@@ -47,4 +47,5 @@ for d, s in SFX.items():
     shutil.copy(S / s, OUT / 'sfx' / d)
 for n in SKILL_ICONS:
     shutil.copy(A / 'Texture/SkillTexture' / f'SkillIconCircle_{n}_active.png', OUT / 'skill' / f'{n}.png')
+shutil.copy(A / 'Texture/SkillTexture' / 'SkillIconCircle_MeleeAttack_attack.png', OUT / 'skill' / 'MeleeAttack.png')  # 원작 파일 이름 끝이 _attack
 print('assets built')

@@ -33,7 +33,7 @@ function startBattle(cfg) {
   if (cfg.myHp) me.hp = Math.min(me.maxHp, cfg.myHp);
   if (cfg.tutorial) me.minHp = 1; // 튜토리얼은 질 수 없다 // 순회전·오늘의 배틀: 깎인 라이프로 시작
   const ai = new Player(cfg.enemy.name, cfg.enemy.deck, { isAI: true, hp: cfg.enemy.hp, portrait: cfg.enemy.portrait, style: cfg.enemy.style });
-  if (cfg.enemy.face) ai.face = cfg.enemy.face; // 대전 모드: 초상은 보여 주기만 하고 특성 스킬은 기본(포격 지원)
+  if (cfg.enemy.face) ai.face = cfg.enemy.face; // 대전 모드: 초상은 보여 주기만 하고 특성 스킬은 양쪽 모두 오렌지에이드의 것
   if (cfg.tutorial) { ai.noHpBonus = true; ai.noSynergy = true; } // 튜토리얼 상대는 지도에 적힌 라이프 그대로, 결속(방어막)도 없이 짧게
   if (cfg.openingHand) {
     // 지정한 카드가 먼저 뽑히도록 덱 끝에 쌓는다 (draw는 pop)
@@ -132,10 +132,10 @@ function cmdHtml(side, p) {
 function lossHint(cfg, game, me) {
   const ot = RULES.OVERTIME_ROUND && game.round() >= RULES.OVERTIME_ROUND;
   const st = cfg.enemy.style;
-  if (ot) return '시간 초과까지 갔어요. 관통·돌격 전투원이나 포격 지원으로 라이프를 더 빨리 깎아 봐요.';
+  if (ot) return '시간 초과까지 갔어요. 관통·돌격 전투원이나 특성 스킬로 라이프를 더 빨리 깎아 봐요.';
   if (me.stats.unitsPlayed <= game.round() / 2) return '전장이 자주 비었어요. 비용이 낮은 전투원을 더 넣어 레인을 채워 봐요.';
   if (st === 'aggro') return '공격형 상대예요. 보호기로 빈 레인을 지키고, 회복 카드로 버티면 반격할 틈이 생겨요.';
-  if (st === 'control') return '제어형 상대예요. 관통 전투원과 포격 지원으로 라이프를 직접 노려 봐요.';
+  if (st === 'control') return '제어형 상대예요. 관통 전투원과 특성 스킬로 라이프를 직접 노려 봐요.';
   return '아깝다! 상성이 유리한 레인을 고르고, 같은 제작사 2기로 결속을 켜 봐요.';
 }
 // 배틀 시작 배너에 쓰는 모드 이름
@@ -477,7 +477,7 @@ function selectCard(card) {
     clearSelection(); renderHand(true); return false;
   }
   clearSelection();
-  if (card.hero && !B.game.canCommand()) { toast(me.cmdUsed === B.game.turn ? '특성 스킬은 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${B.game.commandCost(me)})`, true); return false; }
+  if (card.hero && !B.game.canCommand()) { toast(me.silencedTurn === B.game.turn ? '이번 턴에는 특성 스킬이 봉인되어 쓸 수 없습니다.' : me.cmdUsed === B.game.turn ? '특성 스킬은 턴당 한 번만 쓸 수 있습니다.' : `AP가 부족합니다 (${me.ap}/${B.game.commandCost(me)})`, true); return false; }
   if (!card.hero && !me.canAfford(card)) { toast(`AP가 부족합니다 (${me.ap}/${card.c})`, true); return false; }
   B.selected = card;
   hidePreview(); // 마우스를 올렸던 카드의 큰 그림은 닫는다
@@ -666,6 +666,7 @@ function renderCmd(side, p) {
   const sk = heroSkillOf(p), cost = B.game.commandCost(p), used = p.cmdUsed === B.game.turn;
   const cb = $('.hs-cost', hs); cb.textContent = cost; cb.classList.toggle('syn', cost < sk.c);
   hs.classList.toggle('used', used);
+  hs.classList.toggle('sealed', p.silencedTurn === B.game.turn || (p !== B.game.cur && p.silencedTurn === B.game.turn + 1));
   hs.classList.toggle('ready', p === B.me && canAct() && B.game.canCommand());
   hs.classList.toggle('selected', B.selected === sk);
 }
@@ -1112,6 +1113,8 @@ async function processEvents() {
       case 'buff': { const el = B.unitEls.get(ev.unit.uid); retrigger(el, 'buffed'); floatOn(el, `${ev.a ? '+' + ev.a : '+0'}/${ev.h ? '+' + ev.h : '+0'}`, 'buff'); Audio2.play('buff', 0.7); renderAll(); await sleep(180); break; }
       case 'debuff': { const el = B.unitEls.get(ev.unit.uid); retrigger(el, 'debuffed'); floatOn(el, `공격력 -${ev.a}`, 'info'); Audio2.play('zap', 0.7); renderAll(); await sleep(220); break; }
       case 'shield': { const el = B.unitEls.get(ev.unit.uid); if (el) { const c = centerOf(el); sparkleAt(c.x, c.y, FX_COLOR.shield, 8); } floatOn(el, `방어막 ${ev.v}`, 'shield'); Audio2.play('shield', 0.7); renderAll(); await sleep(160); break; }
+      case 'strip': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호 해제', 'dmg'); renderAll(); await sleep(140); break; }
+      case 'silence': { floatOn(cmdElOf(ev.player), '특성 스킬 봉인', 'dmg'); renderAll(); await sleep(200); break; }
       case 'evadeGain': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피 부여', 'info'); Audio2.play('smoke', 0.6); renderAll(); await sleep(160); break; }
       case 'slow': { const el = B.unitEls.get(ev.unit.uid); retrigger(el, 'debuffed'); floatOn(el, '둔화', 'info'); Audio2.play('zap', 0.6); renderAll(); await sleep(200); break; }
       case 'skip': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '둔화 — 공격 불가', 'info'); await sleep(320); renderAll(); break; }

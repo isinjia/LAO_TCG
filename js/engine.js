@@ -261,7 +261,7 @@ class Game {
   // target을 생략하면 지금 쓸 수 있는지만 확인한다
   canCommand(target) {
     const p = this.cur, sk = heroSkillOf(p);
-    if (!RULES.COMMAND || this.phase !== 'main' || p.cmdUsed === this.turn || p.ap < this.commandCost(p)) return false;
+    if (!RULES.COMMAND || this.phase !== 'main' || p.cmdUsed === this.turn || p.silencedTurn === this.turn || p.ap < this.commandCost(p)) return false;
     if (target === undefined) return true;
     const need = skillTargetKind(sk), o = this.other(p);
     if (need === 'none') return true;
@@ -314,7 +314,7 @@ class Game {
       switch (e.op) {
         case 'dmg':
           this.emit({ type: 'fx', op: 'dmg', src: ctx.src, player: p, from: ctx.unit, targets, rnd: e.tgt === 'randomEnemyUnit' });
-          targets.forEach(t => t.unit ? this.damageUnit(t.unit, e.v, null, ctx.src) : this.damageCmd(t.cmd, e.v, ctx.src));
+          targets.forEach(t => t.unit ? this.damageUnit(t.unit, t.side && e.side !== undefined ? e.side : e.v, null, ctx.src) : this.damageCmd(t.cmd, e.v, ctx.src));
           break;
         case 'heal':
           targets.forEach(t => {
@@ -342,6 +342,13 @@ class Game {
           break;
         case 'evade':
           targets.forEach(t => { if (t.unit) { t.unit.evade = true; this.emit({ type: 'evadeGain', unit: t.unit }); } });
+          break;
+        case 'strip': // 방어막·회피를 없앤다 (원작의 보호 무시·고정 피해·강화 불가)
+          targets.forEach(t => { if (t.unit && (t.unit.shield || t.unit.evade)) { t.unit.shield = 0; t.unit.evade = false; this.emit({ type: 'strip', unit: t.unit }); } });
+          break;
+        case 'silence': // 상대는 다음 턴에 특성 스킬을 쓸 수 없다 (원작의 스킬 사용 불가)
+          o.silencedTurn = this.turn + 1; this.emit({ type: 'silence', player: o });
+          this.log(`${o.name}: 다음 턴 특성 스킬 봉인`, 'sys');
           break;
         case 'slow':
           targets.forEach(t => { if (t.unit && t.unit.hp > 0) { t.unit.slowed = true; this.emit({ type: 'slow', unit: t.unit }); } });
@@ -393,6 +400,11 @@ class Game {
         return [ctx.lane - 1, ctx.lane + 1].filter(l => l >= 0 && l < 3 && p.lanes[l]).map(l => ({ unit: p.lanes[l] }));
       }
       case 'allAllies': return p.units().map(u => ({ unit: u }));
+      case 'pickEnemyArea': { // 고른 적 유닛과 그 양옆 적 유닛
+        const u = ctx.target && ctx.target.unit; if (!u) return [];
+        const l = o.lanes.indexOf(u); if (l < 0) return [];
+        return [{ unit: u }, ...[l - 1, l + 1].filter(k => k >= 0 && k < 3 && o.lanes[k]).map(k => ({ unit: o.lanes[k], side: true }))];
+      }
       case 'pickEnemyUnit': case 'pickAllyUnit': case 'pickAny':
         return ctx.target ? [ctx.target] : [];
       default: return [];
@@ -588,7 +600,7 @@ function serializeGame(g) {
     players: g.players.map(p => ({
       name: p.name, isAI: p.isAI, portrait: p.portrait, style: p.style, maxHp: p.maxHp, hp: p.hp, deckIds: p.deckIds,
       deck: ids(p.deck), hand: ids(p.hand), grave: ids(p.grave), factions: p.factions,
-      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, movedTurn: p.movedTurn || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
+      ap: p.ap, maxAp: p.maxAp, cmdUsed: p.cmdUsed || 0, silencedTurn: p.silencedTurn || 0, movedTurn: p.movedTurn || 0, mulliganDone: p.mulliganDone !== false, stats: JSON.parse(JSON.stringify(p.stats)),
       lanes: p.lanes.map(u => u && { cardId: u.cardId, atk: u.atk, hp: u.hp, maxHp: u.maxHp, shield: u.shield, evade: u.evade, slowed: u.slowed, summonedTurn: u.summonedTurn }),
     })),
   };
@@ -601,7 +613,7 @@ function restoreGame(snap) {
     const p = Object.create(Player.prototype);
     Object.assign(p, { name: sp.name, isAI: sp.isAI, portrait: sp.portrait, style: sp.style || 'balanced', maxHp: sp.maxHp, hp: sp.hp, deckIds: sp.deckIds,
       deck: sp.deck.map(card), hand: sp.hand.map(card), grave: sp.grave.map(card), factions: sp.factions,
-      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, movedTurn: sp.movedTurn || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
+      ap: sp.ap || 0, maxAp: sp.maxAp || 0, cmdUsed: sp.cmdUsed || 0, silencedTurn: sp.silencedTurn || 0, movedTurn: sp.movedTurn || 0, stats: { ...newStats(), ...sp.stats }, mulliganDone: sp.mulliganDone !== false });
     p.lanes = sp.lanes.map(su => {
       if (!su) return null;
       const u = makeUnit(card(su.cardId), p);
@@ -619,7 +631,7 @@ const LANE_NAMES = ['좌익', '중앙', '우익'];
 function skillTargetKind(card) {
   const t = (card.fx || []).map(e => e.tgt);
   if (t.includes('pickAny')) return 'any';
-  if (t.includes('pickEnemyUnit')) return 'enemyUnit';
+  if (t.includes('pickEnemyUnit') || t.includes('pickEnemyArea')) return 'enemyUnit';
   if (t.includes('pickAllyUnit')) return 'allyUnit';
   return 'none';
 }
