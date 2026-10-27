@@ -635,7 +635,18 @@ function renderCmd(side, p) {
   // 켜진 제작사 결속을 이름 아래에 표시한다
   const syn = p.factions.filter(f => SYNERGY[f] && B.game.synergy(p, f));
   $$('.hero-facs i', el).forEach(i => i.classList.toggle('on', syn.includes(i.dataset.f)));
-  const sl = $('.hero-syn', el); if (sl) { const t = syn.map(f => `결속 · ${SYNERGY[f].name}`).join(' / '); if (sl.textContent !== t) { sl.textContent = t; if (t) retrigger(sl, 'pop'); } sl.title = syn.map(f => `${SYNERGY[f].name}: ${SYNERGY[f].text}`).join(' / '); }
+  // 켜진 결속은 이름과 효과를 함께 적고, 새로 켜지면 초상 옆에 무엇이 좋아졌는지 크게 알린다
+  const sl = $('.hero-syn', el);
+  if (sl) {
+    const sig = syn.join(',');
+    if (sl.dataset.sig !== sig) {
+      sl.innerHTML = syn.map(f => `<span style="--fc:${FACTIONS[f].color}"><b>결속 「${esc(SYNERGY[f].name)}」</b>${esc(SYNERGY[f].text)}</span>`).join('');
+      if (sig) retrigger(sl, 'pop');
+      const prev = (sl.dataset.sig || '').split(',').filter(Boolean);
+      if (sl.dataset.sig !== undefined) syn.filter(f => !prev.includes(f)).forEach((f, i) => setTimeout(() => synergyCallout(side, p, f), i * 700));
+      sl.dataset.sig = sig;
+    }
+  }
   const ap = $('.hero-ap', el); if (ap) ap.textContent = p.ap > p.maxAp ? `AP ${p.ap} (이월 +${p.ap - p.maxAp})` : `AP ${p.ap}/${p.maxAp}`;
   // 특성 스킬 아이콘: AP 표시(결속으로 싸지면 노랗게), 이번 턴에 썼으면 어둡게, 지금 쓸 수 있으면 빛난다
   const hs = $('.hero-skill', el); if (!hs) return;
@@ -841,9 +852,10 @@ function refreshForecast() {
 function drawArrows() {
   if (!Store.settings.forecast || !canAct()) return;
   const svg = $('.fc-svg');
-  const fc = B.game.forecast(B.me);
+  const fc = B.game.forecast(B.me, true);
   const seen = new Set(), list = [];
   fc.hits.forEach(hh => {
+    if (hh.rnd) return; // 「무작위 적 유닛」 피해는 대상을 미리 보여 주지 않는다
     const fromEl = B.unitEls.get(hh.fromUid); if (!fromEl) return;
     const key = hh.fromUid + '>' + hh.toUid; if (seen.has(key)) return; seen.add(key);
     const toEl = hh.toUid === 'cmd' ? $('#cmd-enemy') : B.unitEls.get(hh.toUid);
@@ -900,7 +912,7 @@ function tacticalTip() {
   const { game, me, ai } = B;
   const tips = [];
   const short = me.hand.filter(c => !me.canAfford(c));
-  const fc = game.forecast(me);
+  const fc = game.forecast(me, true);
   if (fc.lethal) tips.push('이번 턴 전투로 상대 라이프를 0으로 만들 수 있어요! 턴을 종료하세요.');
   const after = game.clone(); after.phase = 'combat'; after.resolveCombat();
   const threat = after.phase === 'over' ? null : after.forecast(after.players[game.players.indexOf(ai)]);
@@ -922,6 +934,17 @@ function showTacticalTip() {
 
 // ---------- 연출 ----------
 async function hitStop() { const st = $('#stage'); st.classList.add('hitstop'); await sleepRaw(130); st.classList.remove('hitstop'); }
+// 제작사 결속이 새로 켜졌을 때: 초상 옆에 제작사 색으로 결속 이름과 효과를 잠깐 띄운다
+function synergyCallout(side, p, f) {
+  const hero = $(`#cmd-${side}`); if (!hero || !B || B.over) return;
+  const n = p.units().filter(u => u.card.f === f).length;
+  const c = h(`<div class="syn-callout ${side}" style="--fc:${FACTIONS[f].color}"><div class="sc-head">${esc(FACTIONS[f].name)} 결속 발동 · ${esc(SYNERGY[f].name)}</div><div class="sc-text">${esc(SYNERGY[f].text)}</div><div class="sc-why">${side === 'me' ? '내' : '상대'} 전장에 ${esc(FACTIONS[f].short)} 전투원 ${n}기 (${RULES.SYNERGY_MIN}기 이상이면 켜짐)</div></div>`);
+  // 전장 카드 위로 보이게 무대 맨 위층에 붙인다: 내 초상은 오른쪽, 상대 초상은 아래쪽
+  const r = stageRect(hero);
+  if (side === 'me') { c.style.left = `${r.x + r.w + 24}px`; c.style.top = `${r.cy}px`; } else { c.style.left = `${r.x}px`; c.style.top = `${r.y + r.h + 16}px`; }
+  $('#stage').appendChild(c); Audio2.play('energy');
+  setTimeout(() => c.classList.add('out'), 3200); setTimeout(() => c.remove(), 3700);
+}
 function showBanner(main, sub, side) {
   const b = h(`<div class="banner ${side}"><div class="bn-main">${esc(main)}</div><div class="bn-sub">${esc(sub || '')}</div></div>`);
   $('#stage').appendChild(b); setTimeout(() => b.remove(), 1300 / (Store.settings.speed || 1));
