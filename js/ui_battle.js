@@ -991,6 +991,20 @@ function flyCard(card, from, to) {
 function centerOf(el) { const r = stageRect(el); return { x: r.cx, y: r.cy }; }
 function cmdElOf(p) { return p === B.me ? $('#cmd-me') : $('#cmd-enemy'); }
 
+// 광역 공격·광역 피해 연출: 표적마다 맞는 차례가 오면 공격자(또는 효과의 출처)에서 한 발씩 날린다
+const AOE_KEEP = new Set(['dmg', 'shieldHit', 'evade', 'die', 'log', 'counter', 'guard', 'buff', 'debuff']); // 광역 연출 도중에 섞여 나와도 되는 이벤트
+async function aoeShot(u) {
+  const c = B && B.aoeCtx; if (!c || !u || !c.left.has(u.uid)) return;
+  c.left.delete(u.uid);
+  const te = B.unitEls.get(u.uid);
+  if (te) { Audio2.play(c.el ? 'shot' : 'beam', 0.7); await boltTo(c.from, centerOf(te), c.color, 150); }
+  if (!c.left.size) setTimeout(() => { if (B && B.aoeCtx === c) endAoe(); }, 200 / (Store.settings.speed || 1));
+}
+function endAoe() {
+  const c = B && B.aoeCtx; if (!c) return;
+  B.aoeCtx = null;
+  if (c.el) c.el.classList.remove('lunge-up', 'lunge-down');
+}
 async function processEvents() {
   const myB = B; if (!B) return;
   const { game } = B;
@@ -1004,6 +1018,7 @@ async function processEvents() {
     alive(myB);
     if (ev.type === 'summon') holdSpawn.delete(ev.unit.uid);
     if (ev.type === 'die' || ev.type === 'withdraw') holdDie.delete(ev.unit.uid);
+    if (B.aoeCtx && !AOE_KEEP.has(ev.type)) endAoe();
     switch (ev.type) {
       case 'log': {
         const list = $('.log-list'); if (!list) break;
@@ -1053,6 +1068,14 @@ async function processEvents() {
       case 'fx': {
         const from = ev.from && B.unitEls.get(ev.from.uid) ? centerOf(B.unitEls.get(ev.from.uid)) : { x: STAGE_W / 2, y: STAGE_H / 2 - 40 };
         const color = ev.op === 'destroy' ? '#ff4d5a' : FX_COLOR.dmg;
+        const units = ev.op === 'dmg' ? ev.targets.filter(t => t.unit && B.unitEls.get(t.unit.uid)) : [];
+        if (units.length > 1) {
+          // 광역 피해: 유닛마다 맞는 차례에 한 발씩 날아간다 (사령관 대상은 바로 쏜다)
+          ev.targets.filter(t => !t.unit).forEach(t => { const el = cmdElOf(t.cmd); if (el) beamBetween(from, centerOf(el), color); });
+          endAoe(); B.aoeCtx = { el: null, from, color, left: new Set(units.map(t => t.unit.uid)) };
+          Audio2.play('boomSci'); await sleep(120);
+          break;
+        }
         for (const t of ev.targets) {
           const el = t.unit ? B.unitEls.get(t.unit.uid) : cmdElOf(t.cmd);
           if (!el) continue;
@@ -1072,9 +1095,11 @@ async function processEvents() {
         const from = centerOf(el);
         const color = FACTIONS[ev.unit.card.f].color;
         if (ev.aoe) {
-          (ev.targets || []).forEach(t => { const te = B.unitEls.get(t.uid); if (te) beamBetween(from, centerOf(te), color); });
+          // 광역 공격: 앞으로 나간 채로 표적마다 차례로 한 발씩 쏜다. 마지막 표적이 맞으면 제자리로 돌아간다
+          endAoe(); B.aoeCtx = { el, from, color, left: new Set((ev.targets || []).map(t => t.uid).filter(uid => B.unitEls.get(uid))) };
           screenFlash('white');
-          await sleep(180);
+          if (!B.aoeCtx.left.size) endAoe();
+          break;
         } else {
           const tEl = ev.targetUnit ? B.unitEls.get(ev.targetUnit.uid) : cmdElOf(ev.targetCmd);
           if (tEl) await boltTo(from, centerOf(tEl), color, 200);
@@ -1084,14 +1109,15 @@ async function processEvents() {
         break;
       }
       case 'dmg': {
+        await aoeShot(ev.unit);
         const el = B.unitEls.get(ev.unit.uid);
         if (el) { retrigger(el, 'hit'); const c = centerOf(el); burstAt(c.x, c.y, '#ff6a50'); floatAt(c.x, c.y - 30, `-${ev.v}`, ev.v >= 6 ? 'dmg big' : 'dmg'); }
         if (ev.v >= 5) await hitStop(); // 큰 한 방은 잠깐 멈추고 화면을 당긴다
         renderAll(); await sleep(260);
         break;
       }
-      case 'shieldHit': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, `🛡 -${ev.v}`, 'shield'); /* 방어막이 깨지면 낮은 소리 */ Audio2.play('shield', 0.8, ev.unit.shield <= 0 ? 0.7 : 1.1); await sleep(120); break; }
-      case 'evade': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing', 0.9, 1.35); renderAll(); await sleep(280); break; }
+      case 'shieldHit': { await aoeShot(ev.unit); const el = B.unitEls.get(ev.unit.uid); floatOn(el, `🛡 -${ev.v}`, 'shield'); /* 방어막이 깨지면 낮은 소리 */ Audio2.play('shield', 0.8, ev.unit.shield <= 0 ? 0.7 : 1.1); await sleep(120); break; }
+      case 'evade': { await aoeShot(ev.unit); const el = B.unitEls.get(ev.unit.uid); floatOn(el, '회피!', 'info'); Audio2.play('swing', 0.9, 1.35); renderAll(); await sleep(280); break; }
       case 'counter': { const el = B.unitEls.get(ev.unit.uid), t = B.unitEls.get(ev.target.uid); floatOn(el, '반격!', 'info'); Audio2.play('swingHeavy', 0.8, 0.85); if (el && t) await boltTo(centerOf(el), centerOf(t), '#ff9a3b', 160); break; }
       case 'guard': { const el = B.unitEls.get(ev.unit.uid); floatOn(el, '보호!', 'shield'); Audio2.play('shield', 1, 0.8); await sleep(200); break; }
       case 'move': { Audio2.play('swing', 0.7); renderAll(); const el = B.unitEls.get(ev.unit.uid); if (el) floatOn(el, '이동', 'info'); await sleep(300); break; }
@@ -1134,6 +1160,7 @@ async function processEvents() {
       default: break;
     }
   } } finally {
+    if (myB === B) endAoe();
     if (myB.holdDie === holdDie) myB.holdDie = null;
     if (myB.holdSpawn === holdSpawn) myB.holdSpawn = null;
     if (myB.holdDraw === holdDraw) { myB.holdDraw = null; myB.holdDrawAi = 0; }
