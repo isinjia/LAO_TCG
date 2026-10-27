@@ -71,6 +71,7 @@ screenHooks.deck = el => {
   el.innerHTML = `
     <div class="title-bar"><button class="btn small" data-a="back">← 로비</button><h2>덱 편성</h2><span class="sub">${touchText('카드를 클릭해 추가·제거 · 우클릭으로 상세 정보')}</span><span class="spacer"></span><button class="btn small" data-a="howto">덱 규칙</button><button class="btn primary" data-a="battle">이 덱으로 빠른 전투</button></div>
     <div class="deck-left">
+      <div class="deck-cmd" data-v="cmd"></div>
       <div class="deck-select"><select data-a="pick"></select><button class="btn small" data-a="new" title="새 덱">＋</button></div>
       <input class="deck-name" maxlength="24" data-a="name">
       <div class="deck-summary"><div class="deck-count"><span data-v="count">0</span><small>/${RULES.DECK_SIZE}</small></div><div class="curve" data-v="curve"></div></div>
@@ -90,6 +91,7 @@ screenHooks.deck = el => {
   $('[data-a=back]', el).innerHTML = back === 'campaign' ? '← 스토리' : '← 로비';
   $('[data-a=back]', el).onclick = () => showScreen(back || 'lobby');
   $('[data-a=howto]', el).onclick = () => openHowTo(0);
+  renderDeckCmd(el, back === 'campaign');
   $('[data-a=battle]', el).onclick = () => {
     if (Store.deckProblem(editing.cards, editing.preset)) { toast(Store.deckProblem(editing.cards, editing.preset), true); return; }
     Store.data.activeDeck = editing.id; Store.save(); setupState.myDeck = editing.id; showScreen('setup');
@@ -128,6 +130,31 @@ screenHooks.deck = el => {
   };
   renderDeck(el); renderPool(el);
 };
+
+// 내 지휘관 정보: 초상·전투원 카드 요약·특성 스킬. 스토리에서는 오렌지에이드로 고정, 자유 대국에서는 여기서도 바꿀 수 있다
+function renderDeckCmd(el, story, open) {
+  const box = $('[data-v=cmd]', el); if (!box) return;
+  const id = story ? 'PECS_Orangeade' : setupState.myCmd, c = CARDS[id], sk = heroSkillOf({ portrait: id }), f = FACTIONS[c.f];
+  const eff = sk.text.replace(/^(특성 스킬|작전 지시) — 턴당 1회\.\s*/, '');
+  box.style.setProperty('--fc', f.color);
+  box.innerHTML = `
+    <div class="dc-top">
+      <div class="dc-face" style="background-image:url('${artOf(c)}')" title="전투원 카드 상세 보기"></div>
+      <div class="dc-info">
+        <div class="dc-label">내 지휘관</div>
+        <div class="dc-name">${esc(c.n)} <span class="dc-fac">${esc(f.name)}</span></div>
+        <div class="dc-unit">전투원 카드 · ${TYPES[c.t]}형 ${ROLES[c.r]} · 비용 ${c.c} · ${c.a}/${c.h}${c.text ? ` · ${esc(c.text)}` : ''}</div>
+      </div>
+      ${story ? '<span class="dc-lock">스토리 고정</span>' : `<button class="btn small" data-a="cmdchange">${open ? '닫기' : '바꾸기'}</button>`}
+    </div>
+    <div class="dc-skill" title="특성 스킬 상세 보기"><span class="dc-icon" style="background-image:url('${iconOf(sk)}')"></span><div><b>특성 스킬 「${esc(sk.n)}」</b> <i>AP ${sk.c} · 턴당 1회</i><br>${esc(eff)}</div></div>
+    <div class="dc-note">${story ? '스토리에서는 오렌지에이드로 싸웁니다. 자유 대국에서는 다른 지휘관을 고를 수 있습니다.' : '자유 대국(빠른 전투)에서 이 지휘관으로 싸웁니다. 스토리에서는 오렌지에이드로 고정입니다.'}</div>
+    ${open ? `<div class="cmd-pick">${PLAYER_COMMANDERS.map(k => `<div class="cp-item ${k === id ? 'on' : ''}" data-cmd="${k}" title="${esc(CARDS[k].n)} — ${esc(heroSkillOf({ portrait: k }).n)}"><div class="cp-face" style="background-image:url('${artOf(CARDS[k])}')"></div><span>${esc(CARDS[k].n)}</span></div>`).join('')}</div>` : ''}`;
+  $('.dc-face', box).onclick = () => openCardDetail(c);
+  $('.dc-skill', box).onclick = () => openCardDetail(sk);
+  const chg = $('[data-a=cmdchange]', box); if (chg) chg.onclick = () => { Audio2.play('click'); renderDeckCmd(el, story, !open); };
+  $$('[data-cmd]', box).forEach(it => it.onclick = () => { setupState.myCmd = it.dataset.cmd; Audio2.play('click'); renderDeckCmd(el, story, false); });
+}
 
 function refreshPicker(el) {
   const sel = $('[data-a=pick]', el);
